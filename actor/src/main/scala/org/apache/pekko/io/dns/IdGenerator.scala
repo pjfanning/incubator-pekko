@@ -10,6 +10,7 @@
 package org.apache.pekko.io.dns
 
 import org.apache.pekko.annotation.InternalApi
+import org.apache.pekko.util.UniqueRandomShortProvider
 
 import java.security.SecureRandom
 import java.util.concurrent.ThreadLocalRandom
@@ -37,18 +38,22 @@ private[pekko] object IdGenerator {
   object Policy {
     case object ThreadLocalRandom extends Policy
     case object SecureRandom extends Policy
+
+    case object EnhancedDoubleHashRandom extends Policy
     val Default: Policy = ThreadLocalRandom
 
     def apply(name: String): Option[Policy] = name.toLowerCase match {
-      case "thread-local-random" => Some(ThreadLocalRandom)
-      case "secure-random"       => Some(SecureRandom)
-      case _                     => Some(ThreadLocalRandom)
+      case "thread-local-random"         => Some(ThreadLocalRandom)
+      case "secure-random"               => Some(SecureRandom)
+      case "enhanced-double-hash-random" => Some(EnhancedDoubleHashRandom)
+      case _                             => Some(EnhancedDoubleHashRandom)
     }
   }
 
   def apply(policy: Policy): IdGenerator = policy match {
-    case Policy.ThreadLocalRandom => random(ThreadLocalRandom.current())
-    case Policy.SecureRandom      => random(new SecureRandom())
+    case Policy.ThreadLocalRandom        => random(ThreadLocalRandom.current())
+    case Policy.SecureRandom             => random(new SecureRandom())
+    case Policy.EnhancedDoubleHashRandom => new UniqueRandomShortProvider with IdGenerator
   }
 
   def apply(): IdGenerator = random(ThreadLocalRandom.current())

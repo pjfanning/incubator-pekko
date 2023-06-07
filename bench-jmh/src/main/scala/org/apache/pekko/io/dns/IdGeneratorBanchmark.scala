@@ -9,6 +9,7 @@
 
 package org.apache.pekko.io.dns
 
+import org.apache.pekko.util.UniqueRandomShortProvider
 import org.openjdk.jmh.annotations.{
   Benchmark,
   BenchmarkMode,
@@ -35,10 +36,13 @@ import java.security.SecureRandom
 class IdGeneratorBanchmark {
   val threadLocalRandom = IdGenerator.random(ThreadLocalRandom.current())
   val secureRandom = IdGenerator.random(new SecureRandom())
-
+  val enhancedDoubleHash = new UniqueRandomShortProvider()
   @Benchmark
   def measureThreadLocalRandom(): Short = threadLocalRandom.nextId()
 
   @Benchmark
   def measureSecureRandom(): Short = secureRandom.nextId()
+
+  @Benchmark
+  def measureEnhancedDoubleHash(): Short = enhancedDoubleHash.nextId()
 }
