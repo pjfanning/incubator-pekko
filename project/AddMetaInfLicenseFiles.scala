@@ -9,8 +9,6 @@
 
 import sbt.Keys._
 import sbt._
-import org.mdedetrich.apache.sonatype.ApacheSonatypePlugin
-import org.mdedetrich.apache.sonatype.ApacheSonatypePlugin.autoImport._
 
 /**
  * Copies LICENSE and NOTICE files into jar META-INF dir
@@ -19,7 +17,54 @@ object AddMetaInfLicenseFiles extends AutoPlugin {
 
   private lazy val baseDir = LocalRootProject / baseDirectory
 
-  override lazy val projectSettings = Seq(
+  lazy val apacheSonatypeLicenseFile: SettingKey[File] =
+    settingKey[File]("The LICENSE file which needs to be included in published artifact")
+  lazy val apacheSonatypeNoticeFile: SettingKey[File] =
+    settingKey[File]("The NOTICE file which needs to be included in published artifact")
+  lazy val apacheSonatypeDisclaimerFile: SettingKey[Option[File]] =
+    settingKey[Option[File]]("The NOTICE file which needs to be included in published artifact")
+
+  lazy val sbtMavenProjectSettings: Seq[Setting[_]] = Seq(
+    licenses ++= {
+      val log = sLog.value
+      val currentLicenses = licenses.value
+      currentLicenses.collectFirst { case (field, url) if field.contains("Apache") => url } match {
+        case Some(url) =>
+          log.warn(
+            s"No Apache license added in project ${projectID.value} since a duplicate license has already been detected with url: ${url.toString}, please remove it")
+          Nil
+        case None => Seq("Apache-2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0.html"))
+      }
+    },
+    apacheSonatypeLicenseFile := baseDir.value / "LICENSE",
+    apacheSonatypeNoticeFile := baseDir.value / "NOTICE",
+    apacheSonatypeDisclaimerFile := None) ++ inConfig(Compile)(
+    Seq(
+      resourceGenerators += {
+        Def.task {
+          val dir = resourceManaged.value
+          List(
+            addFileToMetaInf(dir, apacheSonatypeLicenseFile.value, Some("LICENSE")),
+            addFileToMetaInf(dir, apacheSonatypeNoticeFile.value, Some("NOTICE"))) ++ apacheSonatypeDisclaimerFile.value
+            .map(disclaimerFile => addFileToMetaInf(dir, disclaimerFile))
+            .toList
+        }
+      },
+      // See https://issues.apache.org/jira/browse/LEGAL-28
+      packageSrc / mappings ++= {
+        Seq(
+          apacheSonatypeLicenseFile.value -> "META-INF/LICENSE",
+          apacheSonatypeNoticeFile.value -> "META-INF/NOTICE") ++ apacheSonatypeDisclaimerFile.value.map(path =>
+          path -> "META-INF/DISCLAIMER").toSeq
+      },
+      packageDoc / mappings ++= {
+        Seq(
+          apacheSonatypeLicenseFile.value -> "META-INF/LICENSE",
+          apacheSonatypeNoticeFile.value -> "META-INF/NOTICE") ++ apacheSonatypeDisclaimerFile.value.map(path =>
+          path -> "META-INF/DISCLAIMER").toSeq
+      }))
+
+  override lazy val projectSettings = sbtMavenProjectSettings ++ Seq(
     apacheSonatypeLicenseFile := baseDir.value / "legal" / "StandardLicense.txt",
     apacheSonatypeNoticeFile := baseDir.value / "legal" / "PekkoNotice.txt",
     apacheSonatypeDisclaimerFile := Some(baseDir.value / "DISCLAIMER"))
@@ -65,7 +110,7 @@ object AddMetaInfLicenseFiles extends AutoPlugin {
     resourceGenerators += {
       Def.task {
         List(
-          ApacheSonatypePlugin.addFileToMetaInf(resourceManaged.value, baseDir.value / "COPYING.protobuf"))
+          addFileToMetaInf(resourceManaged.value, baseDir.value / "COPYING.protobuf"))
       }
     }))
 
@@ -79,11 +124,31 @@ object AddMetaInfLicenseFiles extends AutoPlugin {
       resourceGenerators += {
         Def.task {
           List(
-            ApacheSonatypePlugin.addFileToMetaInf(resourceManaged.value, baseDir.value / "COPYING.protobuf"))
+            addFileToMetaInf(resourceManaged.value, baseDir.value / "COPYING.protobuf"))
         }
       }))
 
-  override def trigger = allRequirements
+  /**
+   * Adds a file to the a specified resourceManaged `META-INF` folder so that it will get included by sbt when
+   * generating artifacts
+   *
+   * @see
+   * https://www.scala-sbt.org/1.x/docs/Howto-Generating-Files.html#Generate+resources
+   * @param resourceManagedDir
+   * sbt's resource managed directory typically derived by using `resourcedManaged.value`, the file will get copied
+   * in this location under the `META-INF` folder.
+   * @param file
+   * The file you want to add to the META-INF folder
+   * @param targetFileName
+   * The target file name, if not specified then it uses the same filename specified in `file`.
+   * @return
+   * The resulting [[File]] which was added
+   */
+  final def addFileToMetaInf(resourceManagedDir: File, file: File, targetFileName: Option[String] = None): File = {
+    val toFile = resourceManagedDir / "META-INF" / targetFileName.getOrElse(file.getName)
+    IO.copyFile(file, toFile)
+    toFile
+  }
 
-  override def requires = ApacheSonatypePlugin
+  override def trigger = allRequirements
 }

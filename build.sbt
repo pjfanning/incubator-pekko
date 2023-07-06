@@ -13,7 +13,9 @@ ThisBuild / scalafixScalaBinaryVersion := scalaBinaryVersion.value
 
 scalaVersion := Dependencies.allScalaVersions.head
 
-ThisBuild / apacheSonatypeProjectProfile := "pekko"
+ThisBuild / organization := "com.github.pjfanning.pekko"
+ThisBuild / version := "0.1.0-SNAPSHOT"
+// ThisBuild / apacheSonatypeProjectProfile := "pekko"
 ThisBuild / versionScheme := Some(VersionScheme.SemVerSpec)
 sourceDistName := "apache-pekko"
 sourceDistIncubating := true
