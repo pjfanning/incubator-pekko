@@ -362,7 +362,7 @@ Copyright 2016 Lightbend Inc. [http://www.lightbend.com]
 
 pekko-stream contains code derived from jaceksokol/akka-stream-map-async-partition
 <https://github.com/jaceksokol/akka-stream-map-async-partition>
-wich is licensed under an MIT License.
+which is licensed under an MIT License.
 
  - stream/src/main/scala/org/apache/pekko/stream/MapAsyncPartition.scala
  - stream-tests/src/test/scala/org/apache/pekko/stream/MapAsyncPartitionSpec.scala
