@@ -11,6 +11,7 @@ import pekko.stream.scaladsl.{ Flow, FlowWithContext, Source, SourceWithContext 
 import pekko.stream.stage.{ AsyncCallback, GraphStage, GraphStageLogic, InHandler, OutHandler }
 
 // derived from https://github.com/jaceksokol/akka-stream-map-async-partition/tree/45bdbb97cf82bf22d5decd26df18702ae81a99f9/src/main/scala/com/github/jaceksokol/akka/stream
+// licensed under an MIT License
 private object MapAsyncPartition {
 
   val DefaultBufferSize = 10
