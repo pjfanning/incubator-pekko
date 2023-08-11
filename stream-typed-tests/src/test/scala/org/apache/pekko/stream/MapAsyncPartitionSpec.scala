@@ -1,16 +1,19 @@
+/*
+ + No License Header
+ */
+
 package org.apache.pekko.stream
 
 import java.util.concurrent.Executors
-import scala.concurrent.duration.{ DurationInt, FiniteDuration }
-import scala.concurrent.{ blocking, ExecutionContext, Future }
+import scala.concurrent.duration.{DurationInt, FiniteDuration}
+import scala.concurrent.{ExecutionContext, Future, blocking}
 import scala.language.postfixOps
 import scala.util.Random
-
 import org.apache.pekko
 import pekko.actor.typed.ActorSystem
 import pekko.actor.typed.scaladsl.Behaviors
-import pekko.stream.scaladsl.{ Keep, Sink, Source }
-import org.scalacheck.{ Arbitrary, Gen }
+import pekko.stream.scaladsl.{Keep, Sink, Source}
+import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec

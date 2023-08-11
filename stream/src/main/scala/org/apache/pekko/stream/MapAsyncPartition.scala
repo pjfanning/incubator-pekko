@@ -1,3 +1,7 @@
+/*
+ + No License Header
+ */
+
 package org.apache.pekko.stream
 
 import scala.collection.mutable
@@ -194,7 +198,7 @@ private[stream] class MapAsyncPartition[In, Out, Partition](
           drainQueue()
           pullIfNeeded()
         } else if (isAvailable(out)) {
-          inProgress.filterInPlace { case (_, ctx @ Contextual(_, holder)) =>
+          inProgress.filterInPlace { case (_, Contextual(_, holder)) =>
             if ((holder.elem eq MapAsyncPartition.Holder.NotYetThere) || !isAvailable(out)) {
               true
             } else {
