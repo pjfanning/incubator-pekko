@@ -32,10 +32,10 @@ private object MapAsyncPartitionSpec {
     case class TestKeyValue(key: Int, delay: FiniteDuration, value: String)
 
     implicit val bufferSizeArb: Arbitrary[BufferSize] = Arbitrary {
-      Gen.choose(1, 100).map(BufferSize)
+      Gen.choose(1, 100).map(BufferSize.apply)
     }
     implicit val parallelismArb: Arbitrary[Parallelism] = Arbitrary {
-      Gen.choose(2, 8).map(Parallelism)
+      Gen.choose(2, 8).map(Parallelism.apply)
     }
     implicit val elementsArb: Arbitrary[Seq[TestKeyValue]] = Arbitrary {
       for {
@@ -164,7 +164,7 @@ class MapAsyncPartitionSpec
 
   it should "stop the stream via a KillSwitch" in {
     val (killSwitch, future) =
-      Source(LazyList.from(1))
+      Source(Stream.from(1))
         .mapAsyncPartition(parallelism = 6)(i => i % 6) { i =>
           Future {
             blocking {
@@ -188,9 +188,9 @@ class MapAsyncPartitionSpec
     }
   }
 
-  it should "stop the stream if any operation fail" in {
+  it should "stop the stream if any operation fails" in {
     val future =
-      Source(LazyList.from(1))
+      Source(Stream.from(1))
         .mapAsyncPartition(parallelism = 4)(i => i % 8) { i =>
           Future {
             if (i == 23) throw new RuntimeException("Ignore it")

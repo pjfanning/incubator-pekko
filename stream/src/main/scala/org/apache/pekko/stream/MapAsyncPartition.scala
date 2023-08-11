@@ -5,14 +5,17 @@
 package org.apache.pekko.stream
 
 import scala.collection.mutable
-import scala.concurrent.{ ExecutionContext, Future }
-import scala.util.control.{ NoStackTrace, NonFatal }
-import scala.util.{ Failure, Success, Try }
+import scala.concurrent.Future
+import scala.util.control.{NoStackTrace, NonFatal}
+import scala.util.{Failure, Success, Try}
 import org.apache.pekko
+import pekko.dispatch.ExecutionContexts
 import pekko.stream.ActorAttributes.SupervisionStrategy
-import pekko.stream.Attributes.{ Name, SourceLocation }
-import pekko.stream.scaladsl.{ Flow, FlowWithContext, Source, SourceWithContext }
-import pekko.stream.stage.{ AsyncCallback, GraphStage, GraphStageLogic, InHandler, OutHandler }
+import pekko.stream.Attributes.{Name, SourceLocation}
+import pekko.stream.scaladsl.{Flow, FlowWithContext, Source, SourceWithContext}
+import pekko.stream.stage.{AsyncCallback, GraphStage, GraphStageLogic, InHandler, OutHandler}
+
+import scala.annotation.nowarn
 
 // derived from https://github.com/jaceksokol/akka-stream-map-async-partition/tree/45bdbb97cf82bf22d5decd26df18702ae81a99f9/src/main/scala/com/github/jaceksokol/akka/stream
 // licensed under an MIT License
@@ -24,7 +27,7 @@ private[stream] object MapAsyncPartition {
     extract(tuple._1)
 
   private def fWithCtx[In, Out, Ctx](f: In => Future[Out])(tuple: (In, Ctx)): Future[(Out, Ctx)] =
-    f(tuple._1).map(_ -> tuple._2)(ExecutionContext.parasitic)
+    f(tuple._1).map(_ -> tuple._2)(ExecutionContexts.parasitic)
 
   def mapSourceAsyncPartition[In, Out, Partition, Mat](source: Source[In, Mat], parallelism: Int,
       bufferSize: Int = DefaultBufferSize)(
@@ -180,7 +183,7 @@ private[stream] class MapAsyncPartition[In, Out, Partition](
         inProgress.put(partition, Contextual(element.context, holder))
 
         future.value match {
-          case None    => future.onComplete(holder)(scala.concurrent.ExecutionContext.parasitic)
+          case None    => future.onComplete(holder)(ExecutionContexts.parasitic)
           case Some(v) =>
             // #20217 the future is already here, optimization: avoid scheduling it on the dispatcher and
             // run the logic directly on this thread
@@ -193,12 +196,13 @@ private[stream] class MapAsyncPartition[In, Out, Partition](
         }
       }
 
+      @nowarn("msg=deprecated") // use Map.retain to support Scala 2.12
       private def pushNextIfPossible(): Unit =
         if (inProgress.isEmpty) {
           drainQueue()
           pullIfNeeded()
         } else if (isAvailable(out)) {
-          inProgress.filterInPlace { case (_, Contextual(_, holder)) =>
+          inProgress.retain { case (_, Contextual(_, holder)) =>
             if ((holder.elem eq MapAsyncPartition.Holder.NotYetThere) || !isAvailable(out)) {
               true
             } else {
