@@ -99,6 +99,11 @@ final class Source[+Out, +Mat](
   override def mapMaterializedValue[Mat2](f: Mat => Mat2): ReprMat[Out, Mat2] =
     new Source[Out, Mat2](traversalBuilder.transformMat(f.asInstanceOf[Any => Any]), shape)
 
+  def mapAsyncPartition[T, Partition](parallelism: Int, bufferSize: Int = MapAsyncPartition.DefaultBufferSize)(
+      extractPartition: Out => Partition)(f: Out => Future[T]): Source[T, Mat] = {
+    MapAsyncPartition.mapSourceAsyncPartition(this, parallelism, bufferSize)(extractPartition)(f)
+  }
+
   /**
    * Materializes this Source, immediately returning (1) its materialized value, and (2) a new Source
    * that can be used to consume elements from the newly materialized Source.

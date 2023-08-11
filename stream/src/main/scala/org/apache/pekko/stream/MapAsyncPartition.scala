@@ -12,7 +12,7 @@ import pekko.stream.stage.{ AsyncCallback, GraphStage, GraphStageLogic, InHandle
 
 // derived from https://github.com/jaceksokol/akka-stream-map-async-partition/tree/45bdbb97cf82bf22d5decd26df18702ae81a99f9/src/main/scala/com/github/jaceksokol/akka/stream
 // licensed under an MIT License
-private object MapAsyncPartition {
+private[stream] object MapAsyncPartition {
 
   val DefaultBufferSize = 10
 
@@ -22,12 +22,11 @@ private object MapAsyncPartition {
   private def fWithCtx[In, Out, Ctx](f: In => Future[Out])(tuple: (In, Ctx)): Future[(Out, Ctx)] =
     f(tuple._1).map(_ -> tuple._2)(ExecutionContext.parasitic)
 
-  implicit class SourceExtension[In, +Mat](source: Source[In, Mat]) {
-    def mapAsyncPartition[T, Partition](parallelism: Int, bufferSize: Int = DefaultBufferSize)(
-        extractPartition: In => Partition)(
-        f: In => Future[T]): Source[T, Mat] =
-      source.via(new MapAsyncPartition[In, T, Partition](parallelism, bufferSize, extractPartition, f))
-  }
+  def mapSourceAsyncPartition[In, Out, Partition, Mat](source: Source[In, Mat], parallelism: Int,
+      bufferSize: Int = DefaultBufferSize)(
+      extractPartition: In => Partition)(
+      f: In => Future[Out]): Source[Out, Mat] =
+    source.via(new MapAsyncPartition[In, Out, Partition](parallelism, bufferSize, extractPartition, f))
 
   implicit class SourceWithContextExtension[In, +Ctx, +Mat](flow: SourceWithContext[In, Ctx, Mat]) {
     def mapAsyncPartition[T, Partition](parallelism: Int, bufferSize: Int = DefaultBufferSize)(
