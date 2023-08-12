@@ -35,36 +35,33 @@ private[stream] object MapAsyncPartition {
       f: In => Future[Out]): Source[Out, Mat] =
     source.via(new MapAsyncPartition[In, Out, Partition](parallelism, bufferSize, extractPartition, f))
 
-  implicit class SourceWithContextExtension[In, +Ctx, +Mat](flow: SourceWithContext[In, Ctx, Mat]) {
-    def mapAsyncPartition[T, Partition](parallelism: Int, bufferSize: Int = DefaultBufferSize)(
-        extractPartition: In => Partition)(
-        f: In => Future[T]): SourceWithContext[T, Ctx, Mat] =
-      flow.via(
-        new MapAsyncPartition[(In, Ctx), (T, Ctx), Partition](
-          parallelism,
-          bufferSize,
-          extractPartitionWithCtx(extractPartition),
-          fWithCtx(f)))
-  }
+  def mapSourceWithContextAsyncPartition[In, Ctx, T, Partition, Mat](flow: SourceWithContext[In, Ctx, Mat],
+      parallelism: Int, bufferSize: Int = DefaultBufferSize)(
+      extractPartition: In => Partition)(
+      f: In => Future[T]): SourceWithContext[T, Ctx, Mat] =
+    flow.via(
+      new MapAsyncPartition[(In, Ctx), (T, Ctx), Partition](
+        parallelism,
+        bufferSize,
+        extractPartitionWithCtx(extractPartition),
+        fWithCtx(f)))
 
-  implicit class FlowExtension[In, +Out, +Mat](flow: Flow[In, Out, Mat]) {
-    def mapAsyncPartition[T, Partition](parallelism: Int, bufferSize: Int = DefaultBufferSize)(
-        extractPartition: Out => Partition)(
-        f: Out => Future[T]): Flow[In, T, Mat] =
-      flow.via(new MapAsyncPartition[Out, T, Partition](parallelism, bufferSize, extractPartition, f))
-  }
+  def mapFlowAsyncPartition[In, Out, T, Partition, Mat](flow: Flow[In, Out, Mat], parallelism: Int,
+      bufferSize: Int = DefaultBufferSize)(
+      extractPartition: Out => Partition)(
+      f: Out => Future[T]): Flow[In, T, Mat] =
+    flow.via(new MapAsyncPartition[Out, T, Partition](parallelism, bufferSize, extractPartition, f))
 
-  implicit class FlowWithContextExtension[In, +Out, Ctx, +Mat](flow: FlowWithContext[In, Ctx, Out, Ctx, Mat]) {
-    def mapAsyncPartition[T, Partition](parallelism: Int, bufferSize: Int = DefaultBufferSize)(
-        extractPartition: Out => Partition)(
-        f: Out => Future[T]): FlowWithContext[In, Ctx, T, Ctx, Mat] =
-      flow.via(
-        new MapAsyncPartition[(Out, Ctx), (T, Ctx), Partition](
-          parallelism,
-          bufferSize,
-          extractPartitionWithCtx(extractPartition),
-          fWithCtx(f)))
-  }
+  def mapFlowWithContextAsyncPartition[In, Out, Ctx, T, Partition, Mat](flow: FlowWithContext[In, Ctx, Out, Ctx, Mat],
+      parallelism: Int, bufferSize: Int = DefaultBufferSize)(
+      extractPartition: Out => Partition)(
+      f: Out => Future[T]): FlowWithContext[In, Ctx, T, Ctx, Mat] =
+    flow.via(
+      new MapAsyncPartition[(Out, Ctx), (T, Ctx), Partition](
+        parallelism,
+        bufferSize,
+        extractPartitionWithCtx(extractPartition),
+        fWithCtx(f)))
 
   private object Holder {
     val NotYetThere: Failure[Nothing] = Failure(new Exception with NoStackTrace)

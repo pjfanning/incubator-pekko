@@ -5,6 +5,7 @@
 package org.apache.pekko.stream
 
 import java.util.concurrent.Executors
+import scala.annotation.nowarn
 import scala.concurrent.duration.{ DurationInt, FiniteDuration }
 import scala.concurrent.{ blocking, ExecutionContext, Future }
 import scala.language.postfixOps
@@ -164,7 +165,7 @@ class MapAsyncPartitionSpec
 
   it should "stop the stream via a KillSwitch" in {
     val (killSwitch, future) =
-      Source(Stream.from(1))
+      Source(infiniteStream())
         .mapAsyncPartition(parallelism = 6)(i => i % 6) { i =>
           Future {
             blocking {
@@ -190,7 +191,7 @@ class MapAsyncPartitionSpec
 
   it should "stop the stream if any operation fails" in {
     val future =
-      Source(Stream.from(1))
+      Source(infiniteStream())
         .mapAsyncPartition(parallelism = 4)(i => i % 8) { i =>
           Future {
             if (i == 23) throw new RuntimeException("Ignore it")
@@ -203,4 +204,6 @@ class MapAsyncPartitionSpec
     future.failed.futureValue shouldBe a[RuntimeException]
   }
 
+  @nowarn("msg=deprecated")
+  private def infiniteStream(): Stream[Int] = Stream.from(1)
 }
