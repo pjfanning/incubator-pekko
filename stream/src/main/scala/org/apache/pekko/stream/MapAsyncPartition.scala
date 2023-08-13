@@ -52,7 +52,8 @@ private[stream] object MapAsyncPartition {
       f: Out => Future[T]): Flow[In, T, Mat] =
     flow.via(new MapAsyncPartition[Out, T, Partition](parallelism, bufferSize, extractPartition, f))
 
-  def mapFlowWithContextAsyncPartition[In, Out, CtxIn, CtxOut, T, Partition, Mat](flow: FlowWithContext[In, CtxIn, Out, CtxOut, Mat],
+  def mapFlowWithContextAsyncPartition[In, Out, CtxIn, CtxOut, T, Partition, Mat](
+      flow: FlowWithContext[In, CtxIn, Out, CtxOut, Mat],
       parallelism: Int, bufferSize: Int = DefaultBufferSize)(
       extractPartition: Out => Partition)(
       f: Out => Future[T]): FlowWithContext[In, CtxIn, T, CtxOut, Mat] =

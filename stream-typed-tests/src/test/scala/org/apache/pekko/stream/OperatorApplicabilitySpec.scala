@@ -4,12 +4,12 @@
 
 package org.apache.pekko.stream
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 import org.apache.pekko
 import pekko.actor.typed.ActorSystem
 import pekko.actor.typed.scaladsl.Behaviors
-import pekko.stream.scaladsl.{Flow, FlowWithContext, Sink, Source, SourceWithContext}
+import pekko.stream.scaladsl.{ Flow, FlowWithContext, Sink, Source, SourceWithContext }
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
