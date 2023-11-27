@@ -14,12 +14,10 @@
 package org.apache.pekko.dispatch
 
 import java.util.concurrent.{ ConcurrentHashMap, ThreadFactory }
-
+import scala.annotation.{ nowarn, tailrec }
 import scala.concurrent.ExecutionContext
 
-import scala.annotation.nowarn
 import com.typesafe.config.{ Config, ConfigFactory, ConfigValueType }
-
 import org.apache.pekko
 import pekko.ConfigurationException
 import pekko.actor.{ ActorSystem, DynamicAccess, Scheduler }
@@ -83,6 +81,7 @@ object Dispatchers {
    *
    * Get (possibly aliased) dispatcher config. Returns empty config if not found.
    */
+  @tailrec
   private[pekko] def getConfig(config: Config, id: String, depth: Int = 0): Config = {
     if (depth > MaxDispatcherAliasDepth)
       ConfigFactory.empty(s"Didn't find dispatcher config after $MaxDispatcherAliasDepth aliases")
@@ -261,7 +260,8 @@ class Dispatchers @InternalApi private[pekko] (
    */
   private def configuratorFrom(cfg: Config): MessageDispatcherConfigurator = {
     if (!cfg.hasPath("id"))
-      throw new ConfigurationException("Missing dispatcher 'id' property in config: " + cfg.root.render)
+      throw new ConfigurationException("Missing dispatcher 'id' property in config: " +
+        cfg.renderWithRedactions())
 
     cfg.getString("type") match {
       case "Dispatcher"          => new DispatcherConfigurator(cfg, prerequisites)

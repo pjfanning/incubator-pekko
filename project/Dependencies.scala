@@ -37,8 +37,6 @@ object Dependencies {
 
   val scala212Version = "2.12.18"
   val scala213Version = "2.13.11"
-  // To get the fix for https://github.com/lampepfl/dotty/issues/13106
-  // and restored static forwarders
   val scala3Version = "3.3.1"
   val allScalaVersions = Seq(scala213Version, scala212Version, scala3Version)
 
@@ -58,7 +56,7 @@ object Dependencies {
   object Compile {
     // Compile
 
-    val config = "com.typesafe" % "config" % "1.4.2"
+    val config = "com.typesafe" % "config" % "1.4.3"
     val netty = "io.netty" % "netty" % nettyVersion
 
     val scalaReflect = ScalaVersionDependentModuleID.versioned("org.scala-lang" % "scala-reflect" % _)
@@ -266,6 +264,14 @@ object Dependencies {
     Provided.junit,
     Provided.scalatest.value,
     TestDependencies.scalatestJUnit.value)
+
+  val actorTypedTestSlf4j2 = if (java.lang.Boolean.getBoolean("pekko.test.slf4j2")) {
+    Seq(dependencyOverrides ++= Seq(
+      "org.slf4j" % "slf4j-api" % "2.0.9",
+      "ch.qos.logback" % "logback-classic" % "1.3.11" % Test))
+  } else {
+    Seq.empty
+  }
 
   val pki = l ++=
     Seq(
