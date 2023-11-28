@@ -53,6 +53,15 @@ private[cluster] abstract class SeedNodeProcess(joinConfigCompatChecker: JoinCon
       .contains("akka")
   }
 
+  private lazy val akkaVersion: String = {
+    val cfg = context.system.settings.config
+    if (cfg.hasPath("akka.version")) {
+      cfg.getString("akka.version")
+    } else {
+      cfg.getString("pekko.cluster.akka.version")
+    }
+  }
+
   private def stopOrBecome(behavior: Option[Actor.Receive]): Unit =
     behavior match {
       case Some(done) => context.become(done) // JoinSeedNodeProcess
@@ -71,7 +80,9 @@ private[cluster] abstract class SeedNodeProcess(joinConfigCompatChecker: JoinCon
     val configToValidate =
       JoinConfigCompatChecker.filterWithKeys(requiredNonSensitiveKeys, context.system.settings.config)
 
-    val adjustedConfig = if (needsAkkaConfig) ConfigUtil.addAkkaConfig(configToValidate) else configToValidate
+    val adjustedConfig = if (needsAkkaConfig)
+      ConfigUtil.addAkkaConfig(configToValidate, akkaVersion)
+    else configToValidate
 
     logInfo("init-join config = " + adjustedConfig)
 

@@ -24,7 +24,7 @@ import scala.annotation.nowarn
 private[cluster] object ConfigUtil {
 
   @nowarn("msg=deprecated")
-  def addAkkaConfig(cfg: Config): Config = {
+  def addAkkaConfig(cfg: Config, akkaVersion: String): Config = {
     import scala.collection.JavaConverters._
     val innerSet = cfg.entrySet().asScala
       .filter(e => e.getKey.startsWith("pekko.") && e.getValue.valueType() != ConfigValueType.OBJECT)
@@ -35,7 +35,7 @@ private[cluster] object ConfigUtil {
     innerSet.foreach { case (key, value) =>
       newConfig = newConfig.withValue(key, value)
     }
-    newConfig
+    newConfig.withValue("akka.version", ConfigValueFactory.fromAnyRef(akkaVersion))
   }
 
   private def adjustPackageNameIfNecessary(cv: ConfigValue): ConfigValue = {
