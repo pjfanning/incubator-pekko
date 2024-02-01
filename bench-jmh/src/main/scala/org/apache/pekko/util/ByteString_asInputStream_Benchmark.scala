@@ -32,7 +32,7 @@ class ByteString_asInputStream_Benchmark {
 
   var bs: ByteString = _
 
-  var composed: ByteString = _
+  var composed: ByteString.ByteStrings = _
 
   @Param(Array("10", "100", "1000"))
   var kb = 0
@@ -59,30 +59,40 @@ class ByteString_asInputStream_Benchmark {
   def setup(): Unit = {
     val bytes = Array.ofDim[Byte](1024 * kb)
     bs = ByteString(bytes)
-    composed = ByteString.empty
+    var c = ByteString.empty
     for (_ <- 0 to 100) {
-      composed = composed ++ bs
+      c = c ++ bs
     }
+    composed = c.asInstanceOf[ByteString.ByteStrings]
   }
 
+  /*
   @Benchmark
   def single_bs_bytes_to_input_stream(blackhole: Blackhole): Unit = {
     blackhole.consume(countBytes(new ByteArrayInputStream(bs.toArray)))
   }
+  */
 
   @Benchmark
   def composed_bs_bytes_to_input_stream(blackhole: Blackhole): Unit = {
     blackhole.consume(countBytes(new ByteArrayInputStream(composed.toArray)))
   }
 
+  /*
   @Benchmark
   def single_bs_as_input_stream(blackhole: Blackhole): Unit = {
     blackhole.consume(countBytes(bs.asInputStream))
   }
+  */
 
   @Benchmark
   def composed_bs_as_input_stream(blackhole: Blackhole): Unit = {
     blackhole.consume(countBytes(composed.asInputStream))
+  }
+
+  @Benchmark
+  def composed_bs_as_input_stream2(blackhole: Blackhole): Unit = {
+    blackhole.consume(countBytes(composed.asInputStream2))
   }
 
   private def countBytes(stream: InputStream): Int = {

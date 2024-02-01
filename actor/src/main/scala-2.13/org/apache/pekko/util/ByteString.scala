@@ -585,6 +585,20 @@ object ByteString {
     override def asInputStream: InputStream =
       new SequenceInputStream(bytestrings.map(_.asInputStream).iterator.asJavaEnumeration)
 
+    private class VectorEnumeration[T](v: Vector[T]) extends java.util.Enumeration[T] {
+      private var pos = 0
+      override def hasMoreElements: Boolean = pos < v.length
+      override def nextElement(): T = {
+        val r = v(pos)
+        pos += 1
+        r
+      }
+    }
+
+    def asInputStream2: InputStream = {
+      new SequenceInputStream(new VectorEnumeration(bytestrings.map(_.asInputStream)))
+    }
+
     def decodeString(charset: String): String = compact.decodeString(charset)
 
     def decodeString(charset: Charset): String = compact.decodeString(charset)
