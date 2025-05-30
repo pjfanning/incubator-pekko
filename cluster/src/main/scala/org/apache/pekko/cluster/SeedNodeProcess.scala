@@ -50,6 +50,12 @@ private[cluster] abstract class SeedNodeProcess(joinConfigCompatChecker: JoinCon
   private lazy val supportsAkkaConfig: Boolean = ConfigUtil.supportsAkkaConfig(
     context.system.settings.config)
 
+  private lazy val strictAkkaConfig: Boolean = {
+    val cfg = context.system.settings.config
+    cfg.getString("pekko.remote.protocol-name") == "akka" &&
+    cfg.getBoolean("pekko.remote.enforce-strict-config-prefix-check-on-join")
+  }
+
   private lazy val akkaVersion: String = ConfigUtil.getAkkaVersion(context.system.settings.config)
 
   private def stopOrBecome(behavior: Option[Actor.Receive]): Unit =
@@ -121,9 +127,18 @@ private[cluster] abstract class SeedNodeProcess(joinConfigCompatChecker: JoinCon
     logInitJoinAckReceived(origin)
 
     // validates config coming from cluster against this node config
-    val toCheck = if (supportsAkkaConfig)
-      ConfigUtil.changeAkkaToPekkoConfig(configCheck.clusterConfig)
-    else configCheck.clusterConfig
+    val toCheck = if (supportsAkkaConfig) {
+      if (configCheck.clusterConfig.hasPath("pekko")) {
+        if (strictAkkaConfig)
+          ConfigUtil.changeAkkaToPekkoConfig(configCheck.clusterConfig.withoutPath("pekko"))
+        else
+          configCheck.clusterConfig
+      } else {
+        ConfigUtil.changeAkkaToPekkoConfig(configCheck.clusterConfig)
+      }
+    } else {
+      configCheck.clusterConfig
+    }
     joinConfigCompatChecker.check(toCheck, context.system.settings.config) match {
       case Valid =>
         // first InitJoinAck reply
