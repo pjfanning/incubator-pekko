@@ -610,11 +610,24 @@ private[cluster] class ClusterCoreDaemon(publisher: ActorRef, joinConfigCompatCh
   private lazy val supportsAkkaConfig: Boolean = ConfigUtil.supportsAkkaConfig(
     context.system.settings.config)
 
+  private lazy val strictAkkaConfig: Boolean = {
+    val cfg = context.system.settings.config
+    cfg.getString("pekko.remote.protocol-name") == "akka" &&
+    cfg.getBoolean("pekko.remote.enforce-strict-config-prefix-check-on-join")
+  }
+
   private lazy val akkaVersion: String = ConfigUtil.getAkkaVersion(context.system.settings.config)
 
   def initJoin(inputConfig: Config): Unit = {
-    val joiningNodeConfig = if (supportsAkkaConfig && !inputConfig.hasPath("pekko")) {
-      ConfigUtil.changeAkkaToPekkoConfig(inputConfig)
+    val joiningNodeConfig = if (supportsAkkaConfig) {
+      if (inputConfig.hasPath("pekko")) {
+        if (strictAkkaConfig)
+          ConfigUtil.changeAkkaToPekkoConfig(inputConfig.withoutPath("pekko"))
+        else
+          inputConfig
+      } else {
+        ConfigUtil.changeAkkaToPekkoConfig(inputConfig)
+      }
     } else {
       inputConfig
     }
