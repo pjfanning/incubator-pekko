@@ -29,7 +29,7 @@ private[pekko] object Children {
   val GetNobody = () => Nobody
 }
 
-private[pekko] trait Children { this: ActorCell =>
+private[pekko] trait Children extends ActorCellBase { this: ActorCell =>
 
   import ChildrenContainer._
 
@@ -120,13 +120,12 @@ private[pekko] trait Children { this: ActorCell =>
     refs.valuesIterator.foreach(_.stop())
   }
 
-  @nowarn @volatile private var _nextNameDoNotCallMeDirectly = 0L
   final protected def randomName(sb: java.lang.StringBuilder): String = {
-    val num = Unsafe.instance.getAndAddLong(this, AbstractActorCell.nextNameOffset, 1): @nowarn("cat=deprecation")
+    val num = ActorCellBase._nextNameUpdater.getAndIncrement(this)
     Helpers.base64(num, sb)
   }
   final protected def randomName(): String = {
-    val num = Unsafe.instance.getAndAddLong(this, AbstractActorCell.nextNameOffset, 1): @nowarn("cat=deprecation")
+    val num = ActorCellBase._nextNameUpdater.getAndIncrement(this)
     Helpers.base64(num)
   }
 
@@ -148,7 +147,6 @@ private[pekko] trait Children { this: ActorCell =>
   @nowarn private def _preventPrivateUnusedErasure = {
     _childrenRefsDoNotCallMeDirectly
     _functionRefsDoNotCallMeDirectly
-    _nextNameDoNotCallMeDirectly
   }
 
   /**
