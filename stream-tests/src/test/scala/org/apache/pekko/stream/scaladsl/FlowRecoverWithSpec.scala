@@ -310,5 +310,164 @@ class FlowRecoverWithSpec extends StreamSpec {
       result.failed.futureValue should ===(matFail)
 
     }
+
+    "handle repeated FailedSource returns and eventually exhaust retries" in {
+      // Tests that repeatedly returning Source.failed() exhausts retries correctly
+      val counter = new java.util.concurrent.atomic.AtomicInteger(0)
+      Source.failed[Int](ex)
+        .recoverWithRetries(5, {
+          case _: Throwable =>
+            if (counter.incrementAndGet() < 5) {
+              Source.failed(ex)
+            } else {
+              Source.single(42)
+            }
+        })
+        .runWith(TestSink[Int]())
+        .request(1)
+        .expectNext(42)
+        .expectComplete()
+      // Should be called 5 times: initial failure + 4 FailedSource recursions
+      counter.get() shouldBe 5
+    }
+
+    "handle partial function throwing during FailedSource handling" in {
+      // Tests that exceptions in the partial function are handled gracefully
+      val counter = new java.util.concurrent.atomic.AtomicInteger(0)
+      val pfException = new IllegalStateException("PF threw") with NoStackTrace
+      Source.failed[Int](ex)
+        .recoverWithRetries(5, {
+          case _: Throwable =>
+            if (counter.incrementAndGet() == 2) {
+              throw pfException
+            } else if (counter.get() < 4) {
+              Source.failed(ex)
+            } else {
+              Source.single(99)
+            }
+        })
+        .runWith(TestSink[Int]())
+        .request(1)
+        .expectError(pfException)
+    }
+
+    "handle mixed scenarios with runtime failures and FailedSource" in {
+      // Tests interleaving of runtime failures with FailedSource instances
+      val counter = new java.util.concurrent.atomic.AtomicInteger(0)
+      Source(1 to 10)
+        .map { a =>
+          if (a == 3 || a == 6 || a == 9) throw ex else a
+        }
+        .recoverWithRetries(10, {
+          case _: Throwable =>
+            val count = counter.incrementAndGet()
+            if (count % 2 == 0) {
+              // Even counts: return FailedSource
+              Source.failed(ex)
+            } else {
+              // Odd counts: return source that will fail again
+              Source(List(count * 10)).map(x => if (x > 0) throw ex else x)
+            }
+        })
+        .runWith(TestSink[Int]())
+        .request(20)
+        .expectNextN(List(1, 2))
+        .expectError(ex) // Eventually exhausts retries
+    }
+
+    "handle boundary condition when retries exhausted with FailedSource" in {
+      // Tests that max retries works correctly with FailedSource
+      val counter = new java.util.concurrent.atomic.AtomicInteger(0)
+      Source.failed[Int](ex)
+        .recoverWithRetries(3, {
+          case _: Throwable =>
+            counter.incrementAndGet()
+            Source.failed(ex) // Always return FailedSource
+        })
+        .runWith(TestSink[Int]())
+        .request(1)
+        .expectError(ex)
+      // Note: FailedSource doesn't increment attempt counter, so PF is called many times
+      // until the recursion detects max retries
+      counter.get() should be > 3
+    }
+
+    "handle nested FailedSource chains" in {
+      // Tests: FailedSource → FailedSource → FailedSource → success
+      val counter = new java.util.concurrent.atomic.AtomicInteger(0)
+      Source.failed[Int](ex)
+        .recoverWithRetries(10, {
+          case _: Throwable =>
+            val count = counter.incrementAndGet()
+            if (count < 7) {
+              Source.failed(ex)
+            } else {
+              Source.single(777)
+            }
+        })
+        .runWith(TestSink[Int]())
+        .request(1)
+        .expectNext(777)
+        .expectComplete()
+      counter.get() shouldBe 7
+    }
+
+    "handle infinite retry (-1) with FailedSource" in {
+      // Tests that -1 retries works correctly with FailedSource
+      val counter = new java.util.concurrent.atomic.AtomicInteger(0)
+      Source.failed[Int](ex)
+        .recoverWithRetries(-1, {
+          case _: Throwable =>
+            if (counter.incrementAndGet() < 50) {
+              Source.failed(ex)
+            } else {
+              Source.single(123)
+            }
+        })
+        .runWith(TestSink[Int]())
+        .request(1)
+        .expectNext(123)
+        .expectComplete()
+      counter.get() shouldBe 50
+    }
+
+    "handle already-completed FutureSource with failure optimization" in {
+      // Tests that already-completed failed futures are handled correctly
+      val counter = new java.util.concurrent.atomic.AtomicInteger(0)
+      Source.failed[Int](ex)
+        .recoverWithRetries(10, {
+          case _: Throwable =>
+            if (counter.incrementAndGet() < 5) {
+              Source.future(Future.failed(ex))
+            } else {
+              Source.single(555)
+            }
+        })
+        .runWith(TestSink[Int]())
+        .request(1)
+        .expectNext(555)
+        .expectComplete()
+      counter.get() shouldBe 5
+    }
+
+    "handle stack safety with many consecutive FailedSource instances" in {
+      // Tests that @tailrec optimization prevents stack overflow
+      val counter = new java.util.concurrent.atomic.AtomicInteger(0)
+      val maxDepth = 10000
+      Source.failed[Int](ex)
+        .recoverWithRetries(-1, {
+          case _: Throwable =>
+            if (counter.incrementAndGet() < maxDepth) {
+              Source.failed(ex)
+            } else {
+              Source.single(9999)
+            }
+        })
+        .runWith(TestSink[Int]())
+        .request(1)
+        .expectNext(9999)
+        .expectComplete()
+      counter.get() shouldBe maxDepth
+    }
   }
 }

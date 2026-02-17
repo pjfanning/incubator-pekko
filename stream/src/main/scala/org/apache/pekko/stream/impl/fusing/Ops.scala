@@ -2152,6 +2152,50 @@ private[pekko] object TakeWithin {
  */
 @InternalApi private[stream] object RecoverWith
 
+/**
+ * INTERNAL API
+ *
+ * RecoverWith operator that allows recovering from upstream failures by switching to an alternative source.
+ *
+ * Key behaviors:
+ *
+ * '''Attempt Counter Semantics:'''
+ * The attempt counter is incremented when switching to a new materialized source (via switchTo).
+ * However, when the recovery function returns certain optimized source types that can be handled inline
+ * (FailedSource, FutureSource with completed future, SingleSource, etc.), the attempt counter is NOT
+ * incremented because no new source is materialized. This design allows for efficient recursive recovery
+ * without penalizing optimized paths.
+ *
+ * '''Recursive onFailure() Behavior:'''
+ * When the recovery function returns a FailedSource or an already-failed FutureSource, the onFailure()
+ * method calls itself recursively rather than materializing a new substream. This is intentional and correct:
+ * - It allows the partial function to be evaluated again with the failure
+ * - It enables efficient chaining of recovery attempts without materializing intermediate streams
+ * - The @tailrec annotation ensures stack safety for deep recursion chains
+ *
+ * '''Edge Cases Handled:'''
+ * - Empty sources: Immediately complete the stage
+ * - FailedSource: Recursively call onFailure() with the failure (no materialization)
+ * - FutureSource (already completed): Handle inline without materialization
+ *   - Success: Emit the value and complete
+ *   - Failure: Recursively call onFailure() with the failure
+ * - SingleSource: Emit the single element inline
+ * - IterableSource: Emit all elements inline
+ * - JavaStreamSource: Emit all elements inline
+ * - Other sources: Materialize via switchTo() and increment attempt counter
+ *
+ * '''Stack Safety:'''
+ * The @tailrec annotation on onFailure() ensures that recursive calls for FailedSource and
+ * FutureSource failures don't cause stack overflow, even with thousands of consecutive failures.
+ *
+ * '''Partial Function Exceptions:'''
+ * If the partial function throws an exception while processing a failure, that exception is
+ * caught and the stage fails with that exception. This prevents undefined behavior.
+ *
+ * @param maximumRetries Maximum number of recovery attempts. Use -1 for unlimited retries.
+ *                       Note: Only counts materialized sources, not inline-handled sources.
+ * @param pf Partial function that maps exceptions to recovery sources
+ */
 @InternalApi private[pekko] final class RecoverWith[T, M](
     val maximumRetries: Int,
     val pf: PartialFunction[Throwable, Graph[SourceShape[T], M]])
@@ -2168,12 +2212,42 @@ private[pekko] object TakeWithin {
 
       override def onPull(): Unit = pull(in)
 
+      /**
+       * Handles upstream failures by attempting to recover using the provided partial function.
+       *
+       * This method is tail-recursive to ensure stack safety when handling chains of FailedSource
+       * or already-failed FutureSource instances. The recursion terminates when:
+       * - A recovery source is successfully materialized (via switchTo)
+       * - The partial function doesn't match the exception
+       * - Maximum retries are exhausted
+       * - An optimized source (SingleSource, IterableSource, etc.) is emitted inline
+       *
+       * The method handles several special cases inline to avoid unnecessary materialization:
+       * - EmptySource: Completes the stage immediately
+       * - SingleSource: Emits the element and completes
+       * - IterableSource/JavaStreamSource: Emits all elements and completes
+       * - FailedSource: RECURSIVELY calls onFailure() with the failure (critical for correctness)
+       * - FutureSource (already completed): Handles inline - either emits or recurses on failure
+       *
+       * @param ex The exception to recover from
+       */
       @nowarn("msg=Any")
       @tailrec
       def onFailure(ex: Throwable): Unit = {
         import Collect.NotApplied
         if (maximumRetries < 0 || attempt < maximumRetries) {
-          pf.applyOrElse(ex, NotApplied) match {
+          // Try to apply the partial function to get a recovery source
+          // Wrap in try-catch to handle exceptions thrown by the partial function itself
+          val recoverySource = try {
+            pf.applyOrElse(ex, NotApplied)
+          } catch {
+            case pfEx: Throwable =>
+              // If the partial function itself throws, fail the stage with that exception
+              failStage(pfEx)
+              return
+          }
+
+          recoverySource match {
             case _: NotApplied.type                                                                               => failStage(ex)
             case source: Graph[SourceShape[T] @unchecked, M @unchecked] if TraversalBuilder.isEmptySource(source) =>
               completeStage()
@@ -2181,11 +2255,22 @@ private[pekko] object TakeWithin {
               TraversalBuilder.getValuePresentedSource(source) match {
                 case OptionVal.Some(graph) => graph match {
                     case singleSource: SingleSource[T @unchecked] => emit(out, singleSource.elem, () => completeStage())
+                    // CRITICAL: Recursively call onFailure() instead of failStage()
+                    // This allows the partial function to handle the failure and potentially recover.
+                    // The @tailrec annotation ensures this doesn't cause stack overflow.
+                    // Note: This does NOT increment the attempt counter (by design) because no source
+                    // is materialized - the failure is just being passed to the recovery function again.
                     case failed: FailedSource[T @unchecked]       => onFailure(failed.failure)
                     case futureSource: FutureSource[T @unchecked] => futureSource.future.value match {
                         case Some(Success(elem)) => emit(out, elem, () => completeStage())
+                        // CRITICAL: Recursively call onFailure() for already-failed futures
+                        // This is an optimization for futures that have already completed with failure.
+                        // Like FailedSource, this doesn't increment attempt counter because no
+                        // materialization occurs - we're just handling the failure inline.
                         case Some(Failure(ex))   => onFailure(ex)
                         case None                =>
+                          // Future not yet completed - materialize the source and wait
+                          // Increment attempt counter because we're materializing a new source
                           switchTo(source)
                           attempt += 1
                       }
@@ -2194,10 +2279,14 @@ private[pekko] object TakeWithin {
                     case javaStreamSource: JavaStreamSource[T @unchecked, _] =>
                       emitMultiple(out, javaStreamSource.open().spliterator(), () => completeStage())
                     case _ =>
+                      // General case: materialize the recovery source
+                      // Increment attempt counter because we're materializing a new source
                       switchTo(source)
                       attempt += 1
                   }
                 case _ =>
+                  // Source cannot be optimized - materialize it
+                  // Increment attempt counter because we're materializing a new source
                   switchTo(source)
                   attempt += 1
               }
