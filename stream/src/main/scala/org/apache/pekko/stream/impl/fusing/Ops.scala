@@ -2226,7 +2226,7 @@ private[pekko] object TakeWithin {
        * - EmptySource: Completes the stage immediately
        * - SingleSource: Emits the element and completes
        * - IterableSource/JavaStreamSource: Emits all elements and completes
-       * - FailedSource: RECURSIVELY calls onFailure() with the failure (critical for correctness)
+       * - FailedSource: Recursively calls onFailure() with the failure (critical for correctness)
        * - FutureSource (already completed): Handles inline - either emits or recurses on failure
        *
        * @param ex The exception to recover from
