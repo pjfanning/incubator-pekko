@@ -458,11 +458,11 @@ class FlowRecoverWithSpec extends StreamSpec {
     "handle stack safety with many consecutive FailedSource instances" in {
       // Tests that @tailrec optimization prevents stack overflow
       val counter = new java.util.concurrent.atomic.AtomicInteger(0)
-      val maxDepth = 10000
+      val maxConsecutiveFailures = 10000
       Source.failed[Int](ex)
         .recoverWithRetries(-1, {
           case _: Throwable =>
-            if (counter.incrementAndGet() < maxDepth) {
+            if (counter.incrementAndGet() < maxConsecutiveFailures) {
               Source.failed(ex)
             } else {
               Source.single(9999)
@@ -472,7 +472,7 @@ class FlowRecoverWithSpec extends StreamSpec {
         .request(1)
         .expectNext(9999)
         .expectComplete()
-      counter.get() shouldBe maxDepth
+      counter.get() shouldBe maxConsecutiveFailures
     }
   }
 }
