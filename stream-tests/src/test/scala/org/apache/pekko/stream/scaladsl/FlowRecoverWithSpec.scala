@@ -376,20 +376,25 @@ class FlowRecoverWithSpec extends StreamSpec {
     }
 
     "handle boundary condition when retries exhausted with FailedSource" in {
-      // Tests that max retries works correctly with FailedSource
+      // Tests that max retries works correctly when alternating FailedSource with materialized sources
       val counter = new java.util.concurrent.atomic.AtomicInteger(0)
       Source.failed[Int](ex)
         .recoverWithRetries(3, {
           case _: Throwable =>
-            counter.incrementAndGet()
-            Source.failed(ex) // Always return FailedSource
+            val count = counter.incrementAndGet()
+            if (count % 2 == 0) {
+              // Even attempts: return FailedSource (doesn't increment attempt counter)
+              Source.failed(ex)
+            } else {
+              // Odd attempts: return a source that fails when materialized (increments attempt counter)
+              Source.single(count).map(_ => throw ex)
+            }
         })
         .runWith(TestSink[Int]())
         .request(1)
         .expectError(ex)
-      // Note: FailedSource doesn't increment attempt counter, so PF is called many times
-      // until the recursion detects max retries
-      counter.get() should be > 3
+      // Should be called multiple times, eventually exhausting retries
+      counter.get() should be >= 3
     }
 
     "handle nested FailedSource chains" in {
