@@ -14,8 +14,8 @@
 package org.apache.pekko.stream.scaladsl
 
 import scala.annotation.nowarn
-import scala.concurrent.Future
-import scala.util.control.NoStackTrace
+import scala.concurrent.{ Future, Promise }
+import scala.util.control.{ NonFatal, NoStackTrace }
 
 import org.apache.pekko
 import pekko.stream._
@@ -287,6 +287,70 @@ class FlowRecoverWithSpec extends StreamSpec {
         .request(5)
         .expectNextN(List(1, 2, 3, 4, 5).map(_ => 1))
         .cancel()
+    }
+
+    // Mirrors pekko-http StreamUtils.encodeErrorAndComplete: recoverWithRetries(1, ...) encodes the error as an element
+    "recover once and encode the error as an element" in {
+      val encodeError: Throwable => Int = _ => 0
+      Source(1 to 4)
+        .map { a =>
+          if (a == 3) throw ex else a
+        }
+        .recoverWithRetries(1, {
+          case t: Throwable =>
+            try Source.single(encodeError(t))
+            catch {
+              case NonFatal(inner) => Source.failed(inner)
+            }
+        })
+        .runWith(TestSink[Int]())
+        .request(3)
+        .expectNextN(List(1, 2, 0))
+        .expectComplete()
+    }
+
+    // Mirrors pekko-http HttpRequestRendererFactory:
+    //   val barrier = Source.future(future).drop(1)
+    //   (headerPart ++ barrier ++ body).recoverWithRetries(-1,
+    //     { case OneHundredContinueError => Source.empty })
+    // When the barrier future fails with a specific error, recoverWithRetries swallows it via
+    // Source.empty, effectively completing the stream without emitting the body.
+    "recover infinitely with Source.empty when a barrier future fails with a specific error" in {
+      class OneHundredContinueError extends RuntimeException("100-continue") with NoStackTrace
+
+      val headerPart = Source.single(1)
+      val body = Source(List(2, 3))
+      // Use a Promise so we control exactly when the barrier fails, after headerPart has been consumed
+      val promise = Promise[Int]()
+      val barrier = Source.future(promise.future).drop(1)
+
+      val probe = (headerPart ++ barrier ++ body)
+        .recoverWithRetries(-1, { case _: OneHundredContinueError => Source.empty })
+        .runWith(TestSink[Int]())
+
+      probe.request(4)
+      probe.expectNext(1) // headerPart emits 1 before the barrier is reached
+      promise.failure(new OneHundredContinueError) // barrier fails; body is never emitted
+      probe.expectComplete()
+    }
+
+    // Mirrors pekko-http HttpRequestRendererFactory (success path):
+    // When the barrier future succeeds, Source.future(future).drop(1) produces nothing and completes,
+    // so all parts of the concatenated stream flow through.
+    "pass all parts through when barrier future succeeds in a concatenated stream" in {
+      class OneHundredContinueError extends RuntimeException("100-continue") with NoStackTrace
+
+      val headerPart = Source.single(1)
+      val body = Source(List(2, 3))
+      val succeededBarrierFuture = Future.successful(99)
+      val barrier = Source.future(succeededBarrierFuture).drop(1)
+
+      (headerPart ++ barrier ++ body)
+        .recoverWithRetries(-1, { case _: OneHundredContinueError => Source.empty })
+        .runWith(TestSink[Int]())
+        .request(4)
+        .expectNextN(List(1, 2, 3))
+        .expectComplete()
     }
 
     "fail correctly when materialization of recover source fails" in {
