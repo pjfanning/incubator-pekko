@@ -1858,7 +1858,7 @@ final class Replicator(settings: ReplicatorSettings) extends Actor with ActorLog
     def notify(keyId: KeyId, subs: Iterator[ActorRef]): Unit = {
       val key = subscriptionKeys.get(keyId) match {
         case Some(r) => r
-        case None =>
+        case None    =>
           subscriptionKeys
             .collectFirst { case (k, r) if isWildcard(k) && keyId.startsWith(dropWildcard(k)) => r.withId(keyId) }
             .getOrElse(throw new IllegalStateException(s"Subscription notification of [$keyId], but no matching " +
@@ -2166,7 +2166,8 @@ final class Replicator(settings: ReplicatorSettings) extends Actor with ActorLog
     val subscribersIter = subscribers.get(keyId).map(_.iterator).getOrElse(Iterator.empty)
     if (wildcardSubscribers.isEmpty) subscribersIter
     else
-      subscribersIter ++ wildcardSubscribers
+      subscribersIter ++
+      wildcardSubscribers
         .collectFirst { case (k, v) if keyId.startsWith(k) => v }
         .map(_.iterator)
         .getOrElse(Iterator.empty)
