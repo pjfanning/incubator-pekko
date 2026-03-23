@@ -15,7 +15,7 @@ package org.apache.pekko.cluster.sharding
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
-import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration.{ DurationInt, FiniteDuration }
 import scala.jdk.CollectionConverters._
 import scala.jdk.DurationConverters._
 
