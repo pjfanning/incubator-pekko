@@ -92,9 +92,9 @@ class StopShardsSpec extends PekkoSpec(StopShardsSpec.config) with WithLogCaptur
   private val regionA = startShardRegion(sysA)
   private val regionB = startShardRegion(sysB)
 
-  override def afterAll(): Unit = {
-    super.afterAll()
+  override protected def beforeTermination(): Unit = {
     shutdown(sysB)
+    super.beforeTermination()
   }
 
   "The StopShards command" must {
