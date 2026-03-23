@@ -16,7 +16,6 @@ package org.apache.pekko.cluster.sharding
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
 import scala.jdk.DurationConverters._
 
@@ -51,7 +50,7 @@ final class ClusterShardingHealthCheckSettings(
     val disableAfter: FiniteDuration) {
 
   // for binary backwards compatibility
-  @deprecated("Use full constructor", "1.1.0")
+  @deprecated("Use full constructor", "2.0.0")
   def this(names: Set[String], timeout: FiniteDuration) = this(names, timeout, 10.seconds)
 }
 
@@ -91,8 +90,9 @@ final class ClusterShardingHealthCheck private[pekko] (
   override def apply(): Future[Boolean] = {
     if (settings.names.isEmpty || registered) {
       ClusterShardingHealthCheck.Success
-    } else if (startedTimestamp != 0L && System
-                 .currentTimeMillis() > startedTimestamp + settings.disableAfter.toMillis) {
+    } else if (startedTimestamp != 0L &&
+      System
+        .currentTimeMillis() > startedTimestamp + settings.disableAfter.toMillis) {
       ClusterShardingHealthCheck.Success
     } else {
       if (startedTimestamp == 0 && isMemberUp())
