@@ -108,9 +108,9 @@ class StopShardsSpec extends PekkoSpec(StopShardsSpec.config) with WithLogCaptur
 
       // wait for all regions to be registered
       pA.awaitAssert({
-        regionA.tell(GetCurrentRegions, pA.ref)
-        pA.expectMsgType[CurrentRegions].regions should have size (2)
-      }, 10.seconds)
+          regionA.tell(GetCurrentRegions, pA.ref)
+          pA.expectMsgType[CurrentRegions].regions should have size 2
+        }, 10.seconds)
     }
 
     "start entities in a few shards, then stop the shards" in {

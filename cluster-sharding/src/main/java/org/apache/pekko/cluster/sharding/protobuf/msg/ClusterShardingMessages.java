@@ -14144,7 +14144,7 @@ public final class ClusterShardingMessages extends org.apache.pekko.protobufv3.i
         /* minor= */ 33,
         /* patch= */ 0,
         /* suffix= */ "",
-        StopShards.class.getName());
+        "StopShards");
     }
     // Use StopShards.newBuilder() to construct.
     private StopShards(org.apache.pekko.protobufv3.internal.GeneratedMessage.Builder<?> builder) {
@@ -14674,7 +14674,6 @@ public final class ClusterShardingMessages extends org.apache.pekko.protobufv3.i
     }
 
   }
-
 
   public interface AddressOrBuilder extends
       // @@protoc_insertion_point(interface_extends:Address)
@@ -20257,6 +20256,11 @@ public final class ClusterShardingMessages extends org.apache.pekko.protobufv3.i
   private static final 
     org.apache.pekko.protobufv3.internal.GeneratedMessage.FieldAccessorTable
       internal_static_CurrentRegions_fieldAccessorTable;
+  private static final org.apache.pekko.protobufv3.internal.Descriptors.Descriptor
+    internal_static_StopShards_descriptor;
+  private static final 
+    org.apache.pekko.protobufv3.internal.GeneratedMessage.FieldAccessorTable
+      internal_static_StopShards_fieldAccessorTable;
   private static final org.apache.pekko.protobufv3.internal.Descriptors.Descriptor
     internal_static_Address_descriptor;
   private static final 
