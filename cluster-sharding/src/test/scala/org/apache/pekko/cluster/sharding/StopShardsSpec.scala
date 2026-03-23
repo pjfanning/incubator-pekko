@@ -89,8 +89,8 @@ class StopShardsSpec extends PekkoSpec(StopShardsSpec.config) with WithLogCaptur
   private val pA = TestProbe()(sysA)
   private val pB = TestProbe()(sysB)
 
-  private val regionA = startShardregion(sysA)
-  private val regionB = startShardregion(sysB)
+  private val regionA = startShardRegion(sysA)
+  private val regionB = startShardRegion(sysB)
 
   override def afterAll(): Unit = {
     super.afterAll()
@@ -133,7 +133,7 @@ class StopShardsSpec extends PekkoSpec(StopShardsSpec.config) with WithLogCaptur
     }
   }
 
-  def startShardregion(sys: ActorSystem): ActorRef =
+  def startShardRegion(sys: ActorSystem): ActorRef =
     ClusterSharding(sys).start(
       shardTypeName,
       Props[EntityActor](),
