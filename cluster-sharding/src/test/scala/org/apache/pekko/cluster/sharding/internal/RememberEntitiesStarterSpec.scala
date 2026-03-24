@@ -215,10 +215,11 @@ class RememberEntitiesStarterSpec extends PekkoSpec {
       // both shards should be started immediately (all strategy, no queuing)
       val startedEntityIds = (1 to 4).map { _ =>
         val start = regionProbe.expectMsgType[ShardRegion.StartEntity]
-        regionProbe.lastSender ! ShardRegion.StartEntityAck(start.entityId, start.entityId match {
-          case "1" | "2" => shardId1
-          case _         => shardId2
-        })
+        regionProbe.lastSender ! ShardRegion.StartEntityAck(start.entityId,
+          start.entityId match {
+            case "1" | "2" => shardId1
+            case _         => shardId2
+          })
         start.entityId
       }.toSet
       startedEntityIds should ===(Set("1", "2", "3", "4"))
