@@ -676,11 +676,11 @@ private[pekko] class ShardRegion(
 
   // When rememberEntities is enabled, create a manager to throttle entity starting across
   // all shards in this region (per entity type) rather than per shard
-  private val rememberEntityStarterManager: Option[ActorRef] =
-    if (settings.rememberEntities)
-      Some(context.actorOf(RememberEntityStarterManager.props(self, settings), "RememberEntitiesStarterManager"))
+  private val rememberEntityStarterManager: ActorRef =
+    if (rememberEntitiesProvider.isDefined)
+      context.actorOf(RememberEntityStarterManager.props(context.self, settings), "RememberEntityStarter")
     else
-      None
+      context.system.deadLetters
 
   // subscribe to MemberEvent, re-subscribe when restart
   override def preStart(): Unit = {
@@ -775,8 +775,6 @@ private[pekko] class ShardRegion(
     case msg: StartEntity                                => deliverStartEntity(msg, sender())
     case msg: SetActiveEntityLimit                       => deliverToAllShards(msg, sender())
     case cmd: CoordinatorCommand                         => deliverCoordinatorCommand(cmd, sender())
-    case msg: RememberEntityStarterManager.StartEntities =>
-      rememberEntityStarterManager.foreach(_ ! msg)
     case msg if extractEntityId.isDefinedAt(msg) => deliverMessage(msg, sender())
     case unknownMsg                              =>
       log.warning("{}: Message does not have an extractor defined in shard so it was ignored: {}", typeName, unknownMsg)
@@ -1360,7 +1358,8 @@ private[pekko] class ShardRegion(
                     extractEntityId,
                     extractShardId,
                     handOffStopMessage,
-                    rememberEntitiesProvider)
+                    rememberEntitiesProvider,
+                    rememberEntityStarterManager)
                   .withDispatcher(context.props.dispatcher),
                 name))
             shardsByRef = shardsByRef.updated(shard, id)

@@ -227,8 +227,8 @@ class RememberEntitiesStarterSpec extends PekkoSpec {
 
     "throttle entity starting across shards with entity-recovery-strategy = constant" in {
       val regionProbe = TestProbe()
-      val shardProbe1 = TestProbe()
-      val shardProbe2 = TestProbe()
+      val shard1Probe = TestProbe()
+      val shard2Probe = TestProbe()
       val shardId1 = nextShardId()
       val shardId2 = nextShardId()
 
@@ -239,7 +239,7 @@ class RememberEntitiesStarterSpec extends PekkoSpec {
              entity-recovery-strategy = constant
              entity-recovery-constant-rate-strategy {
                frequency = 2 s
-               number-of-entities = 10
+               number-of-entities = 2
              }
              retry-interval = 1 second
             """)
@@ -247,28 +247,44 @@ class RememberEntitiesStarterSpec extends PekkoSpec {
 
       val manager = system.actorOf(RememberEntityStarterManager.props(regionProbe.ref, customSettings))
 
-      // send two shards worth of entities
-      manager ! RememberEntityStarterManager.StartEntities(shardProbe1.ref, shardId1, Set("1", "2"))
-      manager ! RememberEntityStarterManager.StartEntities(shardProbe2.ref, shardId2, Set("3", "4"))
+      manager ! RememberEntityStarterManager.StartEntities(shard1Probe.ref, shardId1, Set("1", "2", "3", "4", "5"))
+      manager ! RememberEntityStarterManager.StartEntities(shard2Probe.ref, shardId2, Set("6", "7", "8"))
 
-      // first shard's entities should start immediately
-      val firstShardStarted = (1 to 2).map { _ =>
+      import pekko.cluster.sharding.ShardRegion.EntityId
+
+      def receiveStartAndAck(): EntityId = {
         val start = regionProbe.expectMsgType[ShardRegion.StartEntity]
-        regionProbe.lastSender ! ShardRegion.StartEntityAck(start.entityId, shardId1)
+        val shardId = if (start.entityId.toInt <= 5) shardId1 else shardId2
+        regionProbe.lastSender ! ShardRegion.StartEntityAck(start.entityId, shardId)
         start.entityId
-      }.toSet
-      firstShardStarted should ===(Set("1", "2"))
+      }
 
-      // second shard should be queued (not yet started) - manager is waiting for delay between shards
+      var startedEntityIds = Set.empty[EntityId]
+
+      // first batch for shard1 should be immediate
+      startedEntityIds += receiveStartAndAck()
+      startedEntityIds += receiveStartAndAck()
+
+      // second batch holding off
       regionProbe.expectNoMessage(600.millis)
+      startedEntityIds += receiveStartAndAck()
+      startedEntityIds += receiveStartAndAck()
 
-      // after the delay, the second shard's entities should start
-      val secondShardStarted = (1 to 2).map { _ =>
-        val start = regionProbe.expectMsgType[ShardRegion.StartEntity]
-        regionProbe.lastSender ! ShardRegion.StartEntityAck(start.entityId, shardId2)
-        start.entityId
-      }.toSet
-      secondShardStarted should ===(Set("3", "4"))
+      // third batch holding off
+      regionProbe.expectNoMessage(600.millis)
+      startedEntityIds += receiveStartAndAck()
+
+      startedEntityIds should ===(Set("1", "2", "3", "4", "5"))
+
+      // now the second StartEntities for shard2 — still throttled after delay
+      regionProbe.expectNoMessage(600.millis)
+      startedEntityIds += receiveStartAndAck()
+      startedEntityIds += receiveStartAndAck()
+
+      regionProbe.expectNoMessage(600.millis)
+      startedEntityIds += receiveStartAndAck()
+
+      startedEntityIds should ===(Set("1", "2", "3", "4", "5", "6", "7", "8"))
     }
   }
 }
