@@ -17,7 +17,6 @@ import java.net.URLEncoder
 import java.util
 
 import scala.annotation.nowarn
-import scala.collection.immutable.Set
 import scala.concurrent.duration._
 
 import org.apache.pekko
@@ -106,7 +105,8 @@ private[pekko] object Shard {
       extractEntityId: ShardRegion.ExtractEntityId,
       extractShardId: ShardRegion.ExtractShardId,
       handOffStopMessage: Any,
-      rememberEntitiesProvider: Option[RememberEntitiesProvider]): Props =
+      rememberEntitiesProvider: Option[RememberEntitiesProvider],
+      rememberEntityStarterManager: ActorRef): Props =
     Props(
       new Shard(
         typeName,
@@ -116,7 +116,8 @@ private[pekko] object Shard {
         extractEntityId,
         extractShardId,
         handOffStopMessage,
-        rememberEntitiesProvider)).withDeploy(Deploy.local)
+        rememberEntitiesProvider,
+        rememberEntityStarterManager)).withDeploy(Deploy.local)
 
   case object PassivateIntervalTick extends NoSerializationVerificationNeeded
 
@@ -428,7 +429,8 @@ private[pekko] class Shard(
     extractEntityId: ShardRegion.ExtractEntityId,
     @nowarn("msg=never used") extractShardId: ShardRegion.ExtractShardId,
     handOffStopMessage: Any,
-    rememberEntitiesProvider: Option[RememberEntitiesProvider])
+    rememberEntitiesProvider: Option[RememberEntitiesProvider],
+    rememberEntityStarterManager: ActorRef)
     extends Actor
     with ActorLogging
     with Stash
@@ -604,7 +606,7 @@ private[pekko] class Shard(
     if (ids.nonEmpty) {
       entities.alreadyRemembered(ids)
       log.debug("{}: Restarting set of [{}] entities", typeName, ids.size)
-      context.parent ! RememberEntityStarterManager.StartEntities(self, shardId, ids)
+      rememberEntityStarterManager ! RememberEntityStarterManager.StartEntities(self, shardId, ids)
     }
     shardInitialized()
   }
