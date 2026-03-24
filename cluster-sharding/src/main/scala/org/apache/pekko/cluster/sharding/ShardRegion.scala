@@ -764,17 +764,17 @@ private[pekko] class ShardRegion(
   }
 
   def receive: Receive = {
-    case Terminated(ref)                         => receiveTerminated(ref)
-    case ShardInitialized(shardId)               => initializeShard(shardId, sender())
-    case evt: ClusterDomainEvent                 => receiveClusterEvent(evt)
-    case state: CurrentClusterState              => receiveClusterState(state)
-    case msg: CoordinatorMessage                 => receiveCoordinatorMessage(msg)
-    case cmd: ShardRegionCommand                 => receiveCommand(cmd)
-    case query: ShardRegionQuery                 => receiveQuery(query)
-    case msg: RestartShard                       => deliverMessage(msg, sender())
-    case msg: StartEntity                        => deliverStartEntity(msg, sender())
-    case msg: SetActiveEntityLimit               => deliverToAllShards(msg, sender())
-    case cmd: CoordinatorCommand                 => deliverCoordinatorCommand(cmd, sender())
+    case Terminated(ref)                                 => receiveTerminated(ref)
+    case ShardInitialized(shardId)                       => initializeShard(shardId, sender())
+    case evt: ClusterDomainEvent                         => receiveClusterEvent(evt)
+    case state: CurrentClusterState                      => receiveClusterState(state)
+    case msg: CoordinatorMessage                         => receiveCoordinatorMessage(msg)
+    case cmd: ShardRegionCommand                         => receiveCommand(cmd)
+    case query: ShardRegionQuery                         => receiveQuery(query)
+    case msg: RestartShard                               => deliverMessage(msg, sender())
+    case msg: StartEntity                                => deliverStartEntity(msg, sender())
+    case msg: SetActiveEntityLimit                       => deliverToAllShards(msg, sender())
+    case cmd: CoordinatorCommand                         => deliverCoordinatorCommand(cmd, sender())
     case msg: RememberEntityStarterManager.StartEntities =>
       rememberEntityStarterManager.foreach(_ ! msg)
     case msg if extractEntityId.isDefinedAt(msg) => deliverMessage(msg, sender())
