@@ -43,7 +43,13 @@ class RememberEntitiesStarterSpec extends PekkoSpec {
       val defaultSettings = ClusterShardingSettings(system)
 
       val rememberEntityStarter = system.actorOf(
-        RememberEntityStarter.props(regionProbe.ref, shardProbe.ref, shardId, Set("1", "2", "3"), defaultSettings))
+        RememberEntityStarter.props(
+          regionProbe.ref,
+          shardProbe.ref,
+          shardId,
+          Set("1", "2", "3"),
+          isConstantStrategy = false,
+          defaultSettings))
 
       watch(rememberEntityStarter)
       val startedEntityIds = (1 to 3).map { _ =>
@@ -74,7 +80,13 @@ class RememberEntitiesStarterSpec extends PekkoSpec {
           .withFallback(system.settings.config.getConfig("pekko.cluster.sharding")))
 
       val rememberEntityStarter = system.actorOf(
-        RememberEntityStarter.props(regionProbe.ref, shardProbe.ref, shardId, Set("1", "2", "3"), customSettings))
+        RememberEntityStarter.props(
+          regionProbe.ref,
+          shardProbe.ref,
+          shardId,
+          Set("1", "2", "3"),
+          isConstantStrategy = false,
+          customSettings))
 
       watch(rememberEntityStarter)
       (1 to 3).foreach { _ =>
@@ -107,7 +119,13 @@ class RememberEntitiesStarterSpec extends PekkoSpec {
           .withFallback(system.settings.config.getConfig("pekko.cluster.sharding")))
 
       val rememberEntityStarter = system.actorOf(
-        RememberEntityStarter.props(regionProbe.ref, shardProbe.ref, shardId, Set("1", "2", "3"), customSettings))
+        RememberEntityStarter.props(
+          regionProbe.ref,
+          shardProbe.ref,
+          shardId,
+          Set("1", "2", "3"),
+          isConstantStrategy = false,
+          customSettings))
 
       watch(rememberEntityStarter)
       val start1 = regionProbe.expectMsgType[ShardRegion.StartEntity]
@@ -143,8 +161,13 @@ class RememberEntitiesStarterSpec extends PekkoSpec {
           .withFallback(system.settings.config.getConfig("pekko.cluster.sharding")))
 
       val rememberEntityStarter = system.actorOf(
-        RememberEntityStarter
-          .props(regionProbe.ref, shardProbe.ref, shardId, Set("1", "2", "3", "4", "5"), customSettings))
+        RememberEntityStarter.props(
+          regionProbe.ref,
+          shardProbe.ref,
+          shardId,
+          Set("1", "2", "3", "4", "5"),
+          isConstantStrategy = true,
+          customSettings))
 
       def recieveStartAndAck() = {
         val start = regionProbe.expectMsgType[ShardRegion.StartEntity]
@@ -172,5 +195,79 @@ class RememberEntitiesStarterSpec extends PekkoSpec {
       regionProbe.expectNoMessage()
     }
 
+  }
+
+  "The RememberEntityStarterManager" must {
+    "start entities for all shards immediately with entity-recovery-strategy = all (default)" in {
+      val regionProbe = TestProbe()
+      val shardProbe1 = TestProbe()
+      val shardProbe2 = TestProbe()
+      val shardId1 = nextShardId()
+      val shardId2 = nextShardId()
+
+      val defaultSettings = ClusterShardingSettings(system)
+
+      val manager = system.actorOf(RememberEntityStarterManager.props(regionProbe.ref, defaultSettings))
+
+      manager ! RememberEntityStarterManager.StartEntities(shardProbe1.ref, shardId1, Set("1", "2"))
+      manager ! RememberEntityStarterManager.StartEntities(shardProbe2.ref, shardId2, Set("3", "4"))
+
+      // both shards should be started immediately (all strategy, no queuing)
+      val startedEntityIds = (1 to 4).map { _ =>
+        val start = regionProbe.expectMsgType[ShardRegion.StartEntity]
+        regionProbe.lastSender ! ShardRegion.StartEntityAck(start.entityId, start.entityId match {
+          case "1" | "2" => shardId1
+          case _         => shardId2
+        })
+        start.entityId
+      }.toSet
+      startedEntityIds should ===(Set("1", "2", "3", "4"))
+    }
+
+    "throttle entity starting across shards with entity-recovery-strategy = constant" in {
+      val regionProbe = TestProbe()
+      val shardProbe1 = TestProbe()
+      val shardProbe2 = TestProbe()
+      val shardId1 = nextShardId()
+      val shardId2 = nextShardId()
+
+      val customSettings = ClusterShardingSettings(
+        ConfigFactory
+          .parseString(
+            """
+             entity-recovery-strategy = constant
+             entity-recovery-constant-rate-strategy {
+               frequency = 2 s
+               number-of-entities = 10
+             }
+             retry-interval = 1 second
+            """)
+          .withFallback(system.settings.config.getConfig("pekko.cluster.sharding")))
+
+      val manager = system.actorOf(RememberEntityStarterManager.props(regionProbe.ref, customSettings))
+
+      // send two shards worth of entities
+      manager ! RememberEntityStarterManager.StartEntities(shardProbe1.ref, shardId1, Set("1", "2"))
+      manager ! RememberEntityStarterManager.StartEntities(shardProbe2.ref, shardId2, Set("3", "4"))
+
+      // first shard's entities should start immediately
+      val firstShardStarted = (1 to 2).map { _ =>
+        val start = regionProbe.expectMsgType[ShardRegion.StartEntity]
+        regionProbe.lastSender ! ShardRegion.StartEntityAck(start.entityId, shardId1)
+        start.entityId
+      }.toSet
+      firstShardStarted should ===(Set("1", "2"))
+
+      // second shard should be queued (not yet started) - manager is waiting for delay between shards
+      regionProbe.expectNoMessage(600.millis)
+
+      // after the delay, the second shard's entities should start
+      val secondShardStarted = (1 to 2).map { _ =>
+        val start = regionProbe.expectMsgType[ShardRegion.StartEntity]
+        regionProbe.lastSender ! ShardRegion.StartEntityAck(start.entityId, shardId2)
+        start.entityId
+      }.toSet
+      secondShardStarted should ===(Set("3", "4"))
+    }
   }
 }

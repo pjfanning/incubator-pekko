@@ -37,6 +37,7 @@ import pekko.cluster.MemberStatus
 import pekko.cluster.sharding.ClusterShardingSettings.PassivationStrategy
 import pekko.cluster.sharding.Shard.ShardStats
 import pekko.cluster.sharding.internal.RememberEntitiesProvider
+import pekko.cluster.sharding.internal.RememberEntityStarterManager
 import pekko.event.Logging
 import pekko.pattern.ask
 import pekko.pattern.pipe
@@ -673,6 +674,14 @@ private[pekko] class ShardRegion(
       }
     }
 
+  // When rememberEntities is enabled, create a manager to throttle entity starting across
+  // all shards in this region (per entity type) rather than per shard
+  private val rememberEntityStarterManager: Option[ActorRef] =
+    if (settings.rememberEntities)
+      Some(context.actorOf(RememberEntityStarterManager.props(self, settings), "RememberEntitiesStarterManager"))
+    else
+      None
+
   // subscribe to MemberEvent, re-subscribe when restart
   override def preStart(): Unit = {
     cluster.subscribe(self, classOf[MemberEvent])
@@ -766,6 +775,8 @@ private[pekko] class ShardRegion(
     case msg: StartEntity                        => deliverStartEntity(msg, sender())
     case msg: SetActiveEntityLimit               => deliverToAllShards(msg, sender())
     case cmd: CoordinatorCommand                 => deliverCoordinatorCommand(cmd, sender())
+    case msg: RememberEntityStarterManager.StartEntities =>
+      rememberEntityStarterManager.foreach(_ ! msg)
     case msg if extractEntityId.isDefinedAt(msg) => deliverMessage(msg, sender())
     case unknownMsg                              =>
       log.warning("{}: Message does not have an extractor defined in shard so it was ignored: {}", typeName, unknownMsg)

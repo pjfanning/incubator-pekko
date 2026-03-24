@@ -43,7 +43,7 @@ import pekko.cluster.sharding.internal.EntityPassivationStrategy
 import pekko.cluster.sharding.internal.RememberEntitiesProvider
 import pekko.cluster.sharding.internal.RememberEntitiesShardStore
 import pekko.cluster.sharding.internal.RememberEntitiesShardStore.GetEntities
-import pekko.cluster.sharding.internal.RememberEntityStarter
+import pekko.cluster.sharding.internal.RememberEntityStarterManager
 import pekko.coordination.lease.scaladsl.Lease
 import pekko.coordination.lease.scaladsl.LeaseProvider
 import pekko.event.LoggingAdapter
@@ -604,9 +604,7 @@ private[pekko] class Shard(
     if (ids.nonEmpty) {
       entities.alreadyRemembered(ids)
       log.debug("{}: Restarting set of [{}] entities", typeName, ids.size)
-      context.actorOf(
-        RememberEntityStarter.props(context.parent, self, shardId, ids, settings),
-        "RememberEntitiesStarter")
+      context.parent ! RememberEntityStarterManager.StartEntities(self, shardId, ids)
     }
     shardInitialized()
   }
