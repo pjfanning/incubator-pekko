@@ -541,6 +541,8 @@ object ShardCoordinator {
 
   private final case class DelayedShardRegionTerminated(region: ActorRef)
 
+  private final case class StopShardTimeout(requestId: java.util.UUID)
+
   /**
    * Result of `allocateShard` is piped to self with this message.
    */
@@ -1107,14 +1109,64 @@ abstract class ShardCoordinator(
     case DelayedShardRegionTerminated(ref) =>
       regionTerminated(ref)
 
-    case StopShards(shards) =>
-      val requestId = java.util.UUID.randomUUID()
-      shards.foreach { shard =>
-        waitingForShardsToStop = waitingForShardsToStop.updated(
-          shard,
-          waitingForShardsToStop.getOrElse(shard, Set.empty) + ((sender(), requestId)))
+    case StopShards(shardIds) =>
+      if (settings.rememberEntities) {
+        log.error(
+          "{}: Stop shards cannot be combined with remember entities, ignoring command to stop [{}]",
+          typeName,
+          shardIds.mkString(", "))
+      } else if (state.regions.nonEmpty && !preparingForShutdown) {
+        val requestId = java.util.UUID.randomUUID()
+        val (runningShards, alreadyStoppedShards) = shardIds.partition(state.shards.contains)
+        alreadyStoppedShards.foreach(shardId => sender() ! ShardStopped(shardId))
+        if (runningShards.nonEmpty) {
+          waitingForShardsToStop = runningShards.foldLeft(waitingForShardsToStop) {
+            case (acc, shard) =>
+              val newWaiting = acc.get(shard) match {
+                case Some(waiting) => waiting + ((sender(), requestId))
+                case None          => Set((sender(), requestId))
+              }
+              acc.updated(shard, newWaiting)
+          }
+          // no need to stop already rebalancing
+          val shardsToStop = runningShards.filter(shard => !rebalanceInProgress.contains(shard))
+          log.info(
+            "{}: Explicitly stopping shards [{}] (request id [{}])",
+            typeName,
+            shardsToStop.mkString(", "),
+            requestId)
+          val shardsPerRegion =
+            shardsToStop.flatMap(shardId => state.shards.get(shardId).map(region => region -> shardId)).groupBy(_._1)
+          shardsPerRegion.foreach {
+            case (region, shards) => shutdownShards(region, shards.map(_._2))
+          }
+          val timeout = StopShardTimeout(requestId)
+          timers.startSingleTimer(timeout, timeout, settings.tuningParameters.handOffTimeout)
+        }
+      } else {
+        log.warning(
+          "{}: Explicit stop shards of shards [{}] ignored (no known regions or sharding shutting down)",
+          typeName,
+          shardIds.mkString(", "))
       }
-      shutdownShards(self, shards.filter(state.shards.contains))
+
+    case StopShardTimeout(requestId) =>
+      val timedOutShards = waitingForShardsToStop.collect {
+        case (shard, waiting) if waiting.exists(_._2 == requestId) => shard
+      }
+      if (timedOutShards.nonEmpty) {
+        log.info(
+          "{}: Stop shard request [{}] timed out for shards [{}]",
+          typeName,
+          requestId,
+          timedOutShards.mkString(", "))
+        waitingForShardsToStop = timedOutShards.foldLeft(waitingForShardsToStop) {
+          case (acc, shard) =>
+            val waiting = acc(shard)
+            if (waiting.size == 1) acc - shard
+            else acc.updated(shard, waiting.filterNot { case (_, id) => id == requestId })
+        }
+      }
   }
 
   def update[E <: DomainEvent](evt: E)(f: E => Unit): Unit
