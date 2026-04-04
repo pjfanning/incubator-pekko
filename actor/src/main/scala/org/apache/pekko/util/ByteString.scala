@@ -385,7 +385,7 @@ object ByteString {
 
     // Derived from code in Netty
     // https://github.com/netty/netty/blob/d28a0fc6598b50fbe8f296831777cf4b653a475f/buffer/src/main/java/io/netty/buffer/ByteBufUtil.java#L366-L408
-    override private[util] def bytesMatch(fromIndex: Int, checkBytes: Array[Byte], bytesFromIndex: Int,
+    override final private[util] def bytesMatch(fromIndex: Int, checkBytes: Array[Byte], bytesFromIndex: Int,
         checkLength: Int): Boolean = {
       var aIndex = fromIndex
       var bIndex = bytesFromIndex
@@ -725,7 +725,7 @@ object ByteString {
 
     // Derived from code in Netty
     // https://github.com/netty/netty/blob/d28a0fc6598b50fbe8f296831777cf4b653a475f/buffer/src/main/java/io/netty/buffer/ByteBufUtil.java#L366-L408
-    override private[util] def bytesMatch(fromIndex: Int,
+    override final private[util] def bytesMatch(fromIndex: Int,
         checkBytes: Array[Byte],
         bytesFromIndex: Int,
         checkLength: Int): Boolean = {
