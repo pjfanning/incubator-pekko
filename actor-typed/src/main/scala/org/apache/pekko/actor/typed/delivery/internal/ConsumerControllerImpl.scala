@@ -538,12 +538,12 @@ private class ConsumerControllerImpl[A] private (
     reverseCollectedChunks.foreach { seqMsg =>
       builder ++= seqMsg.message.asInstanceOf[ChunkedMessage].serialized
     }
-    val bytes = builder.result().toArrayUnsafe()
+    val byteBuffer = builder.result().asByteBuffer
     val head = collectedChunks.head // this is the last chunk
     val headMessage = head.message.asInstanceOf[ChunkedMessage]
     // serialization exceptions are thrown, because it will anyway be stuck with same error if retried and
     // we can't just ignore the message
-    val message = serialization.deserialize(bytes, headMessage.serializerId, headMessage.manifest).get
+    val message = serialization.deserialize(byteBuffer, headMessage.serializerId, headMessage.manifest).get
     SequencedMessage(head.producerId, head.seqNr, message, reverseCollectedChunks.head.first, head.ack)(
       head.producerController)
   }
