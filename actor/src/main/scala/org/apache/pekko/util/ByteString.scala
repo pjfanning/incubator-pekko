@@ -1089,7 +1089,7 @@ object ByteString {
         checkBytes: Array[Byte],
         checkBytesFromIndex: Int,
         checkLength: Int): Boolean = {
-      if (checkLength > 1 && bytestrings.nonEmpty && bytestrings.head.length >= fromIndex + checkLength - 1) {
+      if (checkLength > 1 && bytestrings.nonEmpty && bytestrings.head.length >= fromIndex + checkLength) {
         bytestrings.head.bytesMatch(fromIndex, checkBytes, checkBytesFromIndex, checkLength)
       } else {
         var i = 0
