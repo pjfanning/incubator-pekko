@@ -200,7 +200,7 @@ private[remote] object PekkoPduProtobufCodec extends PekkoPduCodec {
 
   override def decodePdu(raw: ByteString): PekkoPdu = {
     try {
-      val pdu = PekkoProtocolMessage.parseFrom(raw.toArrayUnsafe())
+      val pdu = PekkoProtocolMessage.parseFrom(raw.asByteBuffer)
       if (pdu.hasPayload) Payload(ByteString.fromByteBuffer(pdu.getPayload.asReadOnlyByteBuffer()))
       else if (pdu.hasInstruction) decodeControlPdu(pdu.getInstruction)
       else
@@ -215,7 +215,7 @@ private[remote] object PekkoPduProtobufCodec extends PekkoPduCodec {
       raw: ByteString,
       provider: RemoteActorRefProvider,
       localAddress: Address): (Option[Ack], Option[Message]) = {
-    val ackAndEnvelope = AckAndEnvelopeContainer.parseFrom(raw.toArrayUnsafe())
+    val ackAndEnvelope = AckAndEnvelopeContainer.parseFrom(raw.asByteBuffer)
 
     val ackOption = if (ackAndEnvelope.hasAck) {
       import scala.jdk.CollectionConverters._
