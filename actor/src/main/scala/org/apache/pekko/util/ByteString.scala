@@ -672,16 +672,17 @@ object ByteString {
     // Derived from code in Netty
     // https://github.com/netty/netty/blob/d28a0fc6598b50fbe8f296831777cf4b653a475f/buffer/src/main/java/io/netty/buffer/ByteBufUtil.java#L242-L325
     override def indexOfSlice(slice: Array[Byte], from: Int): Int = {
-      val n = length - from
+      val fromIndex = math.max(0, from)
+      val n = length - fromIndex
       val m = slice.length
       if (m == 0) return 0
       // When the needle has only one byte that can be read,
       // the indexOf() can be used
-      if (m == 1) return indexOf(slice.head, from)
+      if (m == 1) return indexOf(slice.head, fromIndex)
       var i = 0
       var j = 0
       val aStartIndex = 0
-      val bStartIndex = from + startIndex
+      val bStartIndex = fromIndex + startIndex
       val suffixes = SWARUtil.maxSuf(slice, m, aStartIndex, true)
       val prefixes = SWARUtil.maxSuf(slice, m, aStartIndex, false)
       val ell = Math.max((suffixes >> 32).toInt, (prefixes >> 32).toInt)
