@@ -74,7 +74,7 @@ import pekko.util.ByteString
   }
   private def crc16(data: ByteString) = {
     val crc = new CRC32
-    crc.update(data.toArrayUnsafe())
+    crc.update(data.asByteBuffer)
     crc.getValue.toInt & 0xFFFF
   }
 }

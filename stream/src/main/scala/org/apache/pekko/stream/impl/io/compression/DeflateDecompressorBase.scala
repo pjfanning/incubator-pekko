@@ -42,7 +42,7 @@ import pekko.util.ByteString
     abstract class Inflate(noPostProcessing: Boolean) extends ParseStep[ByteString] {
       override def canWorkWithPartialData = true
       override def parse(reader: ByteStringParser.ByteReader): ParseResult[ByteString] = {
-        inflater.setInput(reader.remainingData.toArrayUnsafe())
+        inflater.setInput(reader.remainingData.asByteBuffer)
 
         val read = inflater.inflate(buffer)
 

@@ -36,7 +36,7 @@ import pekko.util.ByteString
     header() ++ super.finishWithBuffer(buffer) ++ trailer()
 
   private def updateCrc(input: ByteString): Unit = {
-    checkSum.update(input.toArrayUnsafe())
+    checkSum.update(input.asByteBuffer)
     bytesRead += input.length
   }
   private def header(): ByteString =

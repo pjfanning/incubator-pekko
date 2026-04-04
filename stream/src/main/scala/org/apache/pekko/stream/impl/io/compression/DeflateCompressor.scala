@@ -44,7 +44,7 @@ import pekko.util.{ ByteString, ByteStringBuilder }
 
   protected def compressWithBuffer(input: ByteString, buffer: Array[Byte]): ByteString = {
     require(deflater.needsInput())
-    deflater.setInput(input.toArrayUnsafe())
+    deflater.setInput(input.asByteBuffer)
     drainDeflater(deflater, buffer)
   }
   protected def flushWithBuffer(buffer: Array[Byte]): ByteString = {
