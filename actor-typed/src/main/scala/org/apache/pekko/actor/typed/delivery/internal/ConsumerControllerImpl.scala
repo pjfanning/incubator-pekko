@@ -543,7 +543,7 @@ private class ConsumerControllerImpl[A] private (
     val headMessage = head.message.asInstanceOf[ChunkedMessage]
     // serialization exceptions are thrown, because it will anyway be stuck with same error if retried and
     // we can't just ignore the message
-    val message = serialization.deserialize(byteBuffer, headMessage.serializerId, headMessage.manifest).get
+    val message = serialization.deserializeByteBuffer(byteBuffer, headMessage.serializerId, headMessage.manifest).get
     SequencedMessage(head.producerId, head.seqNr, message, reverseCollectedChunks.head.first, head.ack)(
       head.producerController)
   }
