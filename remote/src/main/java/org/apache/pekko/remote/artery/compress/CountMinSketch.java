@@ -14,7 +14,6 @@
 package org.apache.pekko.remote.artery.compress;
 
 import java.nio.ByteOrder;
-
 import org.apache.pekko.actor.ActorRef;
 import org.apache.pekko.util.SWARUtil;
 
