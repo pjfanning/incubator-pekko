@@ -43,6 +43,18 @@ class ByteStringParser_readNum_Benchmark {
     i
   }
 
+  @Benchmark
+  def readLongBE: Long = {
+    val reader = new ByteStringParser.ByteReader(bs)
+    var l: Long = 0L
+    try {
+      while (true) l = reader.readLongBE()
+    } catch {
+      case _: Exception => 0L
+    }
+    l
+  }
+
   // bss is a worst case scenario for the ByteReader/ByteString because we cannot optimize
   // the readIntBE/LongBE by reading directly from the ByteString's
   // internal array, but have to read byte by byte.
