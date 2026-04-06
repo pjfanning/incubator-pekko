@@ -29,9 +29,26 @@ import org.openjdk.jmh.annotations._
 class ByteStringParser_readNum_Benchmark {
   val start = ByteString("abcdefg") ++ ByteString("hijklmno") ++ ByteString("pqrstuv")
   val bss = start ++ start ++ start ++ start ++ start ++ ByteString("xyz")
+  val bs = bss.compact
 
   @Benchmark
   def readIntBE: Int = {
+    val reader = new ByteStringParser.ByteReader(bs)
+    var i: Int = 0
+    try {
+      while (true) i = reader.readIntBE()
+    } catch {
+      case _: Exception => 0
+    }
+    i
+  }
+
+  // bss is a worst case scenario for the ByteReader/ByteString because we cannot optimize
+  // the readIntBE/LongBE by reading directly from the ByteString's
+  // internal array, but have to read byte by byte.
+
+  @Benchmark
+  def readIntBE_ConcatString: Int = {
     val reader = new ByteStringParser.ByteReader(bss)
     var i: Int = 0
     try {
@@ -43,7 +60,7 @@ class ByteStringParser_readNum_Benchmark {
   }
 
   @Benchmark
-  def readLongBE: Long = {
+  def readLongBE_ConcatString: Long = {
     val reader = new ByteStringParser.ByteReader(bss)
     var l: Long = 0L
     try {
