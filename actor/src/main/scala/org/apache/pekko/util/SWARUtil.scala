@@ -16,6 +16,7 @@
 package org.apache.pekko.util
 
 import java.lang.invoke.MethodHandles
+import java.nio.ByteOrder
 
 import org.apache.pekko.annotation.InternalApi
 
@@ -24,6 +25,38 @@ import org.apache.pekko.annotation.InternalApi
  * <p>
  * Copied from the Netty Project.
  * https://github.com/netty/netty/blob/d28a0fc6598b50fbe8f296831777cf4b653a475f/common/src/main/java/io/netty/util/internal/SWARUtil.java
+ * </p>
+ * <p>
+ * Multi-byte reads use [[java.lang.invoke.MethodHandles#byteArrayViewVarHandle]], which allows
+ * reading several bytes from a byte array as a single typed value (e.g. `short`, `int`,
+ * or `long`) in one operation rather than reading and shifting each byte individually.
+ * </p>
+ * <p>
+ * The JDK itself uses the same technique.  Since Java 17, `jdk.internal.util.ByteArray` (big
+ * endian) and `jdk.internal.util.ByteArrayLittleEndian` (little endian) use
+ * `MethodHandles.byteArrayViewVarHandle` for every primitive type, and those helpers back the
+ * public APIs of `java.io.DataInputStream` (`readShort`, `readInt`,
+ * `readLong`, etc.) and `java.util.UUID` construction from bytes.
+ * </p>
+ * <h3>Why this is faster than byte-by-byte shifts</h3>
+ * <ul>
+ *   <li><b>Single native load instruction</b> – on x86/x64 and AArch64 the HotSpot JIT intrinsifies
+ *       the VarHandle access into a single `MOVZX`, `MOV`, or `LDR` instruction
+ *       that reads the full value directly from memory, whereas manual byte-shift code requires
+ *       multiple load-and-shift-and-or sequences that are harder for the JIT to collapse.</li>
+ *   <li><b>Consolidated bounds check</b> – a single range check covers the entire multi-byte read;
+ *       individual `array(i)` accesses each carry their own implicit bounds check.</li>
+ *   <li><b>No alignment requirement</b> – unlike `sun.misc.Unsafe` the VarHandle variant
+ *       works correctly on unaligned offsets, so callers do not need to pad or copy data to satisfy
+ *       alignment constraints.</li>
+ *   <li><b>SWAR arithmetic</b> – reading a full `long` with a single VarHandle call means
+ *       eight bytes arrive in one register, enabling SWAR patterns that test all eight bytes in
+ *       parallel (see [[applyPattern]]).</li>
+ * </ul>
+ * <p>
+ * A runtime `try/catch` guards each VarHandle creation; if the JVM does not support the API
+ * (e.g. older Android runtimes) the code falls back to explicit byte-by-byte shift implementations
+ * (`getLongBEWithoutMethodHandle`, etc.) so behaviour is always correct.
  * </p>
  */
 @InternalApi
@@ -60,6 +93,24 @@ private[pekko] object SWARUtil {
     try {
       (MethodHandles.byteArrayViewVarHandle(
           classOf[Array[Int]], java.nio.ByteOrder.LITTLE_ENDIAN),
+        true)
+    } catch {
+      case _: Throwable => (null, false)
+    }
+
+  private val (shortBeArrayView, shortBeArrayViewSupported) =
+    try {
+      (MethodHandles.byteArrayViewVarHandle(
+          classOf[Array[Short]], java.nio.ByteOrder.BIG_ENDIAN),
+        true)
+    } catch {
+      case _: Throwable => (null, false)
+    }
+
+  private val (shortLeArrayView, shortLeArrayViewSupported) =
+    try {
+      (MethodHandles.byteArrayViewVarHandle(
+          classOf[Array[Short]], java.nio.ByteOrder.LITTLE_ENDIAN),
         true)
     } catch {
       case _: Throwable => (null, false)
@@ -102,32 +153,22 @@ private[pekko] object SWARUtil {
    *
    * @param array the byte array to read from
    * @param index the index to read from
+   * @param byteOrder the byte order to use (big-endian or little-endian)
    * @return the long value at the specified index
    */
-  def getLong(array: Array[Byte], index: Int): Long = {
-    if (longBeArrayViewSupported) {
-      longBeArrayView.get(array, index)
+  def getLong(array: Array[Byte], index: Int, byteOrder: ByteOrder): Long = {
+    if (byteOrder == ByteOrder.BIG_ENDIAN) {
+      if (longBeArrayViewSupported) {
+        longBeArrayView.get(array, index)
+      } else {
+        getLongBEWithoutMethodHandle(array, index)
+      }
     } else {
-      getLongBEWithoutMethodHandle(array, index)
-    }
-  }
-
-  /**
-   * Returns the long value at the specified index in the given byte array.
-   * Uses a VarHandle byte array view if supported.
-   * Does not range check - assumes caller has checked bounds.
-   *
-   * @param array the byte array to read from
-   * @param index the index to read from
-   * @return the long value at the specified index
-   */
-  def getLong(array: Array[Byte], index: Int, bigEndian: Boolean): Long = {
-    if (bigEndian) {
-      getLong(array, index)
-    } else if (longLeArrayViewSupported) {
-      longLeArrayView.get(array, index)
-    } else {
-      getLongLEWithoutMethodHandle(array, index)
+      if (longLeArrayViewSupported) {
+        longLeArrayView.get(array, index)
+      } else {
+        getLongLEWithoutMethodHandle(array, index)
+      }
     }
   }
 
@@ -138,35 +179,52 @@ private[pekko] object SWARUtil {
    *
    * @param array the byte array to read from
    * @param index the index to read from
+   * @param byteOrder the byte order to use (big-endian or little-endian)
    * @return the int value at the specified index
    */
-  def getInt(array: Array[Byte], index: Int): Int = {
-    if (intBeArrayViewSupported) {
-      intBeArrayView.get(array, index)
+  def getInt(array: Array[Byte], index: Int, byteOrder: ByteOrder): Int = {
+    if (byteOrder == ByteOrder.BIG_ENDIAN) {
+      if (intBeArrayViewSupported) {
+        intBeArrayView.get(array, index)
+      } else {
+        getIntBEWithoutMethodHandle(array, index)
+      }
     } else {
-      getIntBEWithoutMethodHandle(array, index)
+      if (intLeArrayViewSupported) {
+        intLeArrayView.get(array, index)
+      } else {
+        getIntLEWithoutMethodHandle(array, index)
+      }
     }
   }
 
   /**
-   * Returns the int value at the specified index in the given byte array.
-   * Uses a VarHandle byte array view if supported.
+   * Returns the short value at the specified index in the given byte array.
+   * Uses big-endian byte order. Uses a VarHandle byte array view if supported.
    * Does not range check - assumes caller has checked bounds.
    *
    * @param array the byte array to read from
    * @param index the index to read from
-   * @param bigEndian whether to use big-endian or little-endian byte order
-   * @return the int value at the specified index
+   * @param byteOrder the byte order to use (big-endian or little-endian)
+   * @return the short value at the specified index
    */
-  def getInt(array: Array[Byte], index: Int, bigEndian: Boolean): Int = {
-    if (bigEndian) {
-      getInt(array, index)
-    } else if (intLeArrayViewSupported) {
-      intLeArrayView.get(array, index)
+  def getShort(array: Array[Byte], index: Int, byteOrder: ByteOrder): Short = {
+    if (byteOrder == ByteOrder.BIG_ENDIAN) {
+      if (shortBeArrayViewSupported) {
+        shortBeArrayView.get(array, index).asInstanceOf[Short]
+      } else {
+        getShortBEWithoutMethodHandle(array, index)
+      }
     } else {
-      getIntLEWithoutMethodHandle(array, index)
+      if (shortLeArrayViewSupported) {
+        shortLeArrayView.get(array, index).asInstanceOf[Short]
+      } else {
+        getShortLEWithoutMethodHandle(array, index)
+      }
     }
   }
+
+  // Fallback implementations for environments that do not support MethodHandles.byteArrayViewVarHandle
 
   private[pekko] def getLongBEWithoutMethodHandle(array: Array[Byte], index: Int): Long = {
     (array(index).toLong & 0xFF) << 56 |
@@ -203,5 +261,11 @@ private[pekko] object SWARUtil {
     (array(index + 2) & 0xFF) << 16 |
     (array(index + 3) & 0xFF) << 24
   }
+
+  private[pekko] def getShortBEWithoutMethodHandle(array: Array[Byte], index: Int): Short =
+    ((array(index) & 0xFF) << 8 | (array(index + 1) & 0xFF)).toShort
+
+  private[pekko] def getShortLEWithoutMethodHandle(array: Array[Byte], index: Int): Short =
+    ((array(index) & 0xFF) | (array(index + 1) & 0xFF) << 8).toShort
 
 }
