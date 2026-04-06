@@ -225,7 +225,7 @@ private[pekko] object SWARUtil {
   }
 
   // Fallback implementations for environments that do not support MethodHandles.byteArrayViewVarHandle
-  
+
   private[pekko] def getLongBEWithoutMethodHandle(array: Array[Byte], index: Int): Long = {
     (array(index).toLong & 0xFF) << 56 |
     (array(index + 1).toLong & 0xFF) << 48 |

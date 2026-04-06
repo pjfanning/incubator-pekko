@@ -1446,29 +1446,49 @@ sealed abstract class ByteString
     readLongLEUnchecked(offset)
   }
 
-  /** INTERNAL API */
+  /**
+   * INTERNAL API
+   * Optimized in subclasses when we have byte arrays where we can use {@link SWARUtil}
+   * methods.
+   */
   private[pekko] def readShortBEUnchecked(offset: Int): Short =
     ((apply(offset) & 0xFF) << 8 | (apply(offset + 1) & 0xFF)).toShort
 
-  /** INTERNAL API */
+  /**
+   * INTERNAL API
+   * Optimized in subclasses when we have byte arrays where we can use {@link SWARUtil}
+   * methods.
+   */
   private[pekko] def readShortLEUnchecked(offset: Int): Short =
     ((apply(offset) & 0xFF) | (apply(offset + 1) & 0xFF) << 8).toShort
 
-  /** INTERNAL API */
+  /**
+   * INTERNAL API
+   * Optimized in subclasses when we have byte arrays where we can use {@link SWARUtil}
+   * methods.
+   */
   private[pekko] def readIntBEUnchecked(offset: Int): Int =
     (apply(offset) & 0xFF) << 24 |
     (apply(offset + 1) & 0xFF) << 16 |
     (apply(offset + 2) & 0xFF) << 8 |
     (apply(offset + 3) & 0xFF)
 
-  /** INTERNAL API */
+  /**
+   * INTERNAL API
+   * Optimized in subclasses when we have byte arrays where we can use {@link SWARUtil}
+   * methods.
+   */
   private[pekko] def readIntLEUnchecked(offset: Int): Int =
     (apply(offset) & 0xFF) |
     (apply(offset + 1) & 0xFF) << 8 |
     (apply(offset + 2) & 0xFF) << 16 |
     (apply(offset + 3) & 0xFF) << 24
 
-  /** INTERNAL API */
+  /**
+   * INTERNAL API
+   * Optimized in subclasses when we have byte arrays where we can use {@link SWARUtil}
+   * methods.
+   */
   private[pekko] def readLongBEUnchecked(offset: Int): Long =
     (apply(offset).toLong & 0xFF) << 56 |
     (apply(offset + 1).toLong & 0xFF) << 48 |
@@ -1479,7 +1499,11 @@ sealed abstract class ByteString
     (apply(offset + 6).toLong & 0xFF) << 8 |
     (apply(offset + 7).toLong & 0xFF)
 
-  /** INTERNAL API */
+  /**
+   * INTERNAL API
+   * Optimized in subclasses when we have byte arrays where we can use {@link SWARUtil}
+   * methods.
+   */
   private[pekko] def readLongLEUnchecked(offset: Int): Long =
     (apply(offset).toLong & 0xFF) |
     (apply(offset + 1).toLong & 0xFF) << 8 |
