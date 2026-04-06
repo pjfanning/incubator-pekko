@@ -351,18 +351,18 @@ object ByteString {
 
     override def asInputStream: InputStream = new UnsynchronizedByteArrayInputStream(bytes)
 
-    override def readShortBE(offset: Int): Short = { checkReadBounds(offset, 2); SWARUtil.getShort(bytes, offset) }
-    override def readShortLE(offset: Int): Short = {
-      checkReadBounds(offset, 2); SWARUtil.getShort(bytes, offset, bigEndian = false)
-    }
-    override def readIntBE(offset: Int): Int = { checkReadBounds(offset, 4); SWARUtil.getInt(bytes, offset) }
-    override def readIntLE(offset: Int): Int = {
-      checkReadBounds(offset, 4); SWARUtil.getInt(bytes, offset, bigEndian = false)
-    }
-    override def readLongBE(offset: Int): Long = { checkReadBounds(offset, 8); SWARUtil.getLong(bytes, offset) }
-    override def readLongLE(offset: Int): Long = {
-      checkReadBounds(offset, 8); SWARUtil.getLong(bytes, offset, bigEndian = false)
-    }
+    private[pekko] override def readShortBEUnchecked(offset: Int): Short =
+      SWARUtil.getShort(bytes, offset)
+    private[pekko] override def readShortLEUnchecked(offset: Int): Short =
+      SWARUtil.getShort(bytes, offset, bigEndian = false)
+    private[pekko] override def readIntBEUnchecked(offset: Int): Int =
+      SWARUtil.getInt(bytes, offset)
+    private[pekko] override def readIntLEUnchecked(offset: Int): Int =
+      SWARUtil.getInt(bytes, offset, bigEndian = false)
+    private[pekko] override def readLongBEUnchecked(offset: Int): Long =
+      SWARUtil.getLong(bytes, offset)
+    private[pekko] override def readLongLEUnchecked(offset: Int): Long =
+      SWARUtil.getLong(bytes, offset, bigEndian = false)
   }
 
   /** INTERNAL API: ByteString backed by exactly one array, with start / end markers */
@@ -607,24 +607,18 @@ object ByteString {
     override def asInputStream: InputStream =
       new UnsynchronizedByteArrayInputStream(bytes, startIndex, length)
 
-    override def readShortBE(offset: Int): Short = {
-      checkReadBounds(offset, 2); SWARUtil.getShort(bytes, startIndex + offset)
-    }
-    override def readShortLE(offset: Int): Short = {
-      checkReadBounds(offset, 2); SWARUtil.getShort(bytes, startIndex + offset, bigEndian = false)
-    }
-    override def readIntBE(offset: Int): Int = {
-      checkReadBounds(offset, 4); SWARUtil.getInt(bytes, startIndex + offset)
-    }
-    override def readIntLE(offset: Int): Int = {
-      checkReadBounds(offset, 4); SWARUtil.getInt(bytes, startIndex + offset, bigEndian = false)
-    }
-    override def readLongBE(offset: Int): Long = {
-      checkReadBounds(offset, 8); SWARUtil.getLong(bytes, startIndex + offset)
-    }
-    override def readLongLE(offset: Int): Long = {
-      checkReadBounds(offset, 8); SWARUtil.getLong(bytes, startIndex + offset, bigEndian = false)
-    }
+    private[pekko] override def readShortBEUnchecked(offset: Int): Short =
+      SWARUtil.getShort(bytes, startIndex + offset)
+    private[pekko] override def readShortLEUnchecked(offset: Int): Short =
+      SWARUtil.getShort(bytes, startIndex + offset, bigEndian = false)
+    private[pekko] override def readIntBEUnchecked(offset: Int): Int =
+      SWARUtil.getInt(bytes, startIndex + offset)
+    private[pekko] override def readIntLEUnchecked(offset: Int): Int =
+      SWARUtil.getInt(bytes, startIndex + offset, bigEndian = false)
+    private[pekko] override def readLongBEUnchecked(offset: Int): Long =
+      SWARUtil.getLong(bytes, startIndex + offset)
+    private[pekko] override def readLongLEUnchecked(offset: Int): Long =
+      SWARUtil.getLong(bytes, startIndex + offset, bigEndian = false)
   }
 
   private[pekko] object ByteStrings extends Companion {
@@ -1384,7 +1378,7 @@ sealed abstract class ByteString
    */
   def readShortBE(offset: Int): Short = {
     checkReadBounds(offset, 2)
-    ((apply(offset) & 0xFF) << 8 | (apply(offset + 1) & 0xFF)).toShort
+    readShortBEUnchecked(offset)
   }
 
   /**
@@ -1397,7 +1391,7 @@ sealed abstract class ByteString
    */
   def readShortLE(offset: Int): Short = {
     checkReadBounds(offset, 2)
-    ((apply(offset) & 0xFF) | (apply(offset + 1) & 0xFF) << 8).toShort
+    readShortLEUnchecked(offset)
   }
 
   /**
@@ -1410,10 +1404,7 @@ sealed abstract class ByteString
    */
   def readIntBE(offset: Int): Int = {
     checkReadBounds(offset, 4)
-    (apply(offset) & 0xFF) << 24 |
-    (apply(offset + 1) & 0xFF) << 16 |
-    (apply(offset + 2) & 0xFF) << 8 |
-    (apply(offset + 3) & 0xFF)
+    readIntBEUnchecked(offset)
   }
 
   /**
@@ -1426,10 +1417,7 @@ sealed abstract class ByteString
    */
   def readIntLE(offset: Int): Int = {
     checkReadBounds(offset, 4)
-    (apply(offset) & 0xFF) |
-    (apply(offset + 1) & 0xFF) << 8 |
-    (apply(offset + 2) & 0xFF) << 16 |
-    (apply(offset + 3) & 0xFF) << 24
+    readIntLEUnchecked(offset)
   }
 
   /**
@@ -1442,14 +1430,7 @@ sealed abstract class ByteString
    */
   def readLongBE(offset: Int): Long = {
     checkReadBounds(offset, 8)
-    (apply(offset).toLong & 0xFF) << 56 |
-    (apply(offset + 1).toLong & 0xFF) << 48 |
-    (apply(offset + 2).toLong & 0xFF) << 40 |
-    (apply(offset + 3).toLong & 0xFF) << 32 |
-    (apply(offset + 4).toLong & 0xFF) << 24 |
-    (apply(offset + 5).toLong & 0xFF) << 16 |
-    (apply(offset + 6).toLong & 0xFF) << 8 |
-    (apply(offset + 7).toLong & 0xFF)
+    readLongBEUnchecked(offset)
   }
 
   /**
@@ -1462,6 +1443,44 @@ sealed abstract class ByteString
    */
   def readLongLE(offset: Int): Long = {
     checkReadBounds(offset, 8)
+    readLongLEUnchecked(offset)
+  }
+
+  /** INTERNAL API */
+  private[pekko] def readShortBEUnchecked(offset: Int): Short =
+    ((apply(offset) & 0xFF) << 8 | (apply(offset + 1) & 0xFF)).toShort
+
+  /** INTERNAL API */
+  private[pekko] def readShortLEUnchecked(offset: Int): Short =
+    ((apply(offset) & 0xFF) | (apply(offset + 1) & 0xFF) << 8).toShort
+
+  /** INTERNAL API */
+  private[pekko] def readIntBEUnchecked(offset: Int): Int =
+    (apply(offset) & 0xFF) << 24 |
+    (apply(offset + 1) & 0xFF) << 16 |
+    (apply(offset + 2) & 0xFF) << 8 |
+    (apply(offset + 3) & 0xFF)
+
+  /** INTERNAL API */
+  private[pekko] def readIntLEUnchecked(offset: Int): Int =
+    (apply(offset) & 0xFF) |
+    (apply(offset + 1) & 0xFF) << 8 |
+    (apply(offset + 2) & 0xFF) << 16 |
+    (apply(offset + 3) & 0xFF) << 24
+
+  /** INTERNAL API */
+  private[pekko] def readLongBEUnchecked(offset: Int): Long =
+    (apply(offset).toLong & 0xFF) << 56 |
+    (apply(offset + 1).toLong & 0xFF) << 48 |
+    (apply(offset + 2).toLong & 0xFF) << 40 |
+    (apply(offset + 3).toLong & 0xFF) << 32 |
+    (apply(offset + 4).toLong & 0xFF) << 24 |
+    (apply(offset + 5).toLong & 0xFF) << 16 |
+    (apply(offset + 6).toLong & 0xFF) << 8 |
+    (apply(offset + 7).toLong & 0xFF)
+
+  /** INTERNAL API */
+  private[pekko] def readLongLEUnchecked(offset: Int): Long =
     (apply(offset).toLong & 0xFF) |
     (apply(offset + 1).toLong & 0xFF) << 8 |
     (apply(offset + 2).toLong & 0xFF) << 16 |
@@ -1470,7 +1489,6 @@ sealed abstract class ByteString
     (apply(offset + 5).toLong & 0xFF) << 40 |
     (apply(offset + 6).toLong & 0xFF) << 48 |
     (apply(offset + 7).toLong & 0xFF) << 56
-  }
 
   def map[A](f: Byte => Byte): ByteString = fromSpecific(super.map(f))
 }
