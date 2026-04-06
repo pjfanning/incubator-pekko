@@ -49,6 +49,18 @@ class SWARUtilSpec extends AnyWordSpec with Matchers {
       SWARUtil.getIntBEWithoutMethodHandle(testData, 4) should ===(0x04050607)
       SWARUtil.getIntLEWithoutMethodHandle(testData, 4) should ===(0x07060504)
     }
+    "getShort" in {
+      SWARUtil.getShort(testData, 0) should ===(0x0001.toShort)
+      SWARUtil.getShort(testData, 0, true) should ===(0x0001.toShort)
+      SWARUtil.getShort(testData, 0, false) should ===(0x0100.toShort)
+      SWARUtil.getShortBEWithoutMethodHandle(testData, 0) should ===(0x0001.toShort)
+      SWARUtil.getShortLEWithoutMethodHandle(testData, 0) should ===(0x0100.toShort)
+      SWARUtil.getShort(testData, 2) should ===(0x0203.toShort)
+      SWARUtil.getShort(testData, 2, true) should ===(0x0203.toShort)
+      SWARUtil.getShort(testData, 2, false) should ===(0x0302.toShort)
+      SWARUtil.getShortBEWithoutMethodHandle(testData, 2) should ===(0x0203.toShort)
+      SWARUtil.getShortLEWithoutMethodHandle(testData, 2) should ===(0x0302.toShort)
+    }
   }
 
 }

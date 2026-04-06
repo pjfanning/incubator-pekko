@@ -65,6 +65,24 @@ private[pekko] object SWARUtil {
       case _: Throwable => (null, false)
     }
 
+  private val (shortBeArrayView, shortBeArrayViewSupported) =
+    try {
+      (MethodHandles.byteArrayViewVarHandle(
+          classOf[Array[Short]], java.nio.ByteOrder.BIG_ENDIAN),
+        true)
+    } catch {
+      case _: Throwable => (null, false)
+    }
+
+  private val (shortLeArrayView, shortLeArrayViewSupported) =
+    try {
+      (MethodHandles.byteArrayViewVarHandle(
+          classOf[Array[Short]], java.nio.ByteOrder.LITTLE_ENDIAN),
+        true)
+    } catch {
+      case _: Throwable => (null, false)
+    }
+
   /**
    * Compiles given byte into a long pattern suitable for SWAR operations.
    */
@@ -203,5 +221,48 @@ private[pekko] object SWARUtil {
     (array(index + 2) & 0xFF) << 16 |
     (array(index + 3) & 0xFF) << 24
   }
+
+  /**
+   * Returns the short value at the specified index in the given byte array.
+   * Uses big-endian byte order. Uses a VarHandle byte array view if supported.
+   * Does not range check - assumes caller has checked bounds.
+   *
+   * @param array the byte array to read from
+   * @param index the index to read from
+   * @return the short value at the specified index
+   */
+  def getShort(array: Array[Byte], index: Int): Short = {
+    if (shortBeArrayViewSupported) {
+      shortBeArrayView.get(array, index)
+    } else {
+      getShortBEWithoutMethodHandle(array, index)
+    }
+  }
+
+  /**
+   * Returns the short value at the specified index in the given byte array.
+   * Uses a VarHandle byte array view if supported.
+   * Does not range check - assumes caller has checked bounds.
+   *
+   * @param array the byte array to read from
+   * @param index the index to read from
+   * @param bigEndian whether to use big-endian or little-endian byte order
+   * @return the short value at the specified index
+   */
+  def getShort(array: Array[Byte], index: Int, bigEndian: Boolean): Short = {
+    if (bigEndian) {
+      getShort(array, index)
+    } else if (shortLeArrayViewSupported) {
+      shortLeArrayView.get(array, index)
+    } else {
+      getShortLEWithoutMethodHandle(array, index)
+    }
+  }
+
+  private[pekko] def getShortBEWithoutMethodHandle(array: Array[Byte], index: Int): Short =
+    ((array(index) & 0xFF) << 8 | (array(index + 1) & 0xFF)).toShort
+
+  private[pekko] def getShortLEWithoutMethodHandle(array: Array[Byte], index: Int): Short =
+    ((array(index) & 0xFF) | (array(index + 1) & 0xFF) << 8).toShort
 
 }

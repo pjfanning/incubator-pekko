@@ -350,6 +350,13 @@ object ByteString {
     override def toArrayUnsafe(): Array[Byte] = bytes
 
     override def asInputStream: InputStream = new UnsynchronizedByteArrayInputStream(bytes)
+
+    override def readShortBE(offset: Int): Short = SWARUtil.getShort(bytes, offset)
+    override def readShortLE(offset: Int): Short = SWARUtil.getShort(bytes, offset, bigEndian = false)
+    override def readIntBE(offset: Int): Int = SWARUtil.getInt(bytes, offset)
+    override def readIntLE(offset: Int): Int = SWARUtil.getInt(bytes, offset, bigEndian = false)
+    override def readLongBE(offset: Int): Long = SWARUtil.getLong(bytes, offset)
+    override def readLongLE(offset: Int): Long = SWARUtil.getLong(bytes, offset, bigEndian = false)
   }
 
   /** INTERNAL API: ByteString backed by exactly one array, with start / end markers */
@@ -593,6 +600,13 @@ object ByteString {
 
     override def asInputStream: InputStream =
       new UnsynchronizedByteArrayInputStream(bytes, startIndex, length)
+
+    override def readShortBE(offset: Int): Short = SWARUtil.getShort(bytes, startIndex + offset)
+    override def readShortLE(offset: Int): Short = SWARUtil.getShort(bytes, startIndex + offset, bigEndian = false)
+    override def readIntBE(offset: Int): Int = SWARUtil.getInt(bytes, startIndex + offset)
+    override def readIntLE(offset: Int): Int = SWARUtil.getInt(bytes, startIndex + offset, bigEndian = false)
+    override def readLongBE(offset: Int): Long = SWARUtil.getLong(bytes, startIndex + offset)
+    override def readLongLE(offset: Int): Long = SWARUtil.getLong(bytes, startIndex + offset, bigEndian = false)
   }
 
   private[pekko] object ByteStrings extends Companion {
@@ -1336,6 +1350,86 @@ sealed abstract class ByteString
    * map method that will automatically cast Int back into Byte.
    */
   final def mapI(f: Byte => Int): ByteString = map(f.andThen(_.toByte))
+
+  /**
+   * Read a short from this ByteString at the given offset in big-endian byte order.
+   *
+   * @param offset the offset to read from
+   * @return the short value
+   * @since 2.0.0
+   */
+  def readShortBE(offset: Int): Short =
+    ((apply(offset) & 0xFF) << 8 | (apply(offset + 1) & 0xFF)).toShort
+
+  /**
+   * Read a short from this ByteString at the given offset in little-endian byte order.
+   *
+   * @param offset the offset to read from
+   * @return the short value
+   * @since 2.0.0
+   */
+  def readShortLE(offset: Int): Short =
+    ((apply(offset) & 0xFF) | (apply(offset + 1) & 0xFF) << 8).toShort
+
+  /**
+   * Read an int from this ByteString at the given offset in big-endian byte order.
+   *
+   * @param offset the offset to read from
+   * @return the int value
+   * @since 2.0.0
+   */
+  def readIntBE(offset: Int): Int =
+    (apply(offset) & 0xFF) << 24 |
+    (apply(offset + 1) & 0xFF) << 16 |
+    (apply(offset + 2) & 0xFF) << 8 |
+    (apply(offset + 3) & 0xFF)
+
+  /**
+   * Read an int from this ByteString at the given offset in little-endian byte order.
+   *
+   * @param offset the offset to read from
+   * @return the int value
+   * @since 2.0.0
+   */
+  def readIntLE(offset: Int): Int =
+    (apply(offset) & 0xFF) |
+    (apply(offset + 1) & 0xFF) << 8 |
+    (apply(offset + 2) & 0xFF) << 16 |
+    (apply(offset + 3) & 0xFF) << 24
+
+  /**
+   * Read a long from this ByteString at the given offset in big-endian byte order.
+   *
+   * @param offset the offset to read from
+   * @return the long value
+   * @since 2.0.0
+   */
+  def readLongBE(offset: Int): Long =
+    (apply(offset).toLong & 0xFF) << 56 |
+    (apply(offset + 1).toLong & 0xFF) << 48 |
+    (apply(offset + 2).toLong & 0xFF) << 40 |
+    (apply(offset + 3).toLong & 0xFF) << 32 |
+    (apply(offset + 4).toLong & 0xFF) << 24 |
+    (apply(offset + 5).toLong & 0xFF) << 16 |
+    (apply(offset + 6).toLong & 0xFF) << 8 |
+    (apply(offset + 7).toLong & 0xFF)
+
+  /**
+   * Read a long from this ByteString at the given offset in little-endian byte order.
+   *
+   * @param offset the offset to read from
+   * @return the long value
+   * @since 2.0.0
+   */
+  def readLongLE(offset: Int): Long =
+    (apply(offset).toLong & 0xFF) |
+    (apply(offset + 1).toLong & 0xFF) << 8 |
+    (apply(offset + 2).toLong & 0xFF) << 16 |
+    (apply(offset + 3).toLong & 0xFF) << 24 |
+    (apply(offset + 4).toLong & 0xFF) << 32 |
+    (apply(offset + 5).toLong & 0xFF) << 40 |
+    (apply(offset + 6).toLong & 0xFF) << 48 |
+    (apply(offset + 7).toLong & 0xFF) << 56
 
   def map[A](f: Byte => Byte): ByteString = fromSpecific(super.map(f))
 }
