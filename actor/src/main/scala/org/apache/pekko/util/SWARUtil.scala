@@ -297,4 +297,76 @@ private[pekko] object SWARUtil {
   private[pekko] def getShortLEWithoutMethodHandle(array: Array[Byte], index: Int): Short =
     ((array(index) & 0xFF) | (array(index + 1) & 0xFF) << 8).toShort
 
+  /**
+   * Applies a 4-byte XOR mask in-place to `array[from, until)`.
+   * `maskValue` must be pre-rotated so that its most-significant byte (bits 24–31)
+   * applies to `array(from)`.
+   *
+   * When the big-endian `long` VarHandle is supported, eight bytes are processed per
+   * iteration using a single load and store; otherwise four bytes are processed per
+   * iteration.  Trailing bytes (fewer than one full group) are handled individually.
+   *
+   * Does not range-check: the caller is responsible for ensuring that
+   * `from >= 0` and `until <= array.length`.
+   *
+   * @param array     the byte array to modify in-place
+   * @param from      start index (inclusive)
+   * @param until     end index (exclusive)
+   * @param maskValue the 4-byte mask as a big-endian `Int`
+   */
+  def applyMask(array: Array[Byte], from: Int, until: Int, maskValue: Int): Unit = {
+    val len = until - from
+    val m0 = ((maskValue >> 24) & 0xFF).toByte
+    val m1 = ((maskValue >> 16) & 0xFF).toByte
+    val m2 = ((maskValue >> 8) & 0xFF).toByte
+    val m3 = (maskValue & 0xFF).toByte
+
+    var offset = from
+
+    if (longBeArrayViewSupported) {
+      // Expand 4-byte mask to 8-byte mask for SWAR long XOR (big-endian: m0 is MSB)
+      val maskLong = (maskValue.toLong << 32) | (maskValue.toLong & 0xFFFFFFFFL)
+      val last = from + (len & ~7)
+      while (offset < last) {
+        val word = longBeArrayView.get(array, offset).asInstanceOf[Long]
+        longBeArrayView.set(array, offset, word ^ maskLong)
+        offset += 8
+      }
+    } else {
+      val last = from + (len & ~3)
+      while (offset < last) {
+        array(offset) = (array(offset) ^ m0).toByte
+        array(offset + 1) = (array(offset + 1) ^ m1).toByte
+        array(offset + 2) = (array(offset + 2) ^ m2).toByte
+        array(offset + 3) = (array(offset + 3) ^ m3).toByte
+        offset += 4
+      }
+    }
+
+    // Handle remaining 0–7 bytes (8-byte path) or 0–3 bytes (4-byte fallback)
+    // After processing (8k) bytes, the mask is still aligned to m0 (since 8 % 4 == 0)
+    val remaining = until - offset
+    if (remaining > 0) {
+      array(offset) = (array(offset) ^ m0).toByte
+      if (remaining > 1) {
+        array(offset + 1) = (array(offset + 1) ^ m1).toByte
+        if (remaining > 2) {
+          array(offset + 2) = (array(offset + 2) ^ m2).toByte
+          if (remaining > 3) {
+            array(offset + 3) = (array(offset + 3) ^ m3).toByte
+            if (remaining > 4) {
+              array(offset + 4) = (array(offset + 4) ^ m0).toByte
+              if (remaining > 5) {
+                array(offset + 5) = (array(offset + 5) ^ m1).toByte
+                if (remaining > 6) {
+                  array(offset + 6) = (array(offset + 6) ^ m2).toByte
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
 }

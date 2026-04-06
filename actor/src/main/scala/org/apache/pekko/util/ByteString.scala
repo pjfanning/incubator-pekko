@@ -363,6 +363,13 @@ object ByteString {
       SWARUtil.getLong(bytes, offset)
     private[pekko] override def readLongLEUnchecked(offset: Int): Long =
       SWARUtil.getLong(bytes, offset, bigEndian = false)
+
+    override def mask(maskValue: Int): (ByteString, Int) = {
+      val buffer = bytes.clone()
+      SWARUtil.applyMask(buffer, 0, buffer.length, maskValue)
+      val newMask = Integer.rotateLeft(maskValue, (buffer.length % 4) * 8)
+      (ByteString.fromArrayUnsafe(buffer), newMask)
+    }
   }
 
   /** INTERNAL API: ByteString backed by exactly one array, with start / end markers */
@@ -619,6 +626,13 @@ object ByteString {
       SWARUtil.getLong(bytes, startIndex + offset)
     private[pekko] override def readLongLEUnchecked(offset: Int): Long =
       SWARUtil.getLong(bytes, startIndex + offset, bigEndian = false)
+
+    override def mask(maskValue: Int): (ByteString, Int) = {
+      val buffer = java.util.Arrays.copyOfRange(bytes, startIndex, startIndex + length)
+      SWARUtil.applyMask(buffer, 0, buffer.length, maskValue)
+      val newMask = Integer.rotateLeft(maskValue, (buffer.length % 4) * 8)
+      (ByteString.fromArrayUnsafe(buffer), newMask)
+    }
   }
 
   private[pekko] object ByteStrings extends Companion {
@@ -1491,6 +1505,39 @@ sealed abstract class ByteString
     (apply(offset + 7).toLong & 0xFF) << 56
 
   def map[A](f: Byte => Byte): ByteString = fromSpecific(super.map(f))
+
+  /**
+   * Applies a WebSocket-style 4-byte XOR mask to a copy of this `ByteString` and
+   * returns the masked result together with the mask value rotated for continuation.
+   *
+   * The mask is applied cyclically: byte `i` is XOR'd with mask byte `i % 4`.
+   * The returned mask is `Integer.rotateLeft(maskValue, (length % 4) * 8)`, which
+   * is the correct starting mask for the immediately following chunk in the same
+   * WebSocket message.
+   *
+   * @param maskValue the 4-byte mask encoded as a big-endian `Int`
+   * @return a tuple of the masked `ByteString` and the rotated mask for continuation
+   * @since 2.0.0
+   */
+  def mask(maskValue: Int): (ByteString, Int) = {
+    val buffer = toArray
+    SWARUtil.applyMask(buffer, 0, buffer.length, maskValue)
+    val newMask = Integer.rotateLeft(maskValue, (buffer.length % 4) * 8)
+    (ByteString.fromArrayUnsafe(buffer), newMask)
+  }
+
+  /**
+   * Applies an optional WebSocket-style 4-byte XOR mask to this `ByteString`.
+   * When `maskValue` is `None`, the original `ByteString` is returned unchanged.
+   *
+   * @param maskValue the optional 4-byte mask encoded as a big-endian `Int`
+   * @return the masked `ByteString`, or the original if `maskValue` is `None`
+   * @since 2.0.0
+   */
+  def mask(maskValue: Option[Int]): ByteString = maskValue match {
+    case Some(m) => mask(m)._1
+    case None    => this
+  }
 }
 
 object CompactByteString {

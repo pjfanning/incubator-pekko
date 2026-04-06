@@ -61,6 +61,36 @@ class SWARUtilSpec extends AnyWordSpec with Matchers {
       SWARUtil.getShortBEWithoutMethodHandle(testData, 2) should ===(0x0203.toShort)
       SWARUtil.getShortLEWithoutMethodHandle(testData, 2) should ===(0x0302.toShort)
     }
+    "applyMask with 8-byte aligned data" in {
+      val data = Array[Byte](0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08)
+      SWARUtil.applyMask(data, 0, data.length, 0x0A0B0C0D)
+      // each byte XOR'd with the corresponding mask byte cycling m0=0x0A, m1=0x0B, m2=0x0C, m3=0x0D
+      data should ===(Array[Byte](
+        (0x01 ^ 0x0A).toByte, (0x02 ^ 0x0B).toByte, (0x03 ^ 0x0C).toByte, (0x04 ^ 0x0D).toByte,
+        (0x05 ^ 0x0A).toByte, (0x06 ^ 0x0B).toByte, (0x07 ^ 0x0C).toByte, (0x08 ^ 0x0D).toByte))
+    }
+    "applyMask with non-aligned length" in {
+      val data = Array[Byte](0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07)
+      SWARUtil.applyMask(data, 0, data.length, 0x01020304)
+      data should ===(Array[Byte](
+        (0x01 ^ 0x01).toByte, (0x02 ^ 0x02).toByte, (0x03 ^ 0x03).toByte, (0x04 ^ 0x04).toByte,
+        (0x05 ^ 0x01).toByte, (0x06 ^ 0x02).toByte, (0x07 ^ 0x03).toByte))
+    }
+    "applyMask with offset" in {
+      val data = Array[Byte](0x00, 0x01, 0x02, 0x03, 0x04, 0x05)
+      SWARUtil.applyMask(data, 1, 5, 0xFF000000)
+      // only bytes 1..4 are masked; byte 0 and byte 5 are untouched
+      data(0) should ===(0x00.toByte)
+      data(1) should ===((0x01 ^ 0xFF).toByte)
+      data(2) should ===((0x02 ^ 0x00).toByte)
+      data(3) should ===((0x03 ^ 0x00).toByte)
+      data(4) should ===((0x04 ^ 0x00).toByte)
+      data(5) should ===(0x05.toByte)
+    }
+    "applyMask with empty range" in {
+      val data = Array[Byte](0x01, 0x02, 0x03)
+      SWARUtil.applyMask(data, 1, 1, 0xDEADBEEF)
+      // nothing should change
+      data should ===(Array[Byte](0x01, 0x02, 0x03))
+    }
   }
-
-}
