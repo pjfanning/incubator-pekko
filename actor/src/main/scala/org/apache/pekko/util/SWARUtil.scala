@@ -233,7 +233,7 @@ private[pekko] object SWARUtil {
    */
   def getShort(array: Array[Byte], index: Int): Short = {
     if (shortBeArrayViewSupported) {
-      shortBeArrayView.get(array, index)
+      shortBeArrayView.get(array, index).asInstanceOf[Short]
     } else {
       getShortBEWithoutMethodHandle(array, index)
     }
@@ -253,7 +253,7 @@ private[pekko] object SWARUtil {
     if (bigEndian) {
       getShort(array, index)
     } else if (shortLeArrayViewSupported) {
-      shortLeArrayView.get(array, index)
+      shortLeArrayView.get(array, index).asInstanceOf[Short]
     } else {
       getShortLEWithoutMethodHandle(array, index)
     }
