@@ -27,35 +27,35 @@ import org.apache.pekko.annotation.InternalApi
  * </p>
  * <p>
  * Multi-byte reads use [[java.lang.invoke.MethodHandles#byteArrayViewVarHandle]], which allows
- * reading several bytes from a byte array as a single typed value (e.g. {@code short}, {@code int},
- * or {@code long}) in one operation rather than reading and shifting each byte individually.
+ * reading several bytes from a byte array as a single typed value (e.g. `short`, `int`,
+ * or `long`) in one operation rather than reading and shifting each byte individually.
  * </p>
  * <p>
- * The JDK itself uses the same technique.  Since Java 17, {@code jdk.internal.util.ByteArray} (big
- * endian) and {@code jdk.internal.util.ByteArrayLittleEndian} (little endian) use
- * {@code MethodHandles.byteArrayViewVarHandle} for every primitive type, and those helpers back the
- * public APIs of {@code java.io.DataInputStream} ({@code readShort}, {@code readInt},
- * {@code readLong}, etc.) and {@code java.util.UUID} construction from bytes.
+ * The JDK itself uses the same technique.  Since Java 17, `jdk.internal.util.ByteArray` (big
+ * endian) and `jdk.internal.util.ByteArrayLittleEndian` (little endian) use
+ * `MethodHandles.byteArrayViewVarHandle` for every primitive type, and those helpers back the
+ * public APIs of `java.io.DataInputStream` (`readShort`, `readInt`,
+ * `readLong`, etc.) and `java.util.UUID` construction from bytes.
  * </p>
  * <h3>Why this is faster than byte-by-byte shifts</h3>
  * <ul>
  *   <li><b>Single native load instruction</b> – on x86/x64 and AArch64 the HotSpot JIT intrinsifies
- *       the VarHandle access into a single {@code MOVZX}, {@code MOV}, or {@code LDR} instruction
+ *       the VarHandle access into a single `MOVZX`, `MOV`, or `LDR` instruction
  *       that reads the full value directly from memory, whereas manual byte-shift code requires
  *       multiple load-and-shift-and-or sequences that are harder for the JIT to collapse.</li>
  *   <li><b>Consolidated bounds check</b> – a single range check covers the entire multi-byte read;
- *       individual {@code array(i)} accesses each carry their own implicit bounds check.</li>
- *   <li><b>No alignment requirement</b> – unlike {@code sun.misc.Unsafe} the VarHandle variant
+ *       individual `array(i)` accesses each carry their own implicit bounds check.</li>
+ *   <li><b>No alignment requirement</b> – unlike `sun.misc.Unsafe` the VarHandle variant
  *       works correctly on unaligned offsets, so callers do not need to pad or copy data to satisfy
  *       alignment constraints.</li>
- *   <li><b>SWAR arithmetic</b> – reading a full {@code long} with a single VarHandle call means
+ *   <li><b>SWAR arithmetic</b> – reading a full `long` with a single VarHandle call means
  *       eight bytes arrive in one register, enabling SWAR patterns that test all eight bytes in
  *       parallel (see [[applyPattern]]).</li>
  * </ul>
  * <p>
- * A runtime {@code try/catch} guards each VarHandle creation; if the JVM does not support the API
+ * A runtime `try/catch` guards each VarHandle creation; if the JVM does not support the API
  * (e.g. older Android runtimes) the code falls back to explicit byte-by-byte shift implementations
- * ({@code getLongBEWithoutMethodHandle}, etc.) so behaviour is always correct.
+ * (`getLongBEWithoutMethodHandle`, etc.) so behaviour is always correct.
  * </p>
  */
 @InternalApi
