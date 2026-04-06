@@ -1527,6 +1527,83 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       an[IndexOutOfBoundsException] should be thrownBy bss.readLongBE(-1)
       an[IndexOutOfBoundsException] should be thrownBy bss.readLongLE(-1)
     }
+
+    "mask bytes with a 4-byte XOR mask for ByteString1C" in {
+      val data = Array[Byte](0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09)
+      val bs = ByteString1C(data)
+      val maskValue = 0x0A0B0C0D
+      val (masked, newMask) = bs.mask(maskValue)
+      masked.length should ===(bs.length)
+      for (i <- 0 until bs.length) {
+        val m = (maskValue >>> (24 - (i % 4) * 8)) & 0xFF
+        masked(i) should ===((data(i) ^ m).toByte)
+      }
+      newMask should ===(Integer.rotateLeft(maskValue, (bs.length % 4) * 8))
+    }
+
+    "mask bytes with a 4-byte XOR mask for ByteString1" in {
+      val arr = Array[Byte](0, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0)
+      val bs = ByteString1(arr, 1, 9)
+      val maskValue = 0x0A0B0C0D
+      val (masked, newMask) = bs.mask(maskValue)
+      masked.length should ===(bs.length)
+      for (i <- 0 until bs.length) {
+        val m = (maskValue >>> (24 - (i % 4) * 8)) & 0xFF
+        masked(i) should ===((arr(1 + i) ^ m).toByte)
+      }
+      newMask should ===(Integer.rotateLeft(maskValue, (bs.length % 4) * 8))
+    }
+
+    "mask bytes with a 4-byte XOR mask for ByteStrings" in {
+      val bs = ByteStrings(
+        ByteString1(Array[Byte](0x01, 0x02, 0x03, 0x04), 0, 4),
+        ByteString1(Array[Byte](0x05, 0x06, 0x07, 0x08, 0x09), 0, 5))
+      val maskValue = 0x0A0B0C0D
+      val (masked, newMask) = bs.mask(maskValue)
+      masked.length should ===(bs.length)
+      val allBytes = Array[Byte](0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09)
+      for (i <- 0 until bs.length) {
+        val m = (maskValue >>> (24 - (i % 4) * 8)) & 0xFF
+        masked(i) should ===((allBytes(i) ^ m).toByte)
+      }
+      newMask should ===(Integer.rotateLeft(maskValue, (bs.length % 4) * 8))
+    }
+
+    "mask returns original ByteString when mask is None" in {
+      val bs = ByteString1C(Array[Byte](0x01, 0x02, 0x03))
+      bs.mask(None) should ===(bs)
+    }
+
+    "mask returns masked ByteString when mask is Some" in {
+      val bs = ByteString1C(Array[Byte](0x01, 0x02, 0x03, 0x04))
+      val result = bs.mask(Some(0xFF000000))
+      result should ===(ByteString(
+        (0x01 ^ 0xFF).toByte, (0x02 ^ 0x00).toByte, (0x03 ^ 0x00).toByte, (0x04 ^ 0x00).toByte))
+    }
+
+    "mask continuation: newMask is correct for multi-chunk masking" in {
+      // Masking 9 bytes with mask 0x01020304 and then continuing with the newMask
+      // should produce the same result as masking all bytes in one call
+      val allBytes = Array[Byte](0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09)
+      val bs = ByteString1C(allBytes)
+      val maskValue = 0x01020304
+
+      val (all, _) = bs.mask(maskValue)
+
+      val bs1 = ByteString1C(allBytes.slice(0, 5))
+      val bs2 = ByteString1C(allBytes.slice(5, 9))
+      val (part1, contMask) = bs1.mask(maskValue)
+      val (part2, _) = bs2.mask(contMask)
+
+      (part1 ++ part2) should ===(all)
+    }
+
+    "mask of empty ByteString returns empty ByteString" in {
+      val bs = ByteString.empty
+      val (masked, newMask) = bs.mask(0xDEADBEEF)
+      masked should ===(ByteString.empty)
+      newMask should ===(0xDEADBEEF)
+    }
   }
 
   "A ByteStringIterator" must {
