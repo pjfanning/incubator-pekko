@@ -139,41 +139,23 @@ object ByteIterator {
 
     override def getShort(implicit byteOrder: ByteOrder): Short = {
       if (len < 2) throw new NoSuchElementException("next on empty iterator")
-      if (byteOrder == ByteOrder.BIG_ENDIAN) {
-        val result = SWARUtil.getShort(array, from)
-        from += 2
-        result
-      } else if (byteOrder == ByteOrder.LITTLE_ENDIAN) {
-        val result = SWARUtil.getShort(array, from, bigEndian = false)
-        from += 2
-        result
-      } else throw new IllegalArgumentException("Unknown byte order " + byteOrder)
+      val result = SWARUtil.getShort(array, from, byteOrder)
+      from += 2
+      result
     }
 
     override def getInt(implicit byteOrder: ByteOrder): Int = {
       if (len < 4) throw new NoSuchElementException("next on empty iterator")
-      if (byteOrder == ByteOrder.BIG_ENDIAN) {
-        val result = SWARUtil.getInt(array, from)
-        from += 4
-        result
-      } else if (byteOrder == ByteOrder.LITTLE_ENDIAN) {
-        val result = SWARUtil.getInt(array, from, bigEndian = false)
-        from += 4
-        result
-      } else throw new IllegalArgumentException("Unknown byte order " + byteOrder)
+      val result = SWARUtil.getInt(array, from, byteOrder)
+      from += 4
+      result
     }
 
     override def getLong(implicit byteOrder: ByteOrder): Long = {
       if (len < 8) throw new NoSuchElementException("next on empty iterator")
-      if (byteOrder == ByteOrder.BIG_ENDIAN) {
-        val result = SWARUtil.getLong(array, from)
-        from += 8
-        result
-      } else if (byteOrder == ByteOrder.LITTLE_ENDIAN) {
-        val result = SWARUtil.getLong(array, from, bigEndian = false)
-        from += 8
-        result
-      } else throw new IllegalArgumentException("Unknown byte order " + byteOrder)
+      val result = SWARUtil.getLong(array, from, byteOrder)
+      from += 8
+      result
     }
 
     private def wrappedByteBuffer: ByteBuffer = ByteBuffer.wrap(array, from, len).asReadOnlyBuffer

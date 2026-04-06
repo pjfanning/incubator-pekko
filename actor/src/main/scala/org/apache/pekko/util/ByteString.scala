@@ -262,7 +262,7 @@ object ByteString {
       val pattern = SWARUtil.compilePattern(elem)
       var i = 0
       while (i < longCount) {
-        val word = SWARUtil.getLong(bytes, offset)
+        val word = SWARUtil.getLong(bytes, offset, ByteOrder.BIG_ENDIAN)
         val result = SWARUtil.applyPattern(word, pattern)
         if (result != 0) return offset + SWARUtil.getIndex(result)
         offset += java.lang.Long.BYTES
@@ -288,7 +288,7 @@ object ByteString {
       val pattern = SWARUtil.compilePattern(elem)
       var i = 0
       while (i < longCount) {
-        val word = SWARUtil.getLong(bytes, offset)
+        val word = SWARUtil.getLong(bytes, offset, ByteOrder.BIG_ENDIAN)
         val result = SWARUtil.applyPattern(word, pattern)
         if (result != 0) return offset + SWARUtil.getIndex(result)
         offset += java.lang.Long.BYTES
@@ -352,17 +352,17 @@ object ByteString {
     override def asInputStream: InputStream = new UnsynchronizedByteArrayInputStream(bytes)
 
     private[pekko] override def readShortBEUnchecked(offset: Int): Short =
-      SWARUtil.getShort(bytes, offset)
+      SWARUtil.getShort(bytes, offset, ByteOrder.BIG_ENDIAN)
     private[pekko] override def readShortLEUnchecked(offset: Int): Short =
-      SWARUtil.getShort(bytes, offset, bigEndian = false)
+      SWARUtil.getShort(bytes, offset, ByteOrder.LITTLE_ENDIAN)
     private[pekko] override def readIntBEUnchecked(offset: Int): Int =
-      SWARUtil.getInt(bytes, offset)
+      SWARUtil.getInt(bytes, offset, ByteOrder.BIG_ENDIAN)
     private[pekko] override def readIntLEUnchecked(offset: Int): Int =
-      SWARUtil.getInt(bytes, offset, bigEndian = false)
+      SWARUtil.getInt(bytes, offset, ByteOrder.LITTLE_ENDIAN)
     private[pekko] override def readLongBEUnchecked(offset: Int): Long =
-      SWARUtil.getLong(bytes, offset)
+      SWARUtil.getLong(bytes, offset, ByteOrder.BIG_ENDIAN)
     private[pekko] override def readLongLEUnchecked(offset: Int): Long =
-      SWARUtil.getLong(bytes, offset, bigEndian = false)
+      SWARUtil.getLong(bytes, offset, ByteOrder.LITTLE_ENDIAN)
   }
 
   /** INTERNAL API: ByteString backed by exactly one array, with start / end markers */
@@ -534,7 +534,7 @@ object ByteString {
       val pattern = SWARUtil.compilePattern(elem)
       var i = 0
       while (i < longCount) {
-        val word = SWARUtil.getLong(bytes, startIndex + offset)
+        val word = SWARUtil.getLong(bytes, startIndex + offset, ByteOrder.BIG_ENDIAN)
         val result = SWARUtil.applyPattern(word, pattern)
         if (result != 0) return offset + SWARUtil.getIndex(result)
         offset += java.lang.Long.BYTES
@@ -560,7 +560,7 @@ object ByteString {
       val pattern = SWARUtil.compilePattern(elem)
       var i = 0
       while (i < longCount) {
-        val word = SWARUtil.getLong(bytes, startIndex + offset)
+        val word = SWARUtil.getLong(bytes, startIndex + offset, ByteOrder.BIG_ENDIAN)
         val result = SWARUtil.applyPattern(word, pattern)
         if (result != 0) return offset + SWARUtil.getIndex(result)
         offset += java.lang.Long.BYTES
@@ -608,17 +608,17 @@ object ByteString {
       new UnsynchronizedByteArrayInputStream(bytes, startIndex, length)
 
     private[pekko] override def readShortBEUnchecked(offset: Int): Short =
-      SWARUtil.getShort(bytes, startIndex + offset)
+      SWARUtil.getShort(bytes, startIndex + offset, ByteOrder.BIG_ENDIAN)
     private[pekko] override def readShortLEUnchecked(offset: Int): Short =
-      SWARUtil.getShort(bytes, startIndex + offset, bigEndian = false)
+      SWARUtil.getShort(bytes, startIndex + offset, ByteOrder.LITTLE_ENDIAN)
     private[pekko] override def readIntBEUnchecked(offset: Int): Int =
-      SWARUtil.getInt(bytes, startIndex + offset)
+      SWARUtil.getInt(bytes, startIndex + offset, ByteOrder.BIG_ENDIAN)
     private[pekko] override def readIntLEUnchecked(offset: Int): Int =
-      SWARUtil.getInt(bytes, startIndex + offset, bigEndian = false)
+      SWARUtil.getInt(bytes, startIndex + offset, ByteOrder.LITTLE_ENDIAN)
     private[pekko] override def readLongBEUnchecked(offset: Int): Long =
-      SWARUtil.getLong(bytes, startIndex + offset)
+      SWARUtil.getLong(bytes, startIndex + offset, ByteOrder.BIG_ENDIAN)
     private[pekko] override def readLongLEUnchecked(offset: Int): Long =
-      SWARUtil.getLong(bytes, startIndex + offset, bigEndian = false)
+      SWARUtil.getLong(bytes, startIndex + offset, ByteOrder.LITTLE_ENDIAN)
   }
 
   private[pekko] object ByteStrings extends Companion {

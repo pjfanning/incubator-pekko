@@ -16,6 +16,7 @@
 package org.apache.pekko.util
 
 import java.lang.invoke.MethodHandles
+import java.nio.ByteOrder
 
 import org.apache.pekko.annotation.InternalApi
 
@@ -152,32 +153,22 @@ private[pekko] object SWARUtil {
    *
    * @param array the byte array to read from
    * @param index the index to read from
+   * @param byteOrder the byte order to use (big-endian or little-endian)
    * @return the long value at the specified index
    */
-  def getLong(array: Array[Byte], index: Int): Long = {
-    if (longBeArrayViewSupported) {
-      longBeArrayView.get(array, index)
+  def getLong(array: Array[Byte], index: Int, byteOrder: ByteOrder): Long = {
+    if (byteOrder == ByteOrder.BIG_ENDIAN) {
+      if (longBeArrayViewSupported) {
+        longBeArrayView.get(array, index)
+      } else {
+        getLongBEWithoutMethodHandle(array, index)
+      }
     } else {
-      getLongBEWithoutMethodHandle(array, index)
-    }
-  }
-
-  /**
-   * Returns the long value at the specified index in the given byte array.
-   * Uses a VarHandle byte array view if supported.
-   * Does not range check - assumes caller has checked bounds.
-   *
-   * @param array the byte array to read from
-   * @param index the index to read from
-   * @return the long value at the specified index
-   */
-  def getLong(array: Array[Byte], index: Int, bigEndian: Boolean): Long = {
-    if (bigEndian) {
-      getLong(array, index)
-    } else if (longLeArrayViewSupported) {
-      longLeArrayView.get(array, index)
-    } else {
-      getLongLEWithoutMethodHandle(array, index)
+      if (longLeArrayViewSupported) {
+        longLeArrayView.get(array, index)
+      } else {
+        getLongLEWithoutMethodHandle(array, index)
+      }
     }
   }
 
@@ -188,36 +179,53 @@ private[pekko] object SWARUtil {
    *
    * @param array the byte array to read from
    * @param index the index to read from
+   * @param byteOrder the byte order to use (big-endian or little-endian)
    * @return the int value at the specified index
    */
-  def getInt(array: Array[Byte], index: Int): Int = {
-    if (intBeArrayViewSupported) {
-      intBeArrayView.get(array, index)
+  def getInt(array: Array[Byte], index: Int, byteOrder: ByteOrder): Int = {
+    if (byteOrder == ByteOrder.BIG_ENDIAN) {
+      if (intBeArrayViewSupported) {
+        intBeArrayView.get(array, index)
+      } else {
+        getIntBEWithoutMethodHandle(array, index)
+      }
     } else {
-      getIntBEWithoutMethodHandle(array, index)
+      if (intLeArrayViewSupported) {
+        intLeArrayView.get(array, index)
+      } else {
+        getIntLEWithoutMethodHandle(array, index)
+      }
     }
   }
 
   /**
-   * Returns the int value at the specified index in the given byte array.
-   * Uses a VarHandle byte array view if supported.
+   * Returns the short value at the specified index in the given byte array.
+   * Uses big-endian byte order. Uses a VarHandle byte array view if supported.
    * Does not range check - assumes caller has checked bounds.
    *
    * @param array the byte array to read from
    * @param index the index to read from
-   * @param bigEndian whether to use big-endian or little-endian byte order
-   * @return the int value at the specified index
+   * @param byteOrder the byte order to use (big-endian or little-endian)
+   * @return the short value at the specified index
    */
-  def getInt(array: Array[Byte], index: Int, bigEndian: Boolean): Int = {
-    if (bigEndian) {
-      getInt(array, index)
-    } else if (intLeArrayViewSupported) {
-      intLeArrayView.get(array, index)
+  def getShort(array: Array[Byte], index: Int, byteOrder: ByteOrder): Short = {
+    if (byteOrder == ByteOrder.BIG_ENDIAN) {
+      if (shortBeArrayViewSupported) {
+        shortBeArrayView.get(array, index).asInstanceOf[Short]
+      } else {
+        getShortBEWithoutMethodHandle(array, index)
+      }
     } else {
-      getIntLEWithoutMethodHandle(array, index)
+      if (shortLeArrayViewSupported) {
+        shortLeArrayView.get(array, index).asInstanceOf[Short]
+      } else {
+        getShortLEWithoutMethodHandle(array, index)
+      }
     }
   }
 
+  // Fallback implementations for environments that do not support MethodHandles.byteArrayViewVarHandle
+  
   private[pekko] def getLongBEWithoutMethodHandle(array: Array[Byte], index: Int): Long = {
     (array(index).toLong & 0xFF) << 56 |
     (array(index + 1).toLong & 0xFF) << 48 |
@@ -252,43 +260,6 @@ private[pekko] object SWARUtil {
     (array(index + 1) & 0xFF) << 8 |
     (array(index + 2) & 0xFF) << 16 |
     (array(index + 3) & 0xFF) << 24
-  }
-
-  /**
-   * Returns the short value at the specified index in the given byte array.
-   * Uses big-endian byte order. Uses a VarHandle byte array view if supported.
-   * Does not range check - assumes caller has checked bounds.
-   *
-   * @param array the byte array to read from
-   * @param index the index to read from
-   * @return the short value at the specified index
-   */
-  def getShort(array: Array[Byte], index: Int): Short = {
-    if (shortBeArrayViewSupported) {
-      shortBeArrayView.get(array, index).asInstanceOf[Short]
-    } else {
-      getShortBEWithoutMethodHandle(array, index)
-    }
-  }
-
-  /**
-   * Returns the short value at the specified index in the given byte array.
-   * Uses a VarHandle byte array view if supported.
-   * Does not range check - assumes caller has checked bounds.
-   *
-   * @param array the byte array to read from
-   * @param index the index to read from
-   * @param bigEndian whether to use big-endian or little-endian byte order
-   * @return the short value at the specified index
-   */
-  def getShort(array: Array[Byte], index: Int, bigEndian: Boolean): Short = {
-    if (bigEndian) {
-      getShort(array, index)
-    } else if (shortLeArrayViewSupported) {
-      shortLeArrayView.get(array, index).asInstanceOf[Short]
-    } else {
-      getShortLEWithoutMethodHandle(array, index)
-    }
   }
 
   private[pekko] def getShortBEWithoutMethodHandle(array: Array[Byte], index: Int): Short =

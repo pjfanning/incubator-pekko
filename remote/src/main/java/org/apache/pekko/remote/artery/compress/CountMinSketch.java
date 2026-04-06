@@ -13,6 +13,8 @@
 
 package org.apache.pekko.remote.artery.compress;
 
+import java.nio.ByteOrder;
+
 import org.apache.pekko.actor.ActorRef;
 import org.apache.pekko.util.SWARUtil;
 
@@ -199,7 +201,7 @@ public class CountMinSketch {
       // Body
       int i = 0;
       while (len >= 4) {
-        int k = SWARUtil.getInt(data, i, false);
+        int k = SWARUtil.getInt(data, i, ByteOrder.LITTLE_ENDIAN);
         h = mix(h, k);
 
         i += 4;
