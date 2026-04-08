@@ -109,6 +109,8 @@ object Dependencies {
 
     val logback = "ch.qos.logback" % "logback-classic" % logbackVersion
 
+    val jspecify = "org.jspecify" % "jspecify" % "1.0.0" % Optional
+
     object Docs {
       val sprayJson = "io.spray" %% "spray-json" % "1.3.6" % Test
       val gson = "com.google.code.gson" % "gson" % "2.13.2" % Test
@@ -362,9 +364,12 @@ object Dependencies {
 
   // pekko stream
 
-  lazy val stream = l ++= Seq[sbt.ModuleID](reactiveStreams, TestDependencies.scalatest)
+  lazy val stream = l ++= Seq[sbt.ModuleID](reactiveStreams, jspecify, TestDependencies.scalatest)
+
+  lazy val streamTyped = l ++= Seq[sbt.ModuleID](jspecify)
 
   lazy val streamTestkit = l ++= Seq(
+    jspecify,
     TestDependencies.scalatest,
     TestDependencies.scalatestScalaCheck,
     TestDependencies.junit)
