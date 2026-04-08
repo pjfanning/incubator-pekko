@@ -1397,6 +1397,136 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       val combinedBytes = combinedBs.toArrayUnsafe()
       combinedBytes should ===(bytes ++ bytes)
     }
+
+    "read short values" in {
+      val data = Array[Byte](1, 2, 3, 4)
+      val byteString1C = ByteString1C(data)
+      byteString1C.readShortBE(0) should ===(0x0102.toShort)
+      byteString1C.readShortLE(0) should ===(0x0201.toShort)
+      byteString1C.readShortBE(2) should ===(0x0304.toShort)
+      byteString1C.readShortLE(2) should ===(0x0403.toShort)
+
+      val arr = Array[Byte](0, 1, 2, 3, 4, 5)
+      val byteString1 = ByteString1(arr, 2, 4)
+      byteString1.readShortBE(0) should ===(0x0203.toShort)
+      byteString1.readShortLE(0) should ===(0x0302.toShort)
+      byteString1.readShortBE(2) should ===(0x0405.toShort)
+      byteString1.readShortLE(2) should ===(0x0504.toShort)
+
+      val byteStrings = ByteStrings(ByteString1.fromString("ab"), ByteString1.fromString("cd"))
+      byteStrings.readShortBE(0) should ===(0x6162.toShort)
+      byteStrings.readShortLE(0) should ===(0x6261.toShort)
+      byteStrings.readShortBE(2) should ===(0x6364.toShort)
+      byteStrings.readShortLE(2) should ===(0x6463.toShort)
+    }
+
+    "read int values" in {
+      val data = Array[Byte](1, 2, 3, 4, 5, 6, 7, 8)
+      val byteString1C = ByteString1C(data)
+      byteString1C.readIntBE(0) should ===(0x01020304)
+      byteString1C.readIntLE(0) should ===(0x04030201)
+      byteString1C.readIntBE(4) should ===(0x05060708)
+      byteString1C.readIntLE(4) should ===(0x08070605)
+
+      val arr = Array[Byte](0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+      val byteString1 = ByteString1(arr, 1, 8)
+      byteString1.readIntBE(0) should ===(0x01020304)
+      byteString1.readIntLE(0) should ===(0x04030201)
+      byteString1.readIntBE(4) should ===(0x05060708)
+      byteString1.readIntLE(4) should ===(0x08070605)
+
+      val byteStrings = ByteStrings(
+        ByteString1(Array[Byte](1, 2), 0, 2),
+        ByteString1(Array[Byte](3, 4, 5, 6, 7, 8), 0, 6))
+      byteStrings.readIntBE(0) should ===(0x01020304)
+      byteStrings.readIntLE(0) should ===(0x04030201)
+      byteStrings.readIntBE(4) should ===(0x05060708)
+      byteStrings.readIntLE(4) should ===(0x08070605)
+    }
+
+    "read long values" in {
+      val data = Array[Byte](1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)
+      val byteString1C = ByteString1C(data)
+      byteString1C.readLongBE(0) should ===(0x0102030405060708L)
+      byteString1C.readLongLE(0) should ===(0x0807060504030201L)
+      byteString1C.readLongBE(8) should ===(0x090A0B0C0D0E0F10L)
+      byteString1C.readLongLE(8) should ===(0x100F0E0D0C0B0A09L)
+
+      val arr = Array[Byte](0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17)
+      val byteString1 = ByteString1(arr, 1, 16)
+      byteString1.readLongBE(0) should ===(0x0102030405060708L)
+      byteString1.readLongLE(0) should ===(0x0807060504030201L)
+      byteString1.readLongBE(8) should ===(0x090A0B0C0D0E0F10L)
+      byteString1.readLongLE(8) should ===(0x100F0E0D0C0B0A09L)
+
+      val byteStrings = ByteStrings(
+        ByteString1(Array[Byte](1, 2, 3, 4), 0, 4),
+        ByteString1(Array[Byte](5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16), 0, 12))
+      byteStrings.readLongBE(0) should ===(0x0102030405060708L)
+      byteStrings.readLongLE(0) should ===(0x0807060504030201L)
+      byteStrings.readLongBE(8) should ===(0x090A0B0C0D0E0F10L)
+      byteStrings.readLongLE(8) should ===(0x100F0E0D0C0B0A09L)
+    }
+
+    "throw IndexOutOfBoundsException for readShortBE/LE with insufficient data" in {
+      val bs1C = ByteString1C(Array[Byte](1))
+      an[IndexOutOfBoundsException] should be thrownBy bs1C.readShortBE(0)
+      an[IndexOutOfBoundsException] should be thrownBy bs1C.readShortLE(0)
+      an[IndexOutOfBoundsException] should be thrownBy bs1C.readShortBE(-1)
+      an[IndexOutOfBoundsException] should be thrownBy bs1C.readShortLE(-1)
+
+      val bs1 = ByteString1(Array[Byte](0, 1, 2), 1, 1)
+      an[IndexOutOfBoundsException] should be thrownBy bs1.readShortBE(0)
+      an[IndexOutOfBoundsException] should be thrownBy bs1.readShortLE(0)
+      an[IndexOutOfBoundsException] should be thrownBy bs1.readShortBE(-1)
+      an[IndexOutOfBoundsException] should be thrownBy bs1.readShortLE(-1)
+
+      val bss = ByteStrings(ByteString1.fromString("a"), ByteString1.fromString("b"))
+      an[IndexOutOfBoundsException] should be thrownBy bss.readShortBE(1)
+      an[IndexOutOfBoundsException] should be thrownBy bss.readShortLE(1)
+      an[IndexOutOfBoundsException] should be thrownBy bss.readShortBE(-1)
+      an[IndexOutOfBoundsException] should be thrownBy bss.readShortLE(-1)
+    }
+
+    "throw IndexOutOfBoundsException for readIntBE/LE with insufficient data" in {
+      val bs1C = ByteString1C(Array[Byte](1, 2, 3))
+      an[IndexOutOfBoundsException] should be thrownBy bs1C.readIntBE(0)
+      an[IndexOutOfBoundsException] should be thrownBy bs1C.readIntLE(0)
+      an[IndexOutOfBoundsException] should be thrownBy bs1C.readIntBE(-1)
+      an[IndexOutOfBoundsException] should be thrownBy bs1C.readIntLE(-1)
+
+      val bs1 = ByteString1(Array[Byte](0, 1, 2, 3, 4), 1, 3)
+      an[IndexOutOfBoundsException] should be thrownBy bs1.readIntBE(0)
+      an[IndexOutOfBoundsException] should be thrownBy bs1.readIntLE(0)
+      an[IndexOutOfBoundsException] should be thrownBy bs1.readIntBE(-1)
+      an[IndexOutOfBoundsException] should be thrownBy bs1.readIntLE(-1)
+
+      val bss = ByteStrings(ByteString1.fromString("abc"), ByteString1.fromString("d"))
+      an[IndexOutOfBoundsException] should be thrownBy bss.readIntBE(1)
+      an[IndexOutOfBoundsException] should be thrownBy bss.readIntLE(1)
+      an[IndexOutOfBoundsException] should be thrownBy bss.readIntBE(-1)
+      an[IndexOutOfBoundsException] should be thrownBy bss.readIntLE(-1)
+    }
+
+    "throw IndexOutOfBoundsException for readLongBE/LE with insufficient data" in {
+      val bs1C = ByteString1C(Array[Byte](1, 2, 3, 4, 5, 6, 7))
+      an[IndexOutOfBoundsException] should be thrownBy bs1C.readLongBE(0)
+      an[IndexOutOfBoundsException] should be thrownBy bs1C.readLongLE(0)
+      an[IndexOutOfBoundsException] should be thrownBy bs1C.readLongBE(-1)
+      an[IndexOutOfBoundsException] should be thrownBy bs1C.readLongLE(-1)
+
+      val bs1 = ByteString1(Array[Byte](0, 1, 2, 3, 4, 5, 6, 7, 8), 1, 7)
+      an[IndexOutOfBoundsException] should be thrownBy bs1.readLongBE(0)
+      an[IndexOutOfBoundsException] should be thrownBy bs1.readLongLE(0)
+      an[IndexOutOfBoundsException] should be thrownBy bs1.readLongBE(-1)
+      an[IndexOutOfBoundsException] should be thrownBy bs1.readLongLE(-1)
+
+      val bss = ByteStrings(ByteString1.fromString("abcdef"), ByteString1.fromString("g"))
+      an[IndexOutOfBoundsException] should be thrownBy bss.readLongBE(0)
+      an[IndexOutOfBoundsException] should be thrownBy bss.readLongLE(0)
+      an[IndexOutOfBoundsException] should be thrownBy bss.readLongBE(-1)
+      an[IndexOutOfBoundsException] should be thrownBy bss.readLongLE(-1)
+    }
   }
 
   "A ByteStringIterator" must {

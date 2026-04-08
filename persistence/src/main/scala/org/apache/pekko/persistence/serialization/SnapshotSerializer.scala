@@ -14,6 +14,7 @@
 package org.apache.pekko.persistence.serialization
 
 import java.io._
+import java.nio.ByteOrder
 
 import org.apache.pekko
 import pekko.actor._
@@ -91,7 +92,7 @@ class SnapshotSerializer(val system: ExtendedActorSystem) extends BaseSerializer
 
   private def headerFromBinary(bytes: Array[Byte]): (Int, String) = {
     if (bytes.length < 4) throw new IllegalArgumentException("Invalid snapshot header, too short")
-    val serializerId = SWARUtil.getInt(bytes, 0, false)
+    val serializerId = SWARUtil.getInt(bytes, 0, ByteOrder.LITTLE_ENDIAN)
 
     if ((serializerId & 0xEDAC) == 0xEDAC) // Java Serialization magic value
       throw new NotSerializableException(s"Replaying snapshot from akka 2.3.x version is not supported any more")
@@ -164,7 +165,7 @@ class SnapshotSerializer(val system: ExtendedActorSystem) extends BaseSerializer
   }
 
   private def snapshotFromBinary(bytes: Array[Byte]): AnyRef = {
-    val headerLength = SWARUtil.getInt(bytes, 0, false)
+    val headerLength = SWARUtil.getInt(bytes, 0, ByteOrder.LITTLE_ENDIAN)
     val headerBytes = bytes.slice(4, headerLength + 4)
     val snapshotBytes = bytes.drop(headerLength + 4)
 

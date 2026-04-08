@@ -262,7 +262,7 @@ object ByteString {
       val pattern = SWARUtil.compilePattern(elem)
       var i = 0
       while (i < longCount) {
-        val word = SWARUtil.getLong(bytes, offset)
+        val word = SWARUtil.getLong(bytes, offset, ByteOrder.BIG_ENDIAN)
         val result = SWARUtil.applyPattern(word, pattern)
         if (result != 0) return offset + SWARUtil.getIndex(result)
         offset += java.lang.Long.BYTES
@@ -288,7 +288,7 @@ object ByteString {
       val pattern = SWARUtil.compilePattern(elem)
       var i = 0
       while (i < longCount) {
-        val word = SWARUtil.getLong(bytes, offset)
+        val word = SWARUtil.getLong(bytes, offset, ByteOrder.BIG_ENDIAN)
         val result = SWARUtil.applyPattern(word, pattern)
         if (result != 0) return offset + SWARUtil.getIndex(result)
         offset += java.lang.Long.BYTES
@@ -350,6 +350,19 @@ object ByteString {
     override def toArrayUnsafe(): Array[Byte] = bytes
 
     override def asInputStream: InputStream = new UnsynchronizedByteArrayInputStream(bytes)
+
+    private[pekko] override def readShortBEUnchecked(offset: Int): Short =
+      SWARUtil.getShort(bytes, offset, ByteOrder.BIG_ENDIAN)
+    private[pekko] override def readShortLEUnchecked(offset: Int): Short =
+      SWARUtil.getShort(bytes, offset, ByteOrder.LITTLE_ENDIAN)
+    private[pekko] override def readIntBEUnchecked(offset: Int): Int =
+      SWARUtil.getInt(bytes, offset, ByteOrder.BIG_ENDIAN)
+    private[pekko] override def readIntLEUnchecked(offset: Int): Int =
+      SWARUtil.getInt(bytes, offset, ByteOrder.LITTLE_ENDIAN)
+    private[pekko] override def readLongBEUnchecked(offset: Int): Long =
+      SWARUtil.getLong(bytes, offset, ByteOrder.BIG_ENDIAN)
+    private[pekko] override def readLongLEUnchecked(offset: Int): Long =
+      SWARUtil.getLong(bytes, offset, ByteOrder.LITTLE_ENDIAN)
   }
 
   /** INTERNAL API: ByteString backed by exactly one array, with start / end markers */
@@ -521,7 +534,7 @@ object ByteString {
       val pattern = SWARUtil.compilePattern(elem)
       var i = 0
       while (i < longCount) {
-        val word = SWARUtil.getLong(bytes, startIndex + offset)
+        val word = SWARUtil.getLong(bytes, startIndex + offset, ByteOrder.BIG_ENDIAN)
         val result = SWARUtil.applyPattern(word, pattern)
         if (result != 0) return offset + SWARUtil.getIndex(result)
         offset += java.lang.Long.BYTES
@@ -547,7 +560,7 @@ object ByteString {
       val pattern = SWARUtil.compilePattern(elem)
       var i = 0
       while (i < longCount) {
-        val word = SWARUtil.getLong(bytes, startIndex + offset)
+        val word = SWARUtil.getLong(bytes, startIndex + offset, ByteOrder.BIG_ENDIAN)
         val result = SWARUtil.applyPattern(word, pattern)
         if (result != 0) return offset + SWARUtil.getIndex(result)
         offset += java.lang.Long.BYTES
@@ -593,6 +606,19 @@ object ByteString {
 
     override def asInputStream: InputStream =
       new UnsynchronizedByteArrayInputStream(bytes, startIndex, length)
+
+    private[pekko] override def readShortBEUnchecked(offset: Int): Short =
+      SWARUtil.getShort(bytes, startIndex + offset, ByteOrder.BIG_ENDIAN)
+    private[pekko] override def readShortLEUnchecked(offset: Int): Short =
+      SWARUtil.getShort(bytes, startIndex + offset, ByteOrder.LITTLE_ENDIAN)
+    private[pekko] override def readIntBEUnchecked(offset: Int): Int =
+      SWARUtil.getInt(bytes, startIndex + offset, ByteOrder.BIG_ENDIAN)
+    private[pekko] override def readIntLEUnchecked(offset: Int): Int =
+      SWARUtil.getInt(bytes, startIndex + offset, ByteOrder.LITTLE_ENDIAN)
+    private[pekko] override def readLongBEUnchecked(offset: Int): Long =
+      SWARUtil.getLong(bytes, startIndex + offset, ByteOrder.BIG_ENDIAN)
+    private[pekko] override def readLongLEUnchecked(offset: Int): Long =
+      SWARUtil.getLong(bytes, startIndex + offset, ByteOrder.LITTLE_ENDIAN)
   }
 
   private[pekko] object ByteStrings extends Companion {
@@ -1336,6 +1362,157 @@ sealed abstract class ByteString
    * map method that will automatically cast Int back into Byte.
    */
   final def mapI(f: Byte => Int): ByteString = map(f.andThen(_.toByte))
+
+  protected final def checkReadBounds(offset: Int, size: Int): Unit =
+    if (offset < 0 || offset + size > length)
+      throw new IndexOutOfBoundsException(
+        s"offset $offset with required size $size exceeds ByteString length $length")
+
+  /**
+   * Read a short from this ByteString at the given offset in big-endian byte order.
+   *
+   * @param offset the offset to read from
+   * @return the short value
+   * @throws IndexOutOfBoundsException if the offset is negative or there are fewer than 2 bytes available from offset
+   * @since 2.0.0
+   */
+  def readShortBE(offset: Int): Short = {
+    checkReadBounds(offset, 2)
+    readShortBEUnchecked(offset)
+  }
+
+  /**
+   * Read a short from this ByteString at the given offset in little-endian byte order.
+   *
+   * @param offset the offset to read from
+   * @return the short value
+   * @throws IndexOutOfBoundsException if the offset is negative or there are fewer than 2 bytes available from offset
+   * @since 2.0.0
+   */
+  def readShortLE(offset: Int): Short = {
+    checkReadBounds(offset, 2)
+    readShortLEUnchecked(offset)
+  }
+
+  /**
+   * Read an int from this ByteString at the given offset in big-endian byte order.
+   *
+   * @param offset the offset to read from
+   * @return the int value
+   * @throws IndexOutOfBoundsException if the offset is negative or there are fewer than 4 bytes available from offset
+   * @since 2.0.0
+   */
+  def readIntBE(offset: Int): Int = {
+    checkReadBounds(offset, 4)
+    readIntBEUnchecked(offset)
+  }
+
+  /**
+   * Read an int from this ByteString at the given offset in little-endian byte order.
+   *
+   * @param offset the offset to read from
+   * @return the int value
+   * @throws IndexOutOfBoundsException if the offset is negative or there are fewer than 4 bytes available from offset
+   * @since 2.0.0
+   */
+  def readIntLE(offset: Int): Int = {
+    checkReadBounds(offset, 4)
+    readIntLEUnchecked(offset)
+  }
+
+  /**
+   * Read a long from this ByteString at the given offset in big-endian byte order.
+   *
+   * @param offset the offset to read from
+   * @return the long value
+   * @throws IndexOutOfBoundsException if the offset is negative or there are fewer than 8 bytes available from offset
+   * @since 2.0.0
+   */
+  def readLongBE(offset: Int): Long = {
+    checkReadBounds(offset, 8)
+    readLongBEUnchecked(offset)
+  }
+
+  /**
+   * Read a long from this ByteString at the given offset in little-endian byte order.
+   *
+   * @param offset the offset to read from
+   * @return the long value
+   * @throws IndexOutOfBoundsException if the offset is negative or there are fewer than 8 bytes available from offset
+   * @since 2.0.0
+   */
+  def readLongLE(offset: Int): Long = {
+    checkReadBounds(offset, 8)
+    readLongLEUnchecked(offset)
+  }
+
+  /**
+   * INTERNAL API
+   * Optimized in subclasses when we have byte arrays where we can use {@link SWARUtil}
+   * methods.
+   */
+  private[pekko] def readShortBEUnchecked(offset: Int): Short =
+    ((apply(offset) & 0xFF) << 8 | (apply(offset + 1) & 0xFF)).toShort
+
+  /**
+   * INTERNAL API
+   * Optimized in subclasses when we have byte arrays where we can use {@link SWARUtil}
+   * methods.
+   */
+  private[pekko] def readShortLEUnchecked(offset: Int): Short =
+    ((apply(offset) & 0xFF) | (apply(offset + 1) & 0xFF) << 8).toShort
+
+  /**
+   * INTERNAL API
+   * Optimized in subclasses when we have byte arrays where we can use {@link SWARUtil}
+   * methods.
+   */
+  private[pekko] def readIntBEUnchecked(offset: Int): Int =
+    (apply(offset) & 0xFF) << 24 |
+    (apply(offset + 1) & 0xFF) << 16 |
+    (apply(offset + 2) & 0xFF) << 8 |
+    (apply(offset + 3) & 0xFF)
+
+  /**
+   * INTERNAL API
+   * Optimized in subclasses when we have byte arrays where we can use {@link SWARUtil}
+   * methods.
+   */
+  private[pekko] def readIntLEUnchecked(offset: Int): Int =
+    (apply(offset) & 0xFF) |
+    (apply(offset + 1) & 0xFF) << 8 |
+    (apply(offset + 2) & 0xFF) << 16 |
+    (apply(offset + 3) & 0xFF) << 24
+
+  /**
+   * INTERNAL API
+   * Optimized in subclasses when we have byte arrays where we can use {@link SWARUtil}
+   * methods.
+   */
+  private[pekko] def readLongBEUnchecked(offset: Int): Long =
+    (apply(offset).toLong & 0xFF) << 56 |
+    (apply(offset + 1).toLong & 0xFF) << 48 |
+    (apply(offset + 2).toLong & 0xFF) << 40 |
+    (apply(offset + 3).toLong & 0xFF) << 32 |
+    (apply(offset + 4).toLong & 0xFF) << 24 |
+    (apply(offset + 5).toLong & 0xFF) << 16 |
+    (apply(offset + 6).toLong & 0xFF) << 8 |
+    (apply(offset + 7).toLong & 0xFF)
+
+  /**
+   * INTERNAL API
+   * Optimized in subclasses when we have byte arrays where we can use {@link SWARUtil}
+   * methods.
+   */
+  private[pekko] def readLongLEUnchecked(offset: Int): Long =
+    (apply(offset).toLong & 0xFF) |
+    (apply(offset + 1).toLong & 0xFF) << 8 |
+    (apply(offset + 2).toLong & 0xFF) << 16 |
+    (apply(offset + 3).toLong & 0xFF) << 24 |
+    (apply(offset + 4).toLong & 0xFF) << 32 |
+    (apply(offset + 5).toLong & 0xFF) << 40 |
+    (apply(offset + 6).toLong & 0xFF) << 48 |
+    (apply(offset + 7).toLong & 0xFF) << 56
 
   def map[A](f: Byte => Byte): ByteString = fromSpecific(super.map(f))
 }

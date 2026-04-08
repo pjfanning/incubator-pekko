@@ -219,13 +219,43 @@ import pekko.util.ByteString
         off += 1
         x & 0xFF
       } else throw NeedMoreData
-    def readShortLE(): Int = readByte() | (readByte() << 8)
-    def readIntLE(): Int = readShortLE() | (readShortLE() << 16)
-    def readLongLE(): Long = (readIntLE() & 0xFFFFFFFFL) | ((readIntLE() & 0xFFFFFFFFL) << 32)
+    def readShortLE(): Int = {
+      if (off + 2 > input.length) throw NeedMoreData
+      val result = input.readShortLEUnchecked(off) & 0xFFFF
+      off += 2
+      result
+    }
+    def readIntLE(): Int = {
+      if (off + 4 > input.length) throw NeedMoreData
+      val result = input.readIntLEUnchecked(off)
+      off += 4
+      result
+    }
+    def readLongLE(): Long = {
+      if (off + 8 > input.length) throw NeedMoreData
+      val result = input.readLongLEUnchecked(off)
+      off += 8
+      result
+    }
 
-    def readShortBE(): Int = (readByte() << 8) | readByte()
-    def readIntBE(): Int = (readShortBE() << 16) | readShortBE()
-    def readLongBE(): Long = ((readIntBE() & 0xFFFFFFFFL) << 32) | (readIntBE() & 0xFFFFFFFFL)
+    def readShortBE(): Int = {
+      if (off + 2 > input.length) throw NeedMoreData
+      val result = input.readShortBEUnchecked(off) & 0xFFFF
+      off += 2
+      result
+    }
+    def readIntBE(): Int = {
+      if (off + 4 > input.length) throw NeedMoreData
+      val result = input.readIntBEUnchecked(off)
+      off += 4
+      result
+    }
+    def readLongBE(): Long = {
+      if (off + 8 > input.length) throw NeedMoreData
+      val result = input.readLongBEUnchecked(off)
+      off += 8
+      result
+    }
 
     def skip(numBytes: Int): Unit =
       if (off + numBytes <= input.length) off += numBytes

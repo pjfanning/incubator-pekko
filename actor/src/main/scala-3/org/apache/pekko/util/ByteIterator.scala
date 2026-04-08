@@ -137,6 +137,27 @@ object ByteIterator {
       } else throw new NoSuchElementException("next on empty iterator")
     }
 
+    override def getShort(implicit byteOrder: ByteOrder): Short = {
+      if (len < 2) throw new NoSuchElementException("next on empty iterator")
+      val result = SWARUtil.getShort(array, from, byteOrder)
+      from += 2
+      result
+    }
+
+    override def getInt(implicit byteOrder: ByteOrder): Int = {
+      if (len < 4) throw new NoSuchElementException("next on empty iterator")
+      val result = SWARUtil.getInt(array, from, byteOrder)
+      from += 4
+      result
+    }
+
+    override def getLong(implicit byteOrder: ByteOrder): Long = {
+      if (len < 8) throw new NoSuchElementException("next on empty iterator")
+      val result = SWARUtil.getLong(array, from, byteOrder)
+      from += 8
+      result
+    }
+
     private def wrappedByteBuffer: ByteBuffer = ByteBuffer.wrap(array, from, len).asReadOnlyBuffer
 
     def getShorts(xs: Array[Short], offset: Int, n: Int)(implicit byteOrder: ByteOrder): this.type = {
