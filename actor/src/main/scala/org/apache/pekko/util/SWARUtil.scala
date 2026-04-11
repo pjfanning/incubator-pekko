@@ -147,6 +147,17 @@ private[pekko] object SWARUtil {
     java.lang.Long.numberOfLeadingZeros(word) >>> 3
 
   /**
+   * Returns the index of the last occurrence of a byte specified in the pattern within a word.
+   * If no pattern is found, the result is -1. Currently only supports big endian.
+   *
+   * @param word the return value of [[applyPattern]]
+   * @return the index of the last occurrence of the specified pattern in the specified word.
+   */
+  def getLastIndex(word: Long): Int =
+    if (word == 0) -1
+    else (java.lang.Long.SIZE - 1 - java.lang.Long.numberOfTrailingZeros(word)) >>> 3
+
+  /**
    * Returns the long value at the specified index in the given byte array.
    * Uses big-endian byte order. Uses a VarHandle byte array view if supported.
    * Does not range check - assumes caller has checked bounds.
