@@ -888,6 +888,12 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       zeros.lastIndexOf(0.toByte) should ===(2)
       val neg = ByteString(Array[Byte](-1, 0, -1))
       neg.lastIndexOf((-1).toByte) should ===(2)
+
+      val concat0 = makeMultiByteStringsSample()
+      concat0.lastIndexOf(0xFF.toByte) should ===(18)
+      concat0.lastIndexOf(0xFF.toByte, 18) should ===(18)
+      concat0.lastIndexOf(0xFF.toByte, 17) should ===(0)
+      concat0.lastIndexOf(0xFE.toByte) should ===(-1)
     }
     "indexOf (specialized)" in {
       ByteString.empty.indexOf(5.toByte) should ===(-1)
@@ -920,6 +926,11 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       compact.indexOf('e'.toByte) should ===(3)
       compact.indexOf('f'.toByte) should ===(4)
       compact.indexOf('g'.toByte) should ===(5)
+
+      val concat0 = makeMultiByteStringsSample()
+      concat0.indexOf(0xFF.toByte) should ===(0)
+      concat0.indexOf(16.toByte) should ===(17)
+      concat0.indexOf(0xFE.toByte) should ===(-1)
     }
     "indexOf (specialized) from offset" in {
       ByteString.empty.indexOf(5.toByte, -1) should ===(-1)
@@ -986,6 +997,11 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       byteStringLong.indexOf('m', 2) should ===(12)
       byteStringLong.indexOf('z', 2) should ===(25)
       byteStringLong.indexOf('a', 2) should ===(-1)
+
+      val concat0 = makeMultiByteStringsSample()
+      concat0.indexOf(0xFF.toByte, 0) should ===(0)
+      concat0.indexOf(0xFF.toByte, 17) should ===(18)
+      concat0.indexOf(0xFE.toByte, 17) should ===(-1)
     }
     "contains" in {
       ByteString.empty.contains(5) should ===(false)
@@ -1999,5 +2015,18 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
         }
       }
     }
+  }
+
+  private def makeMultiByteStringsSample(): ByteString = {
+    val byteStrings = Vector(
+      ByteString1(Array[Byte](0xFF.toByte)),
+      ByteString1(Array[Byte](0, 1, 2, 3)),
+      ByteString1(Array[Byte](4, 5)),
+      ByteString1(Array[Byte](6, 7, 8, 9)),
+      ByteString1(Array[Byte](10)),
+      ByteString1(Array[Byte](11, 12, 13, 14, 15, 16)),
+      ByteString1(Array[Byte](0xFF.toByte))
+    )
+    ByteStrings(byteStrings)
   }
 }
