@@ -699,6 +699,12 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       byteStringLong.lastIndexOf('m') should ===(12)
       byteStringLong.lastIndexOf('z') should ===(25)
       byteStringLong.lastIndexOf('a') should ===(0)
+
+      val long1 = ByteString1.fromString("abcdefghijklmnop") // 16 bytes
+      long1.lastIndexOf('a'.toByte) should ===(0)
+      long1.lastIndexOf('p'.toByte) should ===(15)
+      long1.lastIndexOf('h'.toByte, 7) should ===(7)
+      long1.lastIndexOf('h'.toByte, 6) should ===(-1)
     }
     "indexOf from offset" in {
       ByteString.empty.indexOf(5, -1) should ===(-1)
@@ -820,6 +826,10 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       compact.lastIndexOf('b', 1) should ===(1)
       compact.lastIndexOf('b', 0) should ===(-1)
       compact.lastIndexOf('b', -1) should ===(-1)
+
+      val concat0 = ByteStrings(ByteString1.fromString("ab"), ByteString1.fromString("dd"))
+      concat0.lastIndexOf('d'.toByte, 2) should ===(2)
+      concat0.lastIndexOf('d'.toByte, 3) should ===(3)
     }
     "lastIndexOf (specialized)" in {
       ByteString.empty.lastIndexOf(5.toByte, -1) should ===(-1)
@@ -870,6 +880,14 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       compact.lastIndexOf('b'.toByte, 1) should ===(1)
       compact.lastIndexOf('b'.toByte, 0) should ===(-1)
       compact.lastIndexOf('b'.toByte, -1) should ===(-1)
+
+      val sliced = ByteString1.fromString("xxabcdefghijk").drop(2)
+      sliced.lastIndexOf('k'.toByte) should ===(10)
+
+      val zeros = ByteString(Array[Byte](0, 1, 0, 1))
+      zeros.lastIndexOf(0.toByte) should ===(2)
+      val neg = ByteString(Array[Byte](-1, 0, -1))
+      neg.lastIndexOf((-1).toByte) should ===(2)
     }
     "indexOf (specialized)" in {
       ByteString.empty.indexOf(5.toByte) should ===(-1)

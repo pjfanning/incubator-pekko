@@ -1046,7 +1046,7 @@ object ByteString {
               if (bsIdx == 0) -1
               else find(bsIdx - 1, relativeIndex, bsStartIndex)
             } else {
-              val subIndexOf = bs.lastIndexOf(elem, relativeIndex)
+              val subIndexOf = bs.lastIndexOf(elem, relativeIndex - bsStartIndex)
               if (subIndexOf < 0) {
                 if (bsIdx == 0) -1
                 else find(bsIdx - 1, relativeIndex, bsStartIndex)
@@ -1055,39 +1055,36 @@ object ByteString {
           }
         }
 
-        find(byteStringsLast, math.min(end, length), length)
+        find(byteStringsLast, math.min(end, length - 1), length)
       }
     }
 
     override def lastIndexOf(elem: Byte, end: Int): Int = {
       if (end < 0) -1
       else {
-        {
-        else {
-          val byteStringsLast = bytestrings.size - 1
+        val byteStringsLast = bytestrings.size - 1
 
-          @tailrec
-          def find(bsIdx: Int, relativeIndex: Int, len: Int): Int = {
-            if (bsIdx < 0) -1
-            else {
-              val bs = bytestrings(bsIdx)
-              val bsStartIndex = len - bs.length
+        @tailrec
+        def find(bsIdx: Int, relativeIndex: Int, len: Int): Int = {
+          if (bsIdx < 0) -1
+          else {
+            val bs = bytestrings(bsIdx)
+            val bsStartIndex = len - bs.length
 
-              if (relativeIndex < bsStartIndex || bs.isEmpty) {
+            if (relativeIndex < bsStartIndex || bs.isEmpty) {
+              if (bsIdx == 0) -1
+              else find(bsIdx - 1, relativeIndex, bsStartIndex)
+            } else {
+              val subIndexOf = bs.lastIndexOf(elem, relativeIndex - bsStartIndex)
+              if (subIndexOf < 0) {
                 if (bsIdx == 0) -1
                 else find(bsIdx - 1, relativeIndex, bsStartIndex)
-              } else {
-                val subIndexOf = bs.lastIndexOf(elem, relativeIndex - bsStartIndex)
-                if (subIndexOf < 0) {
-                  if (bsIdx == 0) -1
-                  else find(bsIdx - 1, relativeIndex, bsStartIndex)
-                } else subIndexOf + bsStartIndex
-              }
+              } else subIndexOf + bsStartIndex
             }
           }
-
-          find(byteStringsLast, math.min(end, length), length)
         }
+
+        find(byteStringsLast, math.min(end, length - 1), length)
       }
     }
 
