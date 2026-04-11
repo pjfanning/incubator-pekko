@@ -1062,7 +1062,7 @@ object ByteString {
     override def lastIndexOf(elem: Byte, end: Int): Int = {
       if (end < 0) -1
       else {
-        if (end < 0) -1
+        {
         else {
           val byteStringsLast = bytestrings.size - 1
 
@@ -1077,7 +1077,7 @@ object ByteString {
                 if (bsIdx == 0) -1
                 else find(bsIdx - 1, relativeIndex, bsStartIndex)
               } else {
-                val subIndexOf = bs.lastIndexOf(elem, relativeIndex)
+                val subIndexOf = bs.lastIndexOf(elem, relativeIndex - bsStartIndex)
                 if (subIndexOf < 0) {
                   if (bsIdx == 0) -1
                   else find(bsIdx - 1, relativeIndex, bsStartIndex)
