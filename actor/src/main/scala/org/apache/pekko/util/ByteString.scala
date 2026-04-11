@@ -259,7 +259,7 @@ object ByteString {
         if (offset == length) return -1
       }
       val longCount = searchLength >>> 3
-      val pattern = SWARUtil.compilePattern(elem)
+      val pattern = if (longCount > 0) SWARUtil.compilePattern(elem) else 0L
       var i = 0
       while (i < longCount) {
         val word = SWARUtil.getLong(bytes, offset, ByteOrder.BIG_ENDIAN)
@@ -285,7 +285,7 @@ object ByteString {
         if (offset == length) return -1
       }
       val longCount = searchLength >>> 3
-      val pattern = SWARUtil.compilePattern(elem)
+      val pattern = if (longCount > 0) SWARUtil.compilePattern(elem) else 0L
       var i = 0
       while (i < longCount) {
         val word = SWARUtil.getLong(bytes, offset, ByteOrder.BIG_ENDIAN)
@@ -318,7 +318,6 @@ object ByteString {
       val endIdx = math.min(end, length - 1)
       if (endIdx < 0) return -1
       val searchLength = endIdx + 1
-      val pattern = SWARUtil.compilePattern(elem)
       // Check the rightmost partial chunk first (bytes not fitting in a full 8-byte block)
       val tailBytes = searchLength & 7
       if (tailBytes > 0) {
@@ -329,6 +328,7 @@ object ByteString {
       }
       // Scan full 8-byte chunks from right to left
       var chunkStart = searchLength - tailBytes - 8
+      val pattern = if (chunkStart >= 0) SWARUtil.compilePattern(elem) else 0L
       while (chunkStart >= 0) {
         val word = SWARUtil.getLong(bytes, chunkStart, ByteOrder.BIG_ENDIAN)
         val result = SWARUtil.applyPattern(word, pattern)
@@ -585,7 +585,7 @@ object ByteString {
         if (offset == length) return -1
       }
       val longCount = searchLength >>> 3
-      val pattern = SWARUtil.compilePattern(elem)
+      val pattern = if (longCount > 0) SWARUtil.compilePattern(elem) else 0L
       var i = 0
       while (i < longCount) {
         val word = SWARUtil.getLong(bytes, startIndex + offset, ByteOrder.BIG_ENDIAN)
@@ -611,7 +611,7 @@ object ByteString {
         if (offset == length) return -1
       }
       val longCount = searchLength >>> 3
-      val pattern = SWARUtil.compilePattern(elem)
+      val pattern = if (longCount > 0) SWARUtil.compilePattern(elem) else 0L
       var i = 0
       while (i < longCount) {
         val word = SWARUtil.getLong(bytes, startIndex + offset, ByteOrder.BIG_ENDIAN)
@@ -645,7 +645,6 @@ object ByteString {
       val endIdx = math.min(end, length - 1)
       if (endIdx < 0) return -1
       val searchLength = endIdx + 1
-      val pattern = SWARUtil.compilePattern(elem)
       // Check the rightmost partial chunk first (bytes not fitting in a full 8-byte block)
       val tailBytes = searchLength & 7
       if (tailBytes > 0) {
@@ -656,6 +655,7 @@ object ByteString {
       }
       // Scan full 8-byte chunks from right to left
       var chunkStart = searchLength - tailBytes - 8
+      val pattern = if (chunkStart >= 0) SWARUtil.compilePattern(elem) else 0L
       while (chunkStart >= 0) {
         val word = SWARUtil.getLong(bytes, startIndex + chunkStart, ByteOrder.BIG_ENDIAN)
         val result = SWARUtil.applyPattern(word, pattern)
