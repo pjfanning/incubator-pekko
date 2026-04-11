@@ -1215,6 +1215,10 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       val byteStringWithOffset = ByteString1(
         "abcdefghijklmnopqrstuvwxyz".getBytes(StandardCharsets.UTF_8), 2, 24)
       byteStringWithOffset.lastIndexOfSlice(slice0) should ===(21)
+
+      val concat0 = makeMultiByteStringsSample()
+      concat0.lastIndexOfSlice(Array(16.toByte, 0xFF.toByte)) should ===(17)
+      concat0.lastIndexOfSlice(Array(16.toByte, 0xFE.toByte)) should ===(-1)
     }
     "startsWith (specialized)" in {
       val slice0 = "abcdefghijk".getBytes(StandardCharsets.UTF_8)
