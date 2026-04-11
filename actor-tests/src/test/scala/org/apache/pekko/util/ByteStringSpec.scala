@@ -1168,6 +1168,54 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
         "abcdefghijklmnopqrstuvwxyz".getBytes(StandardCharsets.UTF_8), 2, 24)
       byteStringWithOffset.indexOfSlice(slice0) should ===(21)
     }
+    "lastIndexOfSlice" in {
+      val slice0 = ByteString1.fromString("xyz")
+      val slice1 = ByteString1.fromString("xyzabc")
+      val notSlice = ByteString1.fromString("12345")
+      val pByte = ByteString1.fromString("p")
+      val byteStringLong = ByteString1.fromString("abcdefghijklmnopqrstuvwxyz")
+      val byteStrings = ByteStrings(byteStringLong, byteStringLong)
+      byteStringLong.lastIndexOfSlice(slice0) should ===(23)
+      byteStringLong.lastIndexOfSlice(slice1) should ===(-1)
+      byteStringLong.lastIndexOfSlice(notSlice) should ===(-1)
+      byteStringLong.lastIndexOfSlice(pByte) should ===(15)
+
+      byteStrings.lastIndexOfSlice(slice0) should ===(49)
+      byteStrings.lastIndexOfSlice(slice1) should ===(23)
+      byteStrings.lastIndexOfSlice(notSlice) should ===(-1)
+      byteStrings.lastIndexOfSlice(pByte) should ===(41)
+      byteStrings.lastIndexOfSlice(pByte, 40) should ===(15)
+
+      val byteStringXxyz = ByteString1.fromString("xxyz")
+      byteStringXxyz.lastIndexOfSlice(slice0) should ===(1)
+      byteStringXxyz.lastIndexOfSlice(slice0, 0) should ===(-1)
+    }
+    "lastIndexOfSlice (specialized)" in {
+      val slice0 = "xyz".getBytes(StandardCharsets.UTF_8)
+      val slice1 = "xyzabc".getBytes(StandardCharsets.UTF_8)
+      val notSlice = "12345".getBytes(StandardCharsets.UTF_8)
+      val pByte = Array('p'.toByte)
+      val byteStringLong = ByteString1.fromString("abcdefghijklmnopqrstuvwxyz")
+      val byteStrings = ByteStrings(byteStringLong, byteStringLong)
+      byteStringLong.lastIndexOfSlice(slice0) should ===(23)
+      byteStringLong.lastIndexOfSlice(slice1) should ===(-1)
+      byteStringLong.lastIndexOfSlice(notSlice) should ===(-1)
+      byteStringLong.lastIndexOfSlice(pByte) should ===(15)
+
+      byteStrings.lastIndexOfSlice(slice0) should ===(49)
+      byteStrings.lastIndexOfSlice(slice1) should ===(23)
+      byteStrings.lastIndexOfSlice(notSlice) should ===(-1)
+      byteStrings.lastIndexOfSlice(pByte) should ===(41)
+      byteStrings.lastIndexOfSlice(pByte, 40) should ===(15)
+
+      val byteStringXxyz = ByteString1.fromString("xxyz")
+      byteStringXxyz.lastIndexOfSlice(slice0) should ===(1)
+      byteStringXxyz.lastIndexOfSlice(slice0, 0) should ===(-1)
+
+      val byteStringWithOffset = ByteString1(
+        "abcdefghijklmnopqrstuvwxyz".getBytes(StandardCharsets.UTF_8), 2, 24)
+      byteStringWithOffset.lastIndexOfSlice(slice0) should ===(21)
+    }
     "startsWith (specialized)" in {
       val slice0 = "abcdefghijk".getBytes(StandardCharsets.UTF_8)
       val slice1 = "xyz".getBytes(StandardCharsets.UTF_8)
