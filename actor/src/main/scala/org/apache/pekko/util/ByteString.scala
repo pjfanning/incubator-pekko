@@ -1294,17 +1294,19 @@ sealed abstract class ByteString
       }
       true
     }
-    val headByte = slice.head.asInstanceOf[Byte]
-    @tailrec def rec(from: Int): Int = {
-      val startPos = indexOf(headByte, from, length - slice.length + 1)
-      if (startPos == -1) -1
-      else if (check(startPos)) startPos
-      else rec(startPos + 1)
-    }
     val sliceLength = slice.length
-    if (sliceLength == 0) 0
-    else if (sliceLength == 1) indexOf(headByte, from)
-    else rec(math.max(0, from))
+    if (sliceLength == 0) if (from >= length) -1 else math.max(from, 0)
+    else {
+      val headByte = slice.head.asInstanceOf[Byte]
+      @tailrec def rec(from: Int): Int = {
+        val startPos = indexOf(headByte, from, length - slice.length + 1)
+        if (startPos == -1) -1
+        else if (check(startPos)) startPos
+        else rec(startPos + 1)
+      }
+      if (sliceLength == 1) indexOf(headByte, from)
+      else rec(math.max(0, from))
+    }
   }
 
   /**
@@ -1330,16 +1332,20 @@ sealed abstract class ByteString
       }
       true
     }
-    @tailrec def rec(from: Int): Int = {
-      val startPos = indexOf(slice.head, from, length - slice.length + 1)
-      if (startPos == -1) -1
-      else if (check(startPos)) startPos
-      else rec(startPos + 1)
-    }
     val sliceLength = slice.length
-    if (sliceLength == 0) 0
-    else if (sliceLength == 1) indexOf(slice.head, from)
-    else rec(math.max(0, from))
+    if (sliceLength == 0) if (from >= length) -1 else math.max(from, 0)
+    else if (sliceLength > length) -1
+    else {
+      val headByte = slice.head
+      @tailrec def rec(from: Int): Int = {
+        val startPos = indexOf(headByte, from, length - slice.length + 1)
+        if (startPos == -1) -1
+        else if (check(startPos)) startPos
+        else rec(startPos + 1)
+      }
+      if (sliceLength == 1) indexOf(headByte, from)
+      else rec(math.max(0, from))
+    }
   }
 
   /**
@@ -1364,6 +1370,7 @@ sealed abstract class ByteString
         var i = startPos
         var j = 0
         while (j < sliceLength - 1) {
+          // let's trust the calling code has ensured that we have enough bytes in this ByteString
           if (apply(i) != slice(j)) return false
           i += 1
           j += 1
@@ -1411,6 +1418,7 @@ sealed abstract class ByteString
         var i = startPos
         var j = 0
         while (j < sliceLength - 1) {
+          // let's trust the calling code has ensured that we have enough bytes in this ByteString
           if (apply(i) != slice(j)) return false
           i += 1
           j += 1

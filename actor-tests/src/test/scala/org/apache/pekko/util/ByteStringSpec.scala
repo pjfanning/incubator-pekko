@@ -1140,7 +1140,11 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
 
       val byteStringXxyz = ByteString1.fromString("xxyz")
       byteStringXxyz.indexOfSlice(slice0) should ===(1)
+      byteStringXxyz.indexOfSlice(slice0, -1) should ===(1)
       byteStringXxyz.indexOfSlice(slice0, 2) should ===(-1)
+      byteStringXxyz.indexOfSlice(Seq.empty) should ===(0)
+      byteStringXxyz.indexOfSlice(Seq.empty, -1) should ===(0)
+      byteStringXxyz.indexOfSlice(Seq.empty, 1) should ===(1)
     }
     "indexOfSlice (specialized)" in {
       val slice0 = "xyz".getBytes(StandardCharsets.UTF_8)
@@ -1162,7 +1166,11 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
 
       val byteStringXxyz = ByteString1.fromString("xxyz")
       byteStringXxyz.indexOfSlice(slice0) should ===(1)
+      byteStringXxyz.indexOfSlice(slice0, -1) should ===(1)
       byteStringXxyz.indexOfSlice(slice0, 2) should ===(-1)
+      byteStringXxyz.indexOfSlice(Seq.empty) should ===(0)
+      byteStringXxyz.indexOfSlice(Seq.empty, -1) should ===(0)
+      byteStringXxyz.indexOfSlice(Seq.empty, 1) should ===(1)
 
       val byteStringWithOffset = ByteString1(
         "abcdefghijklmnopqrstuvwxyz".getBytes(StandardCharsets.UTF_8), 2, 24)
@@ -1188,7 +1196,14 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
 
       val byteStringXxyz = ByteString1.fromString("xxyz")
       byteStringXxyz.lastIndexOfSlice(slice0) should ===(1)
+      byteStringXxyz.lastIndexOfSlice(slice0, 10) should ===(1)
       byteStringXxyz.lastIndexOfSlice(slice0, 0) should ===(-1)
+      byteStringXxyz.lastIndexOfSlice(slice0, 2) should ===(1)
+      byteStringXxyz.lastIndexOfSlice(Seq.empty) should ===(4)
+      byteStringXxyz.lastIndexOfSlice(Seq.empty, 2) should ===(2)
+
+      val xyzx = ByteString1.fromString("xyzx")
+      xyzx.lastIndexOfSlice(slice0) should ===(0)
     }
     "lastIndexOfSlice (specialized)" in {
       val slice0 = "xyz".getBytes(StandardCharsets.UTF_8)
@@ -1210,7 +1225,14 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
 
       val byteStringXxyz = ByteString1.fromString("xxyz")
       byteStringXxyz.lastIndexOfSlice(slice0) should ===(1)
+      byteStringXxyz.lastIndexOfSlice(slice0, 10) should ===(1)
       byteStringXxyz.lastIndexOfSlice(slice0, 0) should ===(-1)
+      byteStringXxyz.lastIndexOfSlice(slice0, 2) should ===(1)
+      byteStringXxyz.lastIndexOfSlice(Seq.empty) should ===(4)
+      byteStringXxyz.lastIndexOfSlice(Seq.empty, 2) should ===(2)
+
+      val xyzx = ByteString1.fromString("xyzx")
+      xyzx.lastIndexOfSlice(slice0) should ===(0)
 
       val byteStringWithOffset = ByteString1(
         "abcdefghijklmnopqrstuvwxyz".getBytes(StandardCharsets.UTF_8), 2, 24)
