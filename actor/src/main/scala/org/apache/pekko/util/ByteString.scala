@@ -352,7 +352,7 @@ object ByteString {
       else if (bytes(fromIndex) == value) fromIndex
       else -1
     }
-    
+
     private def unrolledFirstIndexOf(fromIndex: Int, byteCount: Int, value: Byte): Int = {
       if (bytes(fromIndex) == value) fromIndex
       else if (byteCount == 1) -1
