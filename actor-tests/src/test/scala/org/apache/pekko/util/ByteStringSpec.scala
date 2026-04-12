@@ -830,6 +830,12 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       val concat0 = ByteStrings(ByteString1.fromString("ab"), ByteString1.fromString("dd"))
       concat0.lastIndexOf('d'.toByte, 2) should ===(2)
       concat0.lastIndexOf('d'.toByte, 3) should ===(3)
+
+      // end larger than length - 1 should be clamped to the last valid index
+      val bs5 = ByteString1.fromString("abcde")
+      bs5.lastIndexOf('e', 100) should ===(4)
+      bs5.lastIndexOf('a', 100) should ===(0)
+      bs5.lastIndexOf('z', 100) should ===(-1)
     }
     "lastIndexOf (specialized)" in {
       ByteString.empty.lastIndexOf(5.toByte, -1) should ===(-1)
@@ -894,6 +900,50 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       concat0.lastIndexOf(0xFF.toByte, 18) should ===(18)
       concat0.lastIndexOf(0xFF.toByte, 17) should ===(0)
       concat0.lastIndexOf(0xFE.toByte) should ===(-1)
+
+      // Single-byte ByteString
+      val single = ByteString1(Array[Byte]('x'))
+      single.lastIndexOf('x'.toByte) should ===(0)
+      single.lastIndexOf('y'.toByte) should ===(-1)
+
+      // SWAR boundary: exactly 7 bytes (only tail, no full chunk)
+      val len7 = ByteString1.fromString("abcdefg")
+      len7.lastIndexOf('g'.toByte) should ===(6)
+      len7.lastIndexOf('a'.toByte) should ===(0)
+      len7.lastIndexOf('d'.toByte) should ===(3)
+      len7.lastIndexOf('z'.toByte) should ===(-1)
+
+      // SWAR boundary: exactly 8 bytes (one full chunk, no tail)
+      val len8 = ByteString1.fromString("abcdefgh")
+      len8.lastIndexOf('h'.toByte) should ===(7)
+      len8.lastIndexOf('a'.toByte) should ===(0)
+      len8.lastIndexOf('d'.toByte) should ===(3)
+      len8.lastIndexOf('z'.toByte) should ===(-1)
+
+      // SWAR boundary: exactly 9 bytes (1-byte tail + 1 full chunk)
+      val len9 = ByteString1.fromString("abcdefghi")
+      len9.lastIndexOf('i'.toByte) should ===(8) // found in tail
+      len9.lastIndexOf('a'.toByte) should ===(0) // found in chunk
+      len9.lastIndexOf('h'.toByte) should ===(7) // last byte of chunk
+      len9.lastIndexOf('z'.toByte) should ===(-1)
+
+      // SWAR boundary: exactly 16 bytes (2 full chunks, no tail)
+      val len16 = ByteString1.fromString("abcdefghijklmnop")
+      len16.lastIndexOf('p'.toByte) should ===(15) // last byte of rightmost chunk
+      len16.lastIndexOf('a'.toByte) should ===(0)  // first byte of leftmost chunk
+      len16.lastIndexOf('h'.toByte) should ===(7)  // last byte of leftmost chunk
+      len16.lastIndexOf('i'.toByte) should ===(8)  // first byte of rightmost chunk
+
+      // All-same-byte array longer than 8: last index is the highest
+      val allSame = ByteString(Array[Byte](7, 7, 7, 7, 7, 7, 7, 7, 7)) // 9 bytes
+      allSame.lastIndexOf(7.toByte) should ===(8)
+      allSame.lastIndexOf(7.toByte, 5) should ===(5)
+      allSame.lastIndexOf(7.toByte, 0) should ===(0)
+
+      // ByteString1 with startIndex offset: find a byte residing in the SWAR chunk
+      val slicedLong = ByteString1.fromString("xxabcdefghijk").drop(2) // "abcdefghijk", 11 bytes
+      slicedLong.lastIndexOf('a'.toByte) should ===(0)  // first byte, found via chunk scan
+      slicedLong.lastIndexOf('h'.toByte) should ===(7)  // last byte of chunk
     }
     "indexOf (specialized)" in {
       ByteString.empty.indexOf(5.toByte) should ===(-1)
@@ -1145,6 +1195,29 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       byteStringXxyz.indexOfSlice(Seq.empty) should ===(0)
       byteStringXxyz.indexOfSlice(Seq.empty, -1) should ===(0)
       byteStringXxyz.indexOfSlice(Seq.empty, 1) should ===(1)
+
+      // empty slice at from == length: should return length (consistent with Scala standard library)
+      byteStringXxyz.indexOfSlice(Seq.empty, 4) should ===(4)
+      // empty slice at from > length: should return -1
+      byteStringXxyz.indexOfSlice(Seq.empty, 5) should ===(-1)
+
+      // Empty source
+      ByteString.empty.indexOfSlice(Seq.empty) should ===(0)
+      ByteString.empty.indexOfSlice(ByteString1.fromString("a")) should ===(-1)
+
+      // Slice equals entire source
+      ByteString1.fromString("abc").indexOfSlice(ByteString1.fromString("abc")) should ===(0)
+
+      // Slice longer than source
+      ByteString1.fromString("ab").indexOfSlice(ByteString1.fromString("abc")) should ===(-1)
+
+      // Cross-segment match in ByteStrings: "bc" spans segment boundary of ("ab" ++ "cd")
+      ByteStrings(ByteString1.fromString("ab"), ByteString1.fromString("cd"))
+        .indexOfSlice(ByteString1.fromString("bc")) should ===(1)
+
+      // False match: first byte matches multiple times before the full slice matches
+      // "ab" in "aabc": 'a' at index 0 (check: bytes[1]='a' != 'b' ✗), then 'a' at 1 (bytes[2]='b' == 'b' ✓) -> 1
+      ByteString1.fromString("aabc").indexOfSlice(ByteString1.fromString("ab")) should ===(1)
     }
     "indexOfSlice (specialized)" in {
       val slice0 = "xyz".getBytes(StandardCharsets.UTF_8)
@@ -1171,6 +1244,28 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       byteStringXxyz.indexOfSlice(Seq.empty) should ===(0)
       byteStringXxyz.indexOfSlice(Seq.empty, -1) should ===(0)
       byteStringXxyz.indexOfSlice(Seq.empty, 1) should ===(1)
+
+      // empty slice at from == length: should return length (consistent with Scala standard library)
+      byteStringXxyz.indexOfSlice(Seq.empty, 4) should ===(4)
+      // empty slice at from > length: should return -1
+      byteStringXxyz.indexOfSlice(Seq.empty, 5) should ===(-1)
+
+      // Empty source
+      ByteString.empty.indexOfSlice(Array.empty[Byte]) should ===(0)
+      ByteString.empty.indexOfSlice(Array[Byte]('a')) should ===(-1)
+
+      // Slice equals entire source
+      ByteString1.fromString("abc").indexOfSlice("abc".getBytes(StandardCharsets.UTF_8)) should ===(0)
+
+      // Slice longer than source
+      ByteString1.fromString("ab").indexOfSlice("abc".getBytes(StandardCharsets.UTF_8)) should ===(-1)
+
+      // Cross-segment match in ByteStrings: "bc" spans segment boundary of ("ab" ++ "cd")
+      ByteStrings(ByteString1.fromString("ab"), ByteString1.fromString("cd"))
+        .indexOfSlice(Array[Byte]('b', 'c')) should ===(1)
+
+      // False match: first byte matches multiple times before the full slice matches
+      ByteString1.fromString("aabc").indexOfSlice(Array[Byte]('a', 'b')) should ===(1)
 
       val byteStringWithOffset = ByteString1(
         "abcdefghijklmnopqrstuvwxyz".getBytes(StandardCharsets.UTF_8), 2, 24)
@@ -1204,6 +1299,29 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
 
       val xyzx = ByteString1.fromString("xyzx")
       xyzx.lastIndexOfSlice(slice0) should ===(0)
+
+      // Empty source with empty slice -> 0; with non-empty slice -> -1
+      ByteString.empty.lastIndexOfSlice(ByteString.empty) should ===(0)
+      ByteString.empty.lastIndexOfSlice(ByteString1.fromString("a")) should ===(-1)
+
+      // Slice equals entire source -> 0
+      ByteString1.fromString("abc").lastIndexOfSlice(ByteString1.fromString("abc")) should ===(0)
+
+      // Slice longer than source -> -1
+      ByteString1.fromString("ab").lastIndexOfSlice(ByteString1.fromString("abc")) should ===(-1)
+
+      // end = -1 for non-empty slice -> -1
+      ByteString1.fromString("abc").lastIndexOfSlice(ByteString1.fromString("a"), -1) should ===(-1)
+
+      // False-match retry: tail byte 'b' matches at index 2, but bytes[1]='b' != 'a'; retries, finds at index 1, bytes[0]='a' == 'a'
+      ByteString1.fromString("abb").lastIndexOfSlice(ByteString1.fromString("ab")) should ===(0)
+
+      // Repeated pattern: "aa" in "aaaa" -> last occurrence starts at index 2
+      ByteString1.fromString("aaaa").lastIndexOfSlice(ByteString1.fromString("aa")) should ===(2)
+
+      // Cross-segment match in ByteStrings: slice "bc" spans segment boundary of ("ab" ++ "cd")
+      ByteStrings(ByteString1.fromString("ab"), ByteString1.fromString("cd"))
+        .lastIndexOfSlice(ByteString1.fromString("bc")) should ===(1)
     }
     "lastIndexOfSlice (specialized)" in {
       val slice0 = "xyz".getBytes(StandardCharsets.UTF_8)
@@ -1241,6 +1359,29 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       val concat0 = makeMultiByteStringsSample()
       concat0.lastIndexOfSlice(Array(16.toByte, 0xFF.toByte)) should ===(17)
       concat0.lastIndexOfSlice(Array(16.toByte, 0xFE.toByte)) should ===(-1)
+
+      // Empty source with empty slice -> 0; with non-empty slice -> -1
+      ByteString.empty.lastIndexOfSlice(Array.empty[Byte]) should ===(0)
+      ByteString.empty.lastIndexOfSlice(Array[Byte]('a')) should ===(-1)
+
+      // Slice equals entire source -> 0
+      ByteString1.fromString("abc").lastIndexOfSlice("abc".getBytes(StandardCharsets.UTF_8)) should ===(0)
+
+      // Slice longer than source -> -1
+      ByteString1.fromString("ab").lastIndexOfSlice("abc".getBytes(StandardCharsets.UTF_8)) should ===(-1)
+
+      // end = -1 for non-empty slice -> -1
+      ByteString1.fromString("abc").lastIndexOfSlice(Array[Byte]('a'), -1) should ===(-1)
+
+      // False-match retry: tail byte 'b' matches at index 2, but bytes[1]='b' != 'a'; retries, finds at index 1
+      ByteString1.fromString("abb").lastIndexOfSlice(Array[Byte]('a', 'b')) should ===(0)
+
+      // Repeated pattern: "aa" in "aaaa" -> last occurrence starts at index 2
+      ByteString1.fromString("aaaa").lastIndexOfSlice(Array[Byte]('a', 'a')) should ===(2)
+
+      // Cross-segment match in ByteStrings: slice "bc" spans segment boundary of ("ab" ++ "cd")
+      ByteStrings(ByteString1.fromString("ab"), ByteString1.fromString("cd"))
+        .lastIndexOfSlice(Array[Byte]('b', 'c')) should ===(1)
     }
     "startsWith (specialized)" in {
       val slice0 = "abcdefghijk".getBytes(StandardCharsets.UTF_8)

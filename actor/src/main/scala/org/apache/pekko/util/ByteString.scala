@@ -1295,7 +1295,7 @@ sealed abstract class ByteString
       true
     }
     val sliceLength = slice.length
-    if (sliceLength == 0) if (from >= length) -1 else math.max(from, 0)
+    if (sliceLength == 0) if (from > length) -1 else math.max(from, 0)
     else {
       val headByte = slice.head.asInstanceOf[Byte]
       @tailrec def rec(from: Int): Int = {
@@ -1333,7 +1333,7 @@ sealed abstract class ByteString
       true
     }
     val sliceLength = slice.length
-    if (sliceLength == 0) if (from >= length) -1 else math.max(from, 0)
+    if (sliceLength == 0) if (from > length) -1 else math.max(from, 0)
     else if (sliceLength > length) -1
     else {
       val headByte = slice.head
@@ -1454,7 +1454,7 @@ sealed abstract class ByteString
    *          to `slice`, or `-1`, if none exists.
    * @since 2.0.0
    */
-  def lastIndexOfSlice(slice: Array[Byte]): Int = lastIndexOfSlice(slice, length - 1)
+  def lastIndexOfSlice(slice: Array[Byte]): Int = lastIndexOfSlice(slice, length)
 
   override def contains[B >: Byte](elem: B): Boolean = indexOf(elem, 0) != -1
 
