@@ -340,6 +340,19 @@ object ByteString {
       -1
     }
 
+    // Searches byteCount bytes (1-7) starting at fromIndex from highest to lowest index,
+    // returning the rightmost (last) match, or -1 if not found.
+    private def unrolledLastIndexOf(fromIndex: Int, byteCount: Int, value: Byte): Int = {
+      if (byteCount >= 7 && bytes(fromIndex + 6) == value) fromIndex + 6
+      else if (byteCount >= 6 && bytes(fromIndex + 5) == value) fromIndex + 5
+      else if (byteCount >= 5 && bytes(fromIndex + 4) == value) fromIndex + 4
+      else if (byteCount >= 4 && bytes(fromIndex + 3) == value) fromIndex + 3
+      else if (byteCount >= 3 && bytes(fromIndex + 2) == value) fromIndex + 2
+      else if (byteCount >= 2 && bytes(fromIndex + 1) == value) fromIndex + 1
+      else if (bytes(fromIndex) == value) fromIndex
+      else -1
+    }
+    
     private def unrolledFirstIndexOf(fromIndex: Int, byteCount: Int, value: Byte): Int = {
       if (bytes(fromIndex) == value) fromIndex
       else if (byteCount == 1) -1
@@ -354,19 +367,6 @@ object ByteString {
       else if (bytes(fromIndex + 5) == value) fromIndex + 5
       else if (byteCount == 6) -1
       else if (bytes(fromIndex + 6) == value) fromIndex + 6
-      else -1
-    }
-
-    // Searches byteCount bytes (1-7) starting at fromIndex from highest to lowest index,
-    // returning the rightmost (last) match, or -1 if not found.
-    private def unrolledLastIndexOf(fromIndex: Int, byteCount: Int, value: Byte): Int = {
-      if (byteCount >= 7 && bytes(fromIndex + 6) == value) fromIndex + 6
-      else if (byteCount >= 6 && bytes(fromIndex + 5) == value) fromIndex + 5
-      else if (byteCount >= 5 && bytes(fromIndex + 4) == value) fromIndex + 4
-      else if (byteCount >= 4 && bytes(fromIndex + 3) == value) fromIndex + 3
-      else if (byteCount >= 3 && bytes(fromIndex + 2) == value) fromIndex + 2
-      else if (byteCount >= 2 && bytes(fromIndex + 1) == value) fromIndex + 1
-      else if (bytes(fromIndex) == value) fromIndex
       else -1
     }
 

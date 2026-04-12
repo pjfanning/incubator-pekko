@@ -29,11 +29,11 @@ class ByteString_lastIndexOfSlice_Benchmark {
   val hv = "hijklmnopqrstuv".getBytes(StandardCharsets.UTF_8)
 
   @Benchmark
-  def bss_lastIndexOfSlice: Int = bss.lastIndexOfSlice(abc, 1)
+  def bss_lastIndexOfSlice: Int = bss.lastIndexOfSlice(abc)
 
   @Benchmark
-  def bs_lastIndexOfSlice_abc: Int = bs.lastIndexOfSlice(abc, 1)
+  def bs_lastIndexOfSlice_abc: Int = bs.lastIndexOfSlice(abc)
 
   @Benchmark
-  def bs_lastIndexOfSlice_hv: Int = bs.lastIndexOfSlice(hv, 1)
+  def bs_lastIndexOfSlice_hv: Int = bs.lastIndexOfSlice(hv)
 }
