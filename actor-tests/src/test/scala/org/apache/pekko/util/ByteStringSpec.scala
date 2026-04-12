@@ -930,9 +930,9 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       // SWAR boundary: exactly 16 bytes (2 full chunks, no tail)
       val len16 = ByteString1.fromString("abcdefghijklmnop")
       len16.lastIndexOf('p'.toByte) should ===(15) // last byte of rightmost chunk
-      len16.lastIndexOf('a'.toByte) should ===(0)  // first byte of leftmost chunk
-      len16.lastIndexOf('h'.toByte) should ===(7)  // last byte of leftmost chunk
-      len16.lastIndexOf('i'.toByte) should ===(8)  // first byte of rightmost chunk
+      len16.lastIndexOf('a'.toByte) should ===(0) // first byte of leftmost chunk
+      len16.lastIndexOf('h'.toByte) should ===(7) // last byte of leftmost chunk
+      len16.lastIndexOf('i'.toByte) should ===(8) // first byte of rightmost chunk
 
       // All-same-byte array longer than 8: last index is the highest
       val allSame = ByteString(Array[Byte](7, 7, 7, 7, 7, 7, 7, 7, 7)) // 9 bytes
@@ -942,8 +942,8 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
 
       // ByteString1 with startIndex offset: find a byte residing in the SWAR chunk
       val slicedLong = ByteString1.fromString("xxabcdefghijk").drop(2) // "abcdefghijk", 11 bytes
-      slicedLong.lastIndexOf('a'.toByte) should ===(0)  // first byte, found via chunk scan
-      slicedLong.lastIndexOf('h'.toByte) should ===(7)  // last byte of chunk
+      slicedLong.lastIndexOf('a'.toByte) should ===(0) // first byte, found via chunk scan
+      slicedLong.lastIndexOf('h'.toByte) should ===(7) // last byte of chunk
     }
     "indexOf (specialized)" in {
       ByteString.empty.indexOf(5.toByte) should ===(-1)
