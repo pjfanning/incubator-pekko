@@ -1006,7 +1006,8 @@ object ByteString {
   }
 
   // SWAR-based search for first occurrence of `elem` in bytes[fromOffset, fromOffset+searchLength).
-  // Returns the absolute index in `bytes`, or -1 if not found.
+  // `fromOffset` is an absolute index into `bytes`; the return value is also an absolute index in
+  // `bytes`, or -1 if not found. Callers are responsible for converting to/from logical indices.
   private def swarFirstIndexOf(bytes: Array[Byte], fromOffset: Int, searchLength: Int, elem: Byte): Int = {
     var offset = fromOffset
     val byteCount = searchLength & 7
@@ -1031,22 +1032,27 @@ object ByteString {
   }
 
   // SWAR-based search for last occurrence of `elem` in bytes[baseOffset, baseOffset+searchLength).
-  // Returns the logical index (absolute index minus `baseOffset`), or -1 if not found.
+  // `baseOffset` is an absolute index into `bytes`.
+  // Returns the logical index (i.e. the index relative to `baseOffset`, not the absolute index into
+  // `bytes`), or -1 if not found.
+  // Note: `chunkStart` below is a logical offset (0-based from `baseOffset`), so both return paths
+  // produce a logical index without further adjustment.
   private def swarLastIndexOf(bytes: Array[Byte], baseOffset: Int, searchLength: Int, elem: Byte): Int = {
     val tailBytes = searchLength & 7
     if (tailBytes > 0) {
       val tailStart = searchLength - tailBytes
       val index = unrolledLastIndexOf(bytes, baseOffset + tailStart, tailBytes, elem)
-      if (index != -1) return index - baseOffset
+      if (index != -1) return index - baseOffset  // convert absolute → logical
       if (tailStart == 0) return -1
     }
+    // chunkStart is a logical offset within [0, searchLength); bytes are read from baseOffset + chunkStart.
     var chunkStart = searchLength - tailBytes - 8
     if (chunkStart >= 0) {
       val pattern = SWARUtil.compilePattern(elem)
       while (chunkStart >= 0) {
         val word = SWARUtil.getLong(bytes, baseOffset + chunkStart, ByteOrder.BIG_ENDIAN)
         val result = SWARUtil.applyPattern(word, pattern)
-        if (result != 0) return chunkStart + SWARUtil.getLastIndex(result)
+        if (result != 0) return chunkStart + SWARUtil.getLastIndex(result)  // already logical
         chunkStart -= 8
       }
     }
