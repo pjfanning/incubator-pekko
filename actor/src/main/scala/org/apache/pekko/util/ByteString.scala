@@ -489,8 +489,9 @@ object ByteString {
         }
     }
 
-    // Converts an absolute index in `bytes` (as returned by `swarFirstIndexOf` or `swarLastIndexOf`)
-    // to a logical index relative to `startIndex`, preserving -1 as the "not found" sentinel.
+    // Converts an absolute index in bytes (as returned by the swarFirstIndexOf or swarLastIndexOf
+    // helpers in the ByteString companion object) to a logical index relative to startIndex,
+    // preserving -1 as the "not found" sentinel.
     private def absToLogical(absIdx: Int): Int = if (absIdx == -1) -1 else absIdx - startIndex
 
     @nowarn
@@ -1007,9 +1008,9 @@ object ByteString {
     else -1
   }
 
-  // SWAR-based search for first occurrence of `elem` in bytes[fromOffset, fromOffset+searchLength).
-  // `fromOffset` is an absolute index into `bytes`; the return value is also an absolute index in
-  // `bytes`, or -1 if not found. Callers are responsible for converting to/from logical indices.
+  // SWAR-based search for first occurrence of elem in bytes[fromOffset, fromOffset+searchLength).
+  // fromOffset is an absolute index into bytes; the return value is also an absolute index in
+  // bytes, or -1 if not found. Callers are responsible for converting to logical indices.
   private def swarFirstIndexOf(bytes: Array[Byte], fromOffset: Int, searchLength: Int, elem: Byte): Int = {
     var offset = fromOffset
     val byteCount = searchLength & 7
@@ -1033,12 +1034,12 @@ object ByteString {
     -1
   }
 
-  // SWAR-based search for last occurrence of `elem` in bytes[baseOffset, baseOffset+searchLength).
-  // `baseOffset` is an absolute index into `bytes`.
-  // Returns the absolute index in `bytes`, or -1 if not found. Callers are responsible for
-  // converting to logical indices (e.g. `absResult - startIndex` for `ByteString1`).
-  // Note: `chunkStart` below is a logical offset (0-based from `baseOffset`), so the absolute
-  // result is computed as `baseOffset + chunkStart + getLastIndex(result)`.
+  // SWAR-based search for last occurrence of elem in bytes[baseOffset, baseOffset+searchLength).
+  // baseOffset is an absolute index into bytes.
+  // Returns the absolute index in bytes, or -1 if not found. Callers are responsible for
+  // converting to logical indices (e.g. absResult - startIndex for ByteString1).
+  // Note: chunkStart below is a logical offset (0-based from baseOffset), so the absolute
+  // result is computed as baseOffset + chunkStart + getLastIndex(result).
   private def swarLastIndexOf(bytes: Array[Byte], baseOffset: Int, searchLength: Int, elem: Byte): Int = {
     val tailBytes = searchLength & 7
     if (tailBytes > 0) {
@@ -1054,7 +1055,7 @@ object ByteString {
       while (chunkStart >= 0) {
         val word = SWARUtil.getLong(bytes, baseOffset + chunkStart, ByteOrder.BIG_ENDIAN)
         val result = SWARUtil.applyPattern(word, pattern)
-        if (result != 0) return baseOffset + chunkStart + SWARUtil.getLastIndex(result)  // absolute
+        if (result != 0) return baseOffset + chunkStart + SWARUtil.getLastIndex(result)
         chunkStart -= 8
       }
     }
