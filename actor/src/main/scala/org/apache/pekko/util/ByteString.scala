@@ -235,7 +235,7 @@ object ByteString {
 
     override def indexOf[B >: Byte](elem: B, from: Int): Int = elem match {
       case byte: Byte => indexOf(byte, from)
-      case _ =>
+      case _          =>
         if (from >= length) -1
         else {
           var i = math.max(from, 0)
@@ -477,7 +477,7 @@ object ByteString {
 
     override def indexOf[B >: Byte](elem: B, from: Int): Int = elem match {
       case byte: Byte => indexOf(byte, from)
-      case _ =>
+      case _          =>
         if (from >= length) -1
         else {
           var i = math.max(from, 0)
@@ -788,7 +788,7 @@ object ByteString {
 
     override def indexOf[B >: Byte](elem: B, from: Int): Int = elem match {
       case byte: Byte => indexOf(byte, from)
-      case _ =>
+      case _          =>
         if (from >= length) -1
         else {
           val byteStringsSize = bytestrings.size
@@ -868,7 +868,7 @@ object ByteString {
 
     override def lastIndexOf[B >: Byte](elem: B, end: Int): Int = elem match {
       case byte: Byte => lastIndexOf(byte, end)
-      case _ =>
+      case _          =>
         if (end < 0) -1
         else {
           val byteStringsLast = bytestrings.size - 1
@@ -1045,7 +1045,7 @@ object ByteString {
     if (tailBytes > 0) {
       val tailStart = searchLength - tailBytes
       val index = unrolledLastIndexOf(bytes, baseOffset + tailStart, tailBytes, elem)
-      if (index != -1) return index  // already absolute
+      if (index != -1) return index // already absolute
       if (tailStart == 0) return -1
     }
     // chunkStart is a logical offset within [0, searchLength); absolute position is baseOffset + chunkStart.
