@@ -1506,6 +1506,28 @@ sealed abstract class ByteString
    */
   def startsWith(bytes: Array[Byte]): Boolean = startsWith(bytes, 0)
 
+  /**
+   * Tests whether this ByteString ends with the given bytes.
+   *
+   * @param bytes the slice to test
+   * @return true if this ByteString ends with the given bytes
+   * @since 1.2.0
+   */
+  def endsWith(bytes: Array[Byte]): Boolean = {
+    if (length < bytes.length) false
+    else {
+      val offset = length - bytes.length
+      var i = offset
+      var j = 0
+      while (j < bytes.length) {
+        if (apply(i) != bytes(j)) return false
+        i += 1
+        j += 1
+      }
+      true
+    }
+  }
+
   override def grouped(size: Int): Iterator[ByteString] = {
     if (size <= 0) {
       throw new IllegalArgumentException(s"size=$size must be positive")

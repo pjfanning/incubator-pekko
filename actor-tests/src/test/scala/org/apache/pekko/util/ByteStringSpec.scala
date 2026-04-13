@@ -1403,6 +1403,76 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
         "abcdefghijklmnopqrstuvwxyz".getBytes(StandardCharsets.UTF_8), 2, 20)
       val slice3 = "cdefghijklmn".getBytes(StandardCharsets.UTF_8)
       byteStringWithOffset.startsWith(slice3) should ===(true)
+
+      // empty bytes array always returns true
+      byteStringLong.startsWith(Array.emptyByteArray) should ===(true)
+      byteStrings.startsWith(Array.emptyByteArray) should ===(true)
+
+      // exact match
+      val fullSlice = "abcdefghijklmnopqrstuvwxyz".getBytes(StandardCharsets.UTF_8)
+      byteStringLong.startsWith(fullSlice) should ===(true)
+
+      // bytes longer than ByteString returns false
+      val tooLong = "abcdefghijklmnopqrstuvwxyz1".getBytes(StandardCharsets.UTF_8)
+      byteStringLong.startsWith(tooLong) should ===(false)
+
+      // ByteString1C
+      val byteString1C = ByteString1C("abcdefghijklmnopqrstuvwxyz".getBytes(StandardCharsets.UTF_8))
+      byteString1C.startsWith(slice0) should ===(true)
+      byteString1C.startsWith(notSlice) should ===(false)
+      byteString1C.startsWith(Array.emptyByteArray) should ===(true)
+
+      // empty ByteString
+      ByteString.empty.startsWith(Array.emptyByteArray) should ===(true)
+      ByteString.empty.startsWith(Array[Byte]('a')) should ===(false)
+    }
+    "endsWith" in {
+      val suffix0 = "uvwxyz".getBytes(StandardCharsets.UTF_8)
+      val suffix1 = "abcdefghijklmnopqrstuvwxyz".getBytes(StandardCharsets.UTF_8)
+      val notSuffix = "12345".getBytes(StandardCharsets.UTF_8)
+      val byteStringLong = ByteString1.fromString("abcdefghijklmnopqrstuvwxyz")
+      val byteStrings = ByteStrings(byteStringLong, byteStringLong)
+
+      // ByteString1 basic cases
+      byteStringLong.endsWith(suffix0) should ===(true)
+      byteStringLong.endsWith(notSuffix) should ===(false)
+
+      // exact match
+      byteStringLong.endsWith(suffix1) should ===(true)
+
+      // bytes longer than ByteString returns false
+      val tooLong = "0abcdefghijklmnopqrstuvwxyz".getBytes(StandardCharsets.UTF_8)
+      byteStringLong.endsWith(tooLong) should ===(false)
+
+      // empty bytes array always returns true
+      byteStringLong.endsWith(Array.emptyByteArray) should ===(true)
+
+      // ByteStrings (multi-segment)
+      byteStrings.endsWith(suffix0) should ===(true)
+      byteStrings.endsWith(notSuffix) should ===(false)
+      byteStrings.endsWith(Array.emptyByteArray) should ===(true)
+
+      // suffix spanning the segment boundary
+      val crossBoundary = "xyzabcdefghijklmnopqrstuvwxyz".getBytes(StandardCharsets.UTF_8)
+      byteStrings.endsWith(crossBoundary) should ===(true)
+
+      // ByteString1C
+      val byteString1C = ByteString1C("abcdefghijklmnopqrstuvwxyz".getBytes(StandardCharsets.UTF_8))
+      byteString1C.endsWith(suffix0) should ===(true)
+      byteString1C.endsWith(notSuffix) should ===(false)
+      byteString1C.endsWith(Array.emptyByteArray) should ===(true)
+
+      // ByteString1 with internal offset
+      val byteStringWithOffset = ByteString1(
+        "abcdefghijklmnopqrstuvwxyz".getBytes(StandardCharsets.UTF_8), 2, 20)
+      // ByteString1(bytes, 2, 20) represents "cdefghijklmnopqrstuv"
+      val offsetSuffix = "rstuv".getBytes(StandardCharsets.UTF_8)
+      byteStringWithOffset.endsWith(offsetSuffix) should ===(true)
+      byteStringWithOffset.endsWith(notSuffix) should ===(false)
+
+      // empty ByteString
+      ByteString.empty.endsWith(Array.emptyByteArray) should ===(true)
+      ByteString.empty.endsWith(Array[Byte]('a')) should ===(false)
     }
     "return same hashCode" in {
       val slice0 = ByteString1.fromString("xyz")
