@@ -489,20 +489,22 @@ object ByteString {
         }
     }
 
+    // Converts an absolute index in `bytes` (as returned by `swarFirstIndexOf` or `swarLastIndexOf`)
+    // to a logical index relative to `startIndex`, preserving -1 as the "not found" sentinel.
+    private def absToLogical(absIdx: Int): Int = if (absIdx == -1) -1 else absIdx - startIndex
+
     @nowarn
     override def indexOf(elem: Byte, from: Int): Int = {
       val fromIndex = math.max(0, from)
       if (fromIndex >= length) return -1
-      val absResult = swarFirstIndexOf(bytes, fromIndex + startIndex, length - fromIndex, elem)
-      if (absResult == -1) -1 else absResult - startIndex
+      absToLogical(swarFirstIndexOf(bytes, fromIndex + startIndex, length - fromIndex, elem))
     }
 
     override def indexOf(elem: Byte, from: Int, to: Int): Int = {
       val fromIndex = math.max(0, from)
       val toIndex = math.min(to, length)
       if (fromIndex >= toIndex) return -1
-      val absResult = swarFirstIndexOf(bytes, fromIndex + startIndex, toIndex - fromIndex, elem)
-      if (absResult == -1) -1 else absResult - startIndex
+      absToLogical(swarFirstIndexOf(bytes, fromIndex + startIndex, toIndex - fromIndex, elem))
     }
 
     override def lastIndexOf[B >: Byte](elem: B, end: Int): Int = {
@@ -525,7 +527,7 @@ object ByteString {
     override def lastIndexOf(elem: Byte, end: Int): Int = {
       val endIdx = math.min(end, length - 1)
       if (endIdx < 0) return -1
-      swarLastIndexOf(bytes, startIndex, endIdx + 1, elem)
+      absToLogical(swarLastIndexOf(bytes, startIndex, endIdx + 1, elem))
     }
 
     override def copyToArray[B >: Byte](dest: Array[B], start: Int, len: Int): Int = {
@@ -1033,26 +1035,26 @@ object ByteString {
 
   // SWAR-based search for last occurrence of `elem` in bytes[baseOffset, baseOffset+searchLength).
   // `baseOffset` is an absolute index into `bytes`.
-  // Returns the logical index (i.e. the index relative to `baseOffset`, not the absolute index into
-  // `bytes`), or -1 if not found.
-  // Note: `chunkStart` below is a logical offset (0-based from `baseOffset`), so both return paths
-  // produce a logical index without further adjustment.
+  // Returns the absolute index in `bytes`, or -1 if not found. Callers are responsible for
+  // converting to logical indices (e.g. `absResult - startIndex` for `ByteString1`).
+  // Note: `chunkStart` below is a logical offset (0-based from `baseOffset`), so the absolute
+  // result is computed as `baseOffset + chunkStart + getLastIndex(result)`.
   private def swarLastIndexOf(bytes: Array[Byte], baseOffset: Int, searchLength: Int, elem: Byte): Int = {
     val tailBytes = searchLength & 7
     if (tailBytes > 0) {
       val tailStart = searchLength - tailBytes
       val index = unrolledLastIndexOf(bytes, baseOffset + tailStart, tailBytes, elem)
-      if (index != -1) return index - baseOffset  // convert absolute → logical
+      if (index != -1) return index  // already absolute
       if (tailStart == 0) return -1
     }
-    // chunkStart is a logical offset within [0, searchLength); bytes are read from baseOffset + chunkStart.
+    // chunkStart is a logical offset within [0, searchLength); absolute position is baseOffset + chunkStart.
     var chunkStart = searchLength - tailBytes - 8
     if (chunkStart >= 0) {
       val pattern = SWARUtil.compilePattern(elem)
       while (chunkStart >= 0) {
         val word = SWARUtil.getLong(bytes, baseOffset + chunkStart, ByteOrder.BIG_ENDIAN)
         val result = SWARUtil.applyPattern(word, pattern)
-        if (result != 0) return chunkStart + SWARUtil.getLastIndex(result)  // already logical
+        if (result != 0) return baseOffset + chunkStart + SWARUtil.getLastIndex(result)  // absolute
         chunkStart -= 8
       }
     }
