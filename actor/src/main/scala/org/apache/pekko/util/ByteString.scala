@@ -1259,10 +1259,10 @@ sealed abstract class ByteString
   /**
    * Finds index of last occurrence of some byte in this ByteString before or at some end index.
    *
-   * Similar to lastIndexOf, but it avoids boxing if the value is already a byte.
+   * Similar to `lastIndexOf`, but it avoids boxing if the value is already a byte.
    *
    *  @param   elem   the element value to search for.
-   *  @param   end    the end index
+   *  @param   end    the end index (inclusive)
    *  @return  the index `<= end` of the last element of this ByteString that is equal (as determined by `==`)
    *           to `elem`, or `-1`, if none exists.
    *  @since 2.0.0
@@ -1272,7 +1272,7 @@ sealed abstract class ByteString
   /**
    * Finds index of last occurrence of some byte in this ByteString.
    *
-   * Similar to lastIndexOf, but it avoids boxing if the value is already a byte.
+   * Similar to `lastIndexOf`, but it avoids boxing if the value is already a byte.
    *
    *  @param   elem   the element value to search for.
    *  @return  the index of the last element of this ByteString that is equal (as determined by `==`)
@@ -1294,17 +1294,19 @@ sealed abstract class ByteString
       }
       true
     }
-    val headByte = slice.head.asInstanceOf[Byte]
-    @tailrec def rec(from: Int): Int = {
-      val startPos = indexOf(headByte, from, length - slice.length + 1)
-      if (startPos == -1) -1
-      else if (check(startPos)) startPos
-      else rec(startPos + 1)
-    }
     val sliceLength = slice.length
-    if (sliceLength == 0) 0
-    else if (sliceLength == 1) indexOf(headByte, from)
-    else rec(math.max(0, from))
+    if (sliceLength == 0) if (from > length) -1 else math.max(from, 0)
+    else {
+      val headByte = slice.head.asInstanceOf[Byte]
+      @tailrec def rec(from: Int): Int = {
+        val startPos = indexOf(headByte, from, length - slice.length + 1)
+        if (startPos == -1) -1
+        else if (check(startPos)) startPos
+        else rec(startPos + 1)
+      }
+      if (sliceLength == 1) indexOf(headByte, from)
+      else rec(math.max(0, from))
+    }
   }
 
   /**
@@ -1330,16 +1332,20 @@ sealed abstract class ByteString
       }
       true
     }
-    @tailrec def rec(from: Int): Int = {
-      val startPos = indexOf(slice.head, from, length - slice.length + 1)
-      if (startPos == -1) -1
-      else if (check(startPos)) startPos
-      else rec(startPos + 1)
-    }
     val sliceLength = slice.length
-    if (sliceLength == 0) 0
-    else if (sliceLength == 1) indexOf(slice.head, from)
-    else rec(math.max(0, from))
+    if (sliceLength == 0) if (from > length) -1 else math.max(from, 0)
+    else if (sliceLength > length) -1
+    else {
+      val headByte = slice.head
+      @tailrec def rec(from: Int): Int = {
+        val startPos = indexOf(headByte, from, length - slice.length + 1)
+        if (startPos == -1) -1
+        else if (check(startPos)) startPos
+        else rec(startPos + 1)
+      }
+      if (sliceLength == 1) indexOf(headByte, from)
+      else rec(math.max(0, from))
+    }
   }
 
   /**
@@ -1352,6 +1358,103 @@ sealed abstract class ByteString
    * @since 2.0.0
    */
   def indexOfSlice(slice: Array[Byte]): Int = indexOfSlice(slice, 0)
+
+  override def lastIndexOfSlice[B >: Byte](slice: scala.collection.Seq[B], end: Int): Int = {
+    val sliceLength = slice.length
+    if (sliceLength == 0) if (end < 0) -1 else math.min(end, length)
+    else if (sliceLength > length) -1
+    else {
+      val tailByte = slice(sliceLength - 1).asInstanceOf[Byte]
+      // Check all bytes of the slice except the last one (which was matched by lastIndexOf)
+      def check(startPos: Int): Boolean = {
+        var i = startPos
+        var j = 0
+        while (j < sliceLength - 1) {
+          // let's trust the calling code has ensured that we have enough bytes in this ByteString
+          if (apply(i) != slice(j)) return false
+          i += 1
+          j += 1
+        }
+        true
+      }
+      // Cap end to the max valid slice start position to avoid Int overflow when end is very large
+      val effectiveEnd = math.min(end, length - sliceLength)
+      val maxEndPos = effectiveEnd + sliceLength - 1
+      @tailrec def rec(currEnd: Int): Int = {
+        val endPos = lastIndexOf(tailByte, currEnd)
+        if (endPos < sliceLength - 1) -1
+        else {
+          val startPos = endPos - sliceLength + 1
+          if (check(startPos)) startPos
+          else rec(endPos - 1)
+        }
+      }
+      if (sliceLength == 1) lastIndexOf(tailByte, effectiveEnd)
+      else rec(maxEndPos)
+    }
+  }
+
+  /**
+   * Finds index of last occurrence of some slice in this ByteString before or at some end index.
+   *
+   * Uses `lastIndexOf` on the last byte of the slice to efficiently find candidate positions,
+   * then verifies the full slice match.
+   *
+   * @param   slice   the slice to search for.
+   * @param   end     the end index — the largest index at which the slice may start
+   * @return  the largest index `<= end` of the first element of this
+   *          ByteString that starts a slice equal (as determined by `==`)
+   *          to `slice`, or `-1`, if none exists.
+   * @since 2.0.0
+   */
+  def lastIndexOfSlice(slice: Array[Byte], end: Int): Int = {
+    val sliceLength = slice.length
+    if (sliceLength == 0) if (end < 0) -1 else math.min(end, length)
+    else if (sliceLength > length) -1
+    else {
+      val tailByte = slice(sliceLength - 1)
+      // Check all bytes of the slice except the last one (which was matched by lastIndexOf)
+      def check(startPos: Int): Boolean = {
+        var i = startPos
+        var j = 0
+        while (j < sliceLength - 1) {
+          // let's trust the calling code has ensured that we have enough bytes in this ByteString
+          if (apply(i) != slice(j)) return false
+          i += 1
+          j += 1
+        }
+        true
+      }
+      // Cap end to the max valid slice start position to avoid Int overflow when end is very large
+      val effectiveEnd = math.min(end, length - sliceLength)
+      val maxEndPos = effectiveEnd + sliceLength - 1
+      @tailrec def rec(currEnd: Int): Int = {
+        val endPos = lastIndexOf(tailByte, currEnd)
+        if (endPos < sliceLength - 1) -1
+        else {
+          val startPos = endPos - sliceLength + 1
+          if (check(startPos)) startPos
+          else rec(endPos - 1)
+        }
+      }
+      if (sliceLength == 1) lastIndexOf(tailByte, effectiveEnd)
+      else rec(maxEndPos)
+    }
+  }
+
+  /**
+   * Finds index of last occurrence of some slice in this ByteString.
+   *
+   * Uses `lastIndexOf` on the last byte of the slice to efficiently find candidate positions,
+   * then verifies the full slice match.
+   *
+   * @param   slice   the slice to search for.
+   * @return  the index of the last element of this
+   *          ByteString that starts a slice equal (as determined by `==`)
+   *          to `slice`, or `-1`, if none exists.
+   * @since 2.0.0
+   */
+  def lastIndexOfSlice(slice: Array[Byte]): Int = lastIndexOfSlice(slice, length)
 
   override def contains[B >: Byte](elem: B): Boolean = indexOf(elem, 0) != -1
 
