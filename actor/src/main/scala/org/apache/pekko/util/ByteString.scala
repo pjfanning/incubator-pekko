@@ -1473,6 +1473,22 @@ sealed abstract class ByteString
    */
   def contains(elem: Byte): Boolean = indexOf(elem, 0) != -1
 
+  override def startsWith[B >: Byte](iterable: scala.collection.IterableOnce[B], offset: Int): Boolean = {
+    val iterator = iterable.iterator
+    val size = iterator.size
+    if (length - offset < size) false
+    else {
+      var i = offset
+      while (iterator.hasNext) {
+        // we know that byteString is at least as long as the iterable, given the check above,
+        // so no need to check i < length
+        if (apply(i) != iterator.next()) return false
+        i += 1
+      }
+      true
+    }
+  }
+
   /**
    * Tests whether this ByteString starts with the given slice.
    *
@@ -1506,18 +1522,31 @@ sealed abstract class ByteString
    */
   def startsWith(bytes: Array[Byte]): Boolean = startsWith(bytes, 0)
 
+  override def endsWith[B >: Byte](iterable: scala.collection.Iterable[B]): Boolean = {
+    val size = iterable.size
+    if (length < size) false
+    else {
+      var i = length - size
+      val iterator = iterable.iterator
+      while (iterator.hasNext) {
+        if (apply(i) != iterator.next()) return false
+        i += 1
+      }
+      true
+    }
+  }
+
   /**
    * Tests whether this ByteString ends with the given bytes.
    *
    * @param bytes the slice to test
    * @return true if this ByteString ends with the given bytes
-   * @since 1.2.0
+   * @since 2.0.0
    */
   def endsWith(bytes: Array[Byte]): Boolean = {
     if (length < bytes.length) false
     else {
-      val offset = length - bytes.length
-      var i = offset
+      var i = length - bytes.length
       var j = 0
       while (j < bytes.length) {
         if (apply(i) != bytes(j)) return false
