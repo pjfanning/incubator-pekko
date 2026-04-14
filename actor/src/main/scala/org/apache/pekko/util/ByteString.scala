@@ -1474,19 +1474,13 @@ sealed abstract class ByteString
   def contains(elem: Byte): Boolean = indexOf(elem, 0) != -1
 
   override def startsWith[B >: Byte](iterable: scala.collection.IterableOnce[B], offset: Int): Boolean = {
-    val iterator = iterable.iterator
-    val size = iterator.size
-    if (length - offset < size) false
-    else {
-      var i = offset
-      while (iterator.hasNext) {
-        // we know that byteString is at least as long as the iterable, given the check above,
-        // so no need to check i < length
-        if (apply(i) != iterator.next()) return false
-        i += 1
-      }
-      true
+    var i = offset
+    val it = iterable.iterator
+    while (it.hasNext) {
+      if (i >= length || apply(i) != it.next()) return false
+      i += 1
     }
+    true
   }
 
   /**
