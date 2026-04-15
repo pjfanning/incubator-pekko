@@ -1409,8 +1409,10 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       byteStrings.startsWith(Array.emptyByteArray) should ===(true)
 
       // exact match
-      val fullSlice = ByteString1.fromString("abcdefghijklmnopqrstuvwxyz")
+      val fullSliceText = "abcdefghijklmnopqrstuvwxyz"
+      val fullSlice = ByteString1.fromString(fullSliceText)
       byteStringLong.startsWith(fullSlice) should ===(true)
+      byteStringLong.startsWith(fullSliceText) should ===(true)
 
       // bytes longer than ByteString returns false
       val tooLong = ByteString1.fromString("abcdefghijklmnopqrstuvwxyz1")
@@ -1425,6 +1427,7 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       // empty ByteString
       ByteString.empty.startsWith(Array.emptyByteArray) should ===(true)
       ByteString.empty.startsWith(ByteString1.fromString("a")) should ===(false)
+      ByteString.empty.startsWith("a") should ===(false)
     }
     "startsWith (specialized)" in {
       val slice0 = "abcdefghijk".getBytes(StandardCharsets.UTF_8)
@@ -1509,13 +1512,16 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       val byteStringWithOffset = ByteString1(
         "abcdefghijklmnopqrstuvwxyz".getBytes(StandardCharsets.UTF_8), 2, 20)
       // ByteString1(bytes, 2, 20) represents "cdefghijklmnopqrstuv"
-      val offsetSuffix = ByteString1.fromString("rstuv")
+      val offsetSuffixText = "rstuv"
+      val offsetSuffix = ByteString1.fromString(offsetSuffixText)
       byteStringWithOffset.endsWith(offsetSuffix) should ===(true)
+      byteStringWithOffset.endsWith(offsetSuffixText) should ===(true)
       byteStringWithOffset.endsWith(notSuffix) should ===(false)
 
       // empty ByteString
       ByteString.empty.endsWith(Array.emptyByteArray) should ===(true)
       ByteString.empty.endsWith(ByteString1.fromString("a")) should ===(false)
+      ByteString.empty.endsWith("a") should ===(false)
     }
     "endsWith (specialized)" in {
       val suffix0 = "uvwxyz".getBytes(StandardCharsets.UTF_8)
