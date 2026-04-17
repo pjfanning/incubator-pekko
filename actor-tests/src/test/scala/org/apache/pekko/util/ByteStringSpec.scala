@@ -699,12 +699,6 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       byteStringLong.lastIndexOf('m') should ===(12)
       byteStringLong.lastIndexOf('z') should ===(25)
       byteStringLong.lastIndexOf('a') should ===(0)
-
-      val long1 = ByteString1.fromString("abcdefghijklmnop") // 16 bytes
-      long1.lastIndexOf('a'.toByte) should ===(0)
-      long1.lastIndexOf('p'.toByte) should ===(15)
-      long1.lastIndexOf('h'.toByte, 7) should ===(7)
-      long1.lastIndexOf('h'.toByte, 6) should ===(-1)
     }
     "indexOf from offset" in {
       ByteString.empty.indexOf(5, -1) should ===(-1)
@@ -944,6 +938,15 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       val slicedLong = ByteString1.fromString("xxabcdefghijk").drop(2) // "abcdefghijk", 11 bytes
       slicedLong.lastIndexOf('a'.toByte) should ===(0) // first byte, found via chunk scan
       slicedLong.lastIndexOf('h'.toByte) should ===(7) // last byte of chunk
+
+      val long1 = ByteString1.fromString("abcdefghijklmnop") // 16 bytes
+      long1.lastIndexOf('a'.toByte) should ===(0)
+      long1.lastIndexOf('p'.toByte) should ===(15)
+      long1.lastIndexOf('h'.toByte, 7) should ===(7)
+      long1.lastIndexOf('h'.toByte, 6) should ===(-1)
+
+      val concat1 = makeMultiByteStringsWithEmptyComponents()
+      concat1.lastIndexOf(16.toByte) should ===(17)
     }
     "indexOf (specialized)" in {
       ByteString.empty.indexOf(5.toByte) should ===(-1)
@@ -981,6 +984,11 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       concat0.indexOf(0xFF.toByte) should ===(0)
       concat0.indexOf(16.toByte) should ===(17)
       concat0.indexOf(0xFE.toByte) should ===(-1)
+
+      val concat1 = makeMultiByteStringsWithEmptyComponents()
+      concat1.indexOf(0xFF.toByte) should ===(0)
+      concat1.indexOf(16.toByte) should ===(17)
+      concat1.indexOf(0xFE.toByte) should ===(-1)
     }
     "indexOf (specialized) from offset" in {
       ByteString.empty.indexOf(5.toByte, -1) should ===(-1)
@@ -1270,6 +1278,10 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       val byteStringWithOffset = ByteString1(
         "abcdefghijklmnopqrstuvwxyz".getBytes(StandardCharsets.UTF_8), 2, 24)
       byteStringWithOffset.indexOfSlice(slice0) should ===(21)
+
+      val concat0 = makeMultiByteStringsWithEmptyComponents()
+      concat0.indexOfSlice(Array(15.toByte, 16.toByte)) should ===(16)
+      concat0.indexOfSlice(Array(16.toByte, 15.toByte)) should ===(-1)
     }
     "lastIndexOfSlice" in {
       val slice0 = ByteString1.fromString("xyz")
@@ -1359,6 +1371,10 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       val concat0 = makeMultiByteStringsSample()
       concat0.lastIndexOfSlice(Array(16.toByte, 0xFF.toByte)) should ===(17)
       concat0.lastIndexOfSlice(Array(16.toByte, 0xFE.toByte)) should ===(-1)
+
+      val concat1 = makeMultiByteStringsWithEmptyComponents()
+      concat1.lastIndexOfSlice(Array(15.toByte, 16.toByte)) should ===(16)
+      concat1.lastIndexOfSlice(Array(16.toByte, 15.toByte)) should ===(-1)
 
       // Empty source with empty slice -> 0; with non-empty slice -> -1
       ByteString.empty.lastIndexOfSlice(Array.empty[Byte]) should ===(0)
@@ -1471,6 +1487,10 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       // empty ByteString
       ByteString.empty.startsWith(Array.emptyByteArray) should ===(true)
       ByteString.empty.startsWith(Array[Byte]('a')) should ===(false)
+
+      val concat0 = makeMultiByteStringsWithEmptyComponents()
+      concat0.startsWith(Array(0xFF.toByte, 0.toByte, 1.toByte)) should ===(true)
+      concat0.startsWith(Array(0xFF.toByte, 1.toByte)) should ===(false)
     }
     "endsWith" in {
       val suffix0 = ByteString1.fromString("uvwxyz")
@@ -1570,6 +1590,10 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       // empty ByteString
       ByteString.empty.endsWith(Array.emptyByteArray) should ===(true)
       ByteString.empty.endsWith(Array[Byte]('a')) should ===(false)
+
+      val concat1 = makeMultiByteStringsWithEmptyComponents()
+      concat1.endsWith(Array[Byte](16.toByte, 0xFF.toByte)) should ===(true)
+      concat1.endsWith(Array[Byte](15.toByte, 0xFF.toByte)) should ===(false)
     }
     "return same hashCode" in {
       val slice0 = ByteString1.fromString("xyz")
@@ -2410,5 +2434,11 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       ByteString1(Array[Byte](0xFF.toByte))
     )
     ByteStrings(byteStrings)
+  }
+
+  private def makeMultiByteStringsWithEmptyComponents(): ByteString = {
+    ByteString1(Array.emptyByteArray) ++
+    makeMultiByteStringsSample() ++
+    ByteString1(Array.emptyByteArray)
   }
 }
