@@ -25,24 +25,26 @@ class ByteString_startEnd_Benchmark {
   val bss = start ++ start ++ start ++ start ++ start ++ ByteString("xyz")
 
   val bs = bss.compact // compacted
-  val abcBytes = "abc".getBytes(StandardCharsets.UTF_8)
-  val xyzBytes = "xyz".getBytes(StandardCharsets.UTF_8)
+  val start = "abcdefghijk"
+  val startBytes = start.getBytes(StandardCharsets.UTF_8)
+  val end = "pqrstuvxyz"
+  val endBytes = end.getBytes(StandardCharsets.UTF_8)
 
   @Benchmark
-  def bss_startsWith: Boolean = bss.startsWith("abc")
+  def bss_startsWith: Boolean = bss.startsWith(start)
 
   @Benchmark
-  def bss_endsWith: Boolean = bss.endsWith("xyz")
+  def bss_endsWith: Boolean = bss.endsWith(end)
 
   @Benchmark
-  def bs_startsWith: Boolean = bs.startsWith("abc")
+  def bs_startsWith: Boolean = bs.startsWith(start)
 
   @Benchmark
-  def bs_endsWith: Boolean = bs.endsWith("xyz")
+  def bs_endsWith: Boolean = bs.endsWith(end)
 
   @Benchmark
-  def bs_startsWithBytes: Boolean = bs.startsWith(abcBytes)
+  def bs_startsWithBytes: Boolean = bs.startsWith(startBytes)
 
   @Benchmark
-  def bs_endsWithBytes: Boolean = bs.endsWith(xyzBytes)
+  def bs_endsWithBytes: Boolean = bs.endsWith(endBytes)
 }
