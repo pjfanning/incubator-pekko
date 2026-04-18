@@ -385,12 +385,7 @@ object ByteString {
         hIdx += 8
         nIdx += 8
       }
-      while (nIdx < needleLen) {
-        if (this.bytes(hIdx) != bytes(nIdx)) return false
-        hIdx += 1
-        nIdx += 1
-      }
-      true
+      java.util.Arrays.equals(this.bytes, hIdx, hIdx + (needleLen - nIdx), bytes, nIdx, needleLen)
     }
 
     override def endsWith(bytes: Array[Byte]): Boolean = {
@@ -404,12 +399,7 @@ object ByteString {
         hIdx += 8
         nIdx += 8
       }
-      while (nIdx < needleLen) {
-        if (this.bytes(hIdx) != bytes(nIdx)) return false
-        hIdx += 1
-        nIdx += 1
-      }
-      true
+      java.util.Arrays.equals(this.bytes, hIdx, hIdx + (needleLen - nIdx), bytes, nIdx, needleLen)
     }
 
     override def slice(from: Int, until: Int): ByteString =
@@ -758,12 +748,7 @@ object ByteString {
         hIdx += 8
         nIdx += 8
       }
-      while (nIdx < needleLen) {
-        if (this.bytes(hIdx) != bytes(nIdx)) return false
-        hIdx += 1
-        nIdx += 1
-      }
-      true
+      java.util.Arrays.equals(this.bytes, hIdx, hIdx + (needleLen - nIdx), bytes, nIdx, needleLen)
     }
 
     override def endsWith(bytes: Array[Byte]): Boolean = {
@@ -777,12 +762,7 @@ object ByteString {
         hIdx += 8
         nIdx += 8
       }
-      while (nIdx < needleLen) {
-        if (this.bytes(hIdx) != bytes(nIdx)) return false
-        hIdx += 1
-        nIdx += 1
-      }
-      true
+      java.util.Arrays.equals(this.bytes, hIdx, hIdx + (needleLen - nIdx), bytes, nIdx, needleLen)
     }
 
     override def copyToArray[B >: Byte](dest: Array[B], start: Int, len: Int): Int = {
