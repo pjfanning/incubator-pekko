@@ -35,13 +35,13 @@ class ByteString_startEnd_Benchmark {
   def bss_endsWith: Boolean = bss.endsWith("xyz")
 
   @Benchmark
-  def bs_startsWith: Boolean = bss.startsWith("abc")
+  def bs_startsWith: Boolean = bs.startsWith("abc")
 
   @Benchmark
   def bs_endsWith: Boolean = bs.endsWith("xyz")
 
   @Benchmark
-  def bs_startsWithBytes: Boolean = bss.startsWith(abcBytes)
+  def bs_startsWithBytes: Boolean = bs.startsWith(abcBytes)
 
   @Benchmark
   def bs_endsWithBytes: Boolean = bs.endsWith(xyzBytes)
