@@ -374,6 +374,44 @@ object ByteString {
       else -1
     }
 
+    override def startsWith(bytes: Array[Byte], offset: Int): Boolean = {
+      val needleLen = bytes.length
+      if (length - offset < needleLen) return false
+      var hIdx = offset
+      var nIdx = 0
+      while (needleLen - nIdx >= 8) {
+        if (SWARUtil.getLong(this.bytes, hIdx, ByteOrder.BIG_ENDIAN) !=
+            SWARUtil.getLong(bytes, nIdx, ByteOrder.BIG_ENDIAN)) return false
+        hIdx += 8
+        nIdx += 8
+      }
+      while (nIdx < needleLen) {
+        if (this.bytes(hIdx) != bytes(nIdx)) return false
+        hIdx += 1
+        nIdx += 1
+      }
+      true
+    }
+
+    override def endsWith(bytes: Array[Byte]): Boolean = {
+      val needleLen = bytes.length
+      if (length < needleLen) return false
+      var hIdx = length - needleLen
+      var nIdx = 0
+      while (needleLen - nIdx >= 8) {
+        if (SWARUtil.getLong(this.bytes, hIdx, ByteOrder.BIG_ENDIAN) !=
+            SWARUtil.getLong(bytes, nIdx, ByteOrder.BIG_ENDIAN)) return false
+        hIdx += 8
+        nIdx += 8
+      }
+      while (nIdx < needleLen) {
+        if (this.bytes(hIdx) != bytes(nIdx)) return false
+        hIdx += 1
+        nIdx += 1
+      }
+      true
+    }
+
     override def slice(from: Int, until: Int): ByteString =
       if (from <= 0 && until >= length) this
       else if (from >= length || until <= 0 || from >= until) ByteString.empty
@@ -707,6 +745,44 @@ object ByteString {
       else if (byteCount >= 2 && bytes(fromIndex + 1) == value) fromIndex + 1
       else if (bytes(fromIndex) == value) fromIndex
       else -1
+    }
+
+    override def startsWith(bytes: Array[Byte], offset: Int): Boolean = {
+      val needleLen = bytes.length
+      if (length - offset < needleLen) return false
+      var hIdx = startIndex + offset
+      var nIdx = 0
+      while (needleLen - nIdx >= 8) {
+        if (SWARUtil.getLong(this.bytes, hIdx, ByteOrder.BIG_ENDIAN) !=
+            SWARUtil.getLong(bytes, nIdx, ByteOrder.BIG_ENDIAN)) return false
+        hIdx += 8
+        nIdx += 8
+      }
+      while (nIdx < needleLen) {
+        if (this.bytes(hIdx) != bytes(nIdx)) return false
+        hIdx += 1
+        nIdx += 1
+      }
+      true
+    }
+
+    override def endsWith(bytes: Array[Byte]): Boolean = {
+      val needleLen = bytes.length
+      if (length < needleLen) return false
+      var hIdx = startIndex + length - needleLen
+      var nIdx = 0
+      while (needleLen - nIdx >= 8) {
+        if (SWARUtil.getLong(this.bytes, hIdx, ByteOrder.BIG_ENDIAN) !=
+            SWARUtil.getLong(bytes, nIdx, ByteOrder.BIG_ENDIAN)) return false
+        hIdx += 8
+        nIdx += 8
+      }
+      while (nIdx < needleLen) {
+        if (this.bytes(hIdx) != bytes(nIdx)) return false
+        hIdx += 1
+        nIdx += 1
+      }
+      true
     }
 
     override def copyToArray[B >: Byte](dest: Array[B], start: Int, len: Int): Int = {
