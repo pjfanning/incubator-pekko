@@ -387,11 +387,12 @@ class FlowMapAsyncPartitionedSpec extends StreamSpec with WithLogCapturing {
     "ignore null-completed futures" in {
       val shouldBeNull = {
         val n = scala.util.Random.nextInt(10) + 1
+        // +1 shifts the range from 0..9 to 1..10, matching the element values in Source(1 to 10)
+        // so the null path is always exercised for at least one element.
         (1 to n).foldLeft(Set.empty[Int]) { (set, _) =>
-          set + scala.util.Random.nextInt(10)
+          set + (scala.util.Random.nextInt(10) + 1)
         }
       }
-      if (shouldBeNull.isEmpty) fail("should be at least one null")
 
       val f: (Int, Int) => Future[String] = { (elem, _) =>
         if (shouldBeNull(elem)) Future.successful(null)
