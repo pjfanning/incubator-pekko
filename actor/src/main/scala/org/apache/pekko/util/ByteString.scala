@@ -374,6 +374,34 @@ object ByteString {
       else -1
     }
 
+    override def startsWith(bytes: Array[Byte], offset: Int): Boolean = {
+      val needleLen = bytes.length
+      if (length - offset < needleLen) return false
+      var hIdx = offset
+      var nIdx = 0
+      while (needleLen - nIdx >= 8) {
+        if (SWARUtil.getLong(this.bytes, hIdx, ByteOrder.BIG_ENDIAN) !=
+            SWARUtil.getLong(bytes, nIdx, ByteOrder.BIG_ENDIAN)) return false
+        hIdx += 8
+        nIdx += 8
+      }
+      java.util.Arrays.equals(this.bytes, hIdx, hIdx + (needleLen - nIdx), bytes, nIdx, needleLen)
+    }
+
+    override def endsWith(bytes: Array[Byte]): Boolean = {
+      val needleLen = bytes.length
+      if (length < needleLen) return false
+      var hIdx = length - needleLen
+      var nIdx = 0
+      while (needleLen - nIdx >= 8) {
+        if (SWARUtil.getLong(this.bytes, hIdx, ByteOrder.BIG_ENDIAN) !=
+            SWARUtil.getLong(bytes, nIdx, ByteOrder.BIG_ENDIAN)) return false
+        hIdx += 8
+        nIdx += 8
+      }
+      java.util.Arrays.equals(this.bytes, hIdx, hIdx + (needleLen - nIdx), bytes, nIdx, needleLen)
+    }
+
     override def slice(from: Int, until: Int): ByteString =
       if (from <= 0 && until >= length) this
       else if (from >= length || until <= 0 || from >= until) ByteString.empty
@@ -707,6 +735,34 @@ object ByteString {
       else if (byteCount >= 2 && bytes(fromIndex + 1) == value) fromIndex + 1
       else if (bytes(fromIndex) == value) fromIndex
       else -1
+    }
+
+    override def startsWith(bytes: Array[Byte], offset: Int): Boolean = {
+      val needleLen = bytes.length
+      if (length - offset < needleLen) return false
+      var hIdx = startIndex + offset
+      var nIdx = 0
+      while (needleLen - nIdx >= 8) {
+        if (SWARUtil.getLong(this.bytes, hIdx, ByteOrder.BIG_ENDIAN) !=
+            SWARUtil.getLong(bytes, nIdx, ByteOrder.BIG_ENDIAN)) return false
+        hIdx += 8
+        nIdx += 8
+      }
+      java.util.Arrays.equals(this.bytes, hIdx, hIdx + (needleLen - nIdx), bytes, nIdx, needleLen)
+    }
+
+    override def endsWith(bytes: Array[Byte]): Boolean = {
+      val needleLen = bytes.length
+      if (length < needleLen) return false
+      var hIdx = startIndex + length - needleLen
+      var nIdx = 0
+      while (needleLen - nIdx >= 8) {
+        if (SWARUtil.getLong(this.bytes, hIdx, ByteOrder.BIG_ENDIAN) !=
+            SWARUtil.getLong(bytes, nIdx, ByteOrder.BIG_ENDIAN)) return false
+        hIdx += 8
+        nIdx += 8
+      }
+      java.util.Arrays.equals(this.bytes, hIdx, hIdx + (needleLen - nIdx), bytes, nIdx, needleLen)
     }
 
     override def copyToArray[B >: Byte](dest: Array[B], start: Int, len: Int): Int = {
@@ -1473,6 +1529,16 @@ sealed abstract class ByteString
    */
   def contains(elem: Byte): Boolean = indexOf(elem, 0) != -1
 
+  override def startsWith[B >: Byte](iterable: scala.collection.IterableOnce[B], offset: Int): Boolean = {
+    var i = offset
+    val it = iterable.iterator
+    while (it.hasNext) {
+      if (i >= length || apply(i) != it.next()) return false
+      i += 1
+    }
+    true
+  }
+
   /**
    * Tests whether this ByteString starts with the given slice.
    *
@@ -1505,6 +1571,41 @@ sealed abstract class ByteString
    * @since 2.0.0
    */
   def startsWith(bytes: Array[Byte]): Boolean = startsWith(bytes, 0)
+
+  override def endsWith[B >: Byte](iterable: scala.collection.Iterable[B]): Boolean = {
+    val size = iterable.size
+    if (length < size) false
+    else {
+      var i = length - size
+      val iterator = iterable.iterator
+      while (iterator.hasNext) {
+        if (apply(i) != iterator.next()) return false
+        i += 1
+      }
+      true
+    }
+  }
+
+  /**
+   * Tests whether this ByteString ends with the given bytes.
+   *
+   * @param bytes the slice to test
+   * @return true if this ByteString ends with the given bytes
+   * @since 2.0.0
+   */
+  def endsWith(bytes: Array[Byte]): Boolean = {
+    if (length < bytes.length) false
+    else {
+      var i = length - bytes.length
+      var j = 0
+      while (j < bytes.length) {
+        if (apply(i) != bytes(j)) return false
+        i += 1
+        j += 1
+      }
+      true
+    }
+  }
 
   override def grouped(size: Int): Iterator[ByteString] = {
     if (size <= 0) {
