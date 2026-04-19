@@ -491,6 +491,45 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       verify(byteString.copyToArray(_, 3, 3))(0, 0, 0)
     }
   }
+  "CompactByteString.apply(IterableOnce[Byte])" must {
+    "return empty for an empty collection" in {
+      (CompactByteString(Seq.empty[Byte]) should be).theSameInstanceAs(CompactByteString.empty)
+      (CompactByteString(List.empty[Byte]) should be).theSameInstanceAs(CompactByteString.empty)
+      (CompactByteString(Iterator.empty[Byte]) should be).theSameInstanceAs(CompactByteString.empty)
+    }
+    "return the correct bytes for a non-empty collection" in {
+      CompactByteString(Seq[Byte](1, 2, 3)) should ===(ByteString(1, 2, 3))
+      CompactByteString(List[Byte](10, 20)) should ===(ByteString(10, 20))
+      CompactByteString(Iterator.single(42.toByte)) should ===(ByteString(42.toByte))
+    }
+    "return a CompactByteString" in {
+      CompactByteString(Seq[Byte](1, 2)).isCompact should ===(true)
+    }
+    "traverse the iterator only once" in {
+      var traversalCount = 0
+      val singleUse = new IterableOnce[Byte] {
+        def iterator: Iterator[Byte] = {
+          traversalCount += 1
+          Iterator[Byte](1, 2, 3)
+        }
+      }
+      val result = CompactByteString(singleUse)
+      traversalCount should ===(1)
+      result should ===(ByteString(1, 2, 3))
+    }
+    "traverse an empty single-use IterableOnce only once" in {
+      var traversalCount = 0
+      val singleUse = new IterableOnce[Byte] {
+        def iterator: Iterator[Byte] = {
+          traversalCount += 1
+          Iterator.empty[Byte]
+        }
+      }
+      val result = CompactByteString(singleUse)
+      traversalCount should ===(1)
+      (result should be).theSameInstanceAs(CompactByteString.empty)
+    }
+  }
   "ByteStrings" must {
     "drop" in {
       ByteStrings(ByteString1.fromString(""), ByteString1.fromString("")).drop(Int.MinValue) should ===(ByteString(""))
