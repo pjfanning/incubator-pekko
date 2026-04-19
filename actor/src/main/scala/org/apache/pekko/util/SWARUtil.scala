@@ -235,6 +235,58 @@ private[pekko] object SWARUtil {
     }
   }
 
+  /**
+   * Writes an int value at the specified index in the given byte array.
+   * Uses a VarHandle byte array view if supported, otherwise falls back to byte-by-byte writes.
+   * Does not range check - assumes caller has checked bounds.
+   *
+   * @param array     the byte array to write to
+   * @param index     the index to write at
+   * @param value     the int value to write
+   * @param byteOrder the byte order to use (big-endian or little-endian)
+   */
+  def putInt(array: Array[Byte], index: Int, value: Int, byteOrder: ByteOrder): Unit = {
+    if (byteOrder == ByteOrder.BIG_ENDIAN) {
+      if (intBeArrayViewSupported) {
+        intBeArrayView.set(array, index, value)
+      } else {
+        putIntBEWithoutMethodHandle(array, index, value)
+      }
+    } else {
+      if (intLeArrayViewSupported) {
+        intLeArrayView.set(array, index, value)
+      } else {
+        putIntLEWithoutMethodHandle(array, index, value)
+      }
+    }
+  }
+
+  /**
+   * Writes a long value at the specified index in the given byte array.
+   * Uses a VarHandle byte array view if supported, otherwise falls back to byte-by-byte writes.
+   * Does not range check - assumes caller has checked bounds.
+   *
+   * @param array     the byte array to write to
+   * @param index     the index to write at
+   * @param value     the long value to write
+   * @param byteOrder the byte order to use (big-endian or little-endian)
+   */
+  def putLong(array: Array[Byte], index: Int, value: Long, byteOrder: ByteOrder): Unit = {
+    if (byteOrder == ByteOrder.BIG_ENDIAN) {
+      if (longBeArrayViewSupported) {
+        longBeArrayView.set(array, index, value)
+      } else {
+        putLongBEWithoutMethodHandle(array, index, value)
+      }
+    } else {
+      if (longLeArrayViewSupported) {
+        longLeArrayView.set(array, index, value)
+      } else {
+        putLongLEWithoutMethodHandle(array, index, value)
+      }
+    }
+  }
+
   // Fallback implementations for environments that do not support MethodHandles.byteArrayViewVarHandle
 
   private[pekko] def getLongBEWithoutMethodHandle(array: Array[Byte], index: Int): Long = {
@@ -278,5 +330,41 @@ private[pekko] object SWARUtil {
 
   private[pekko] def getShortLEWithoutMethodHandle(array: Array[Byte], index: Int): Short =
     ((array(index) & 0xFF) | (array(index + 1) & 0xFF) << 8).toShort
+
+  private[pekko] def putIntBEWithoutMethodHandle(array: Array[Byte], index: Int, value: Int): Unit = {
+    array(index)     = (value >>> 24).toByte
+    array(index + 1) = (value >>> 16).toByte
+    array(index + 2) = (value >>> 8).toByte
+    array(index + 3) = value.toByte
+  }
+
+  private[pekko] def putIntLEWithoutMethodHandle(array: Array[Byte], index: Int, value: Int): Unit = {
+    array(index)     = value.toByte
+    array(index + 1) = (value >>> 8).toByte
+    array(index + 2) = (value >>> 16).toByte
+    array(index + 3) = (value >>> 24).toByte
+  }
+
+  private[pekko] def putLongBEWithoutMethodHandle(array: Array[Byte], index: Int, value: Long): Unit = {
+    array(index)     = (value >>> 56).toByte
+    array(index + 1) = (value >>> 48).toByte
+    array(index + 2) = (value >>> 40).toByte
+    array(index + 3) = (value >>> 32).toByte
+    array(index + 4) = (value >>> 24).toByte
+    array(index + 5) = (value >>> 16).toByte
+    array(index + 6) = (value >>> 8).toByte
+    array(index + 7) = value.toByte
+  }
+
+  private[pekko] def putLongLEWithoutMethodHandle(array: Array[Byte], index: Int, value: Long): Unit = {
+    array(index)     = value.toByte
+    array(index + 1) = (value >>> 8).toByte
+    array(index + 2) = (value >>> 16).toByte
+    array(index + 3) = (value >>> 24).toByte
+    array(index + 4) = (value >>> 32).toByte
+    array(index + 5) = (value >>> 40).toByte
+    array(index + 6) = (value >>> 48).toByte
+    array(index + 7) = (value >>> 56).toByte
+  }
 
 }
