@@ -286,7 +286,7 @@ object ByteString {
         val index = unrolledFirstIndexOf(fromIndex, byteCount, elem)
         if (index != -1) return index
         offset += byteCount
-        if (offset == length) return -1
+        if (offset >= toIndex) return -1
       }
       val longCount = searchLength >>> 3
       val pattern = if (longCount > 0) SWARUtil.compilePattern(elem) else 0L
@@ -669,7 +669,7 @@ object ByteString {
         val index = unrolledFirstIndexOf(fromIndex + startIndex, byteCount, elem)
         if (index != -1) return index - startIndex
         offset += byteCount
-        if (offset == length) return -1
+        if (offset >= toIndex) return -1
       }
       val longCount = searchLength >>> 3
       val pattern = if (longCount > 0) SWARUtil.compilePattern(elem) else 0L
