@@ -1145,21 +1145,21 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       // Early-exit optimization: toIndex < length and searchLength < 8 (tail-only, longCount == 0)
       // ByteString1C (compact): length=26, search range [0,5) has searchLength=5 < 8
       val bsCompact = ByteString1.fromString("abcdefghijklmnopqrstuvwxyz").compact
-      bsCompact.indexOf('a'.toByte, 0, 5) should ===(0)  // found within range
-      bsCompact.indexOf('e'.toByte, 0, 5) should ===(4)  // found at last position in range
+      bsCompact.indexOf('a'.toByte, 0, 5) should ===(0) // found within range
+      bsCompact.indexOf('e'.toByte, 0, 5) should ===(4) // found at last position in range
       bsCompact.indexOf('f'.toByte, 0, 5) should ===(-1) // at toIndex, not in [0,5)
       bsCompact.indexOf('z'.toByte, 0, 5) should ===(-1) // beyond toIndex, not in [0,5)
-      bsCompact.indexOf('c'.toByte, 2, 5) should ===(2)  // found, from in middle of tail
+      bsCompact.indexOf('c'.toByte, 2, 5) should ===(2) // found, from in middle of tail
       bsCompact.indexOf('a'.toByte, 2, 5) should ===(-1) // before fromIndex, not in [2,5)
 
       // ByteString1 with startIndex > 0: length=26, search range [0,5) has searchLength=5 < 8
       val arrayLong = ("xyz" + "abcdefghijklmnopqrstuvwxyz").getBytes("UTF-8")
       val bs1 = ByteString1(arrayLong, 3, 26)
-      bs1.indexOf('a'.toByte, 0, 5) should ===(0)  // found within range
-      bs1.indexOf('e'.toByte, 0, 5) should ===(4)  // found at last position in range
+      bs1.indexOf('a'.toByte, 0, 5) should ===(0) // found within range
+      bs1.indexOf('e'.toByte, 0, 5) should ===(4) // found at last position in range
       bs1.indexOf('f'.toByte, 0, 5) should ===(-1) // at toIndex, not in [0,5)
       bs1.indexOf('z'.toByte, 0, 5) should ===(-1) // beyond toIndex, not in [0,5)
-      bs1.indexOf('c'.toByte, 2, 5) should ===(2)  // found, from in middle of tail
+      bs1.indexOf('c'.toByte, 2, 5) should ===(2) // found, from in middle of tail
       bs1.indexOf('a'.toByte, 2, 5) should ===(-1) // before fromIndex, not in [2,5)
     }
     "copyToArray" in {
