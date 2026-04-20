@@ -13,7 +13,7 @@
 
 package org.apache.pekko.persistence.serialization
 
-import java.io._
+import java.io.NotSerializableException
 import java.nio.ByteOrder
 
 import org.apache.pekko
@@ -81,13 +81,12 @@ class SnapshotSerializer(val system: ExtendedActorSystem) extends BaseSerializer
     Snapshot(snapshotFromBinary(bytes))
 
   private def headerToBinary(snapshot: AnyRef, snapshotSerializer: Serializer): Array[Byte] = {
-    val out = new ByteArrayOutputStream
-    writeInt(out, snapshotSerializer.identifier)
-
     val ms = migrateManifestIfNecessary(Serializers.manifestFor(snapshotSerializer, snapshot))
-    if (ms.nonEmpty) out.write(ms.getBytes(UTF_8))
-
-    out.toByteArray
+    val manifestBytes = if (ms.nonEmpty) ms.getBytes(UTF_8) else Array.empty[Byte]
+    val result = new Array[Byte](4 + manifestBytes.length)
+    SWARUtil.putInt(result, 0, snapshotSerializer.identifier, ByteOrder.LITTLE_ENDIAN)
+    System.arraycopy(manifestBytes, 0, result, 4, manifestBytes.length)
+    result
   }
 
   private def headerFromBinary(bytes: Array[Byte]): (Int, String) = {
@@ -146,14 +145,13 @@ class SnapshotSerializer(val system: ExtendedActorSystem) extends BaseSerializer
       val snapshotSerializer = serialization.findSerializerFor(snapshot)
 
       val headerBytes = headerToBinary(snapshot, snapshotSerializer)
+      val snapshotBytes = snapshotSerializer.toBinary(snapshot)
 
-      val out = new ByteArrayOutputStream
-
-      writeInt(out, headerBytes.length)
-
-      out.write(headerBytes)
-      out.write(snapshotSerializer.toBinary(snapshot))
-      out.toByteArray
+      val result = new Array[Byte](4 + headerBytes.length + snapshotBytes.length)
+      SWARUtil.putInt(result, 0, headerBytes.length, ByteOrder.LITTLE_ENDIAN)
+      System.arraycopy(headerBytes, 0, result, 4, headerBytes.length)
+      System.arraycopy(snapshotBytes, 0, result, 4 + headerBytes.length, snapshotBytes.length)
+      result
     }
 
     val oldInfo = Serialization.currentTransportInformation.value
@@ -176,10 +174,4 @@ class SnapshotSerializer(val system: ExtendedActorSystem) extends BaseSerializer
       .get
   }
 
-  private def writeInt(out: OutputStream, i: Int): Unit = {
-    out.write(i >>> 0)
-    out.write(i >>> 8)
-    out.write(i >>> 16)
-    out.write(i >>> 24)
-  }
 }
