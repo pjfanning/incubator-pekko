@@ -332,21 +332,21 @@ private[pekko] object SWARUtil {
     ((array(index) & 0xFF) | (array(index + 1) & 0xFF) << 8).toShort
 
   private[pekko] def putIntBEWithoutMethodHandle(array: Array[Byte], index: Int, value: Int): Unit = {
-    array(index)     = (value >>> 24).toByte
+    array(index) = (value >>> 24).toByte
     array(index + 1) = (value >>> 16).toByte
     array(index + 2) = (value >>> 8).toByte
     array(index + 3) = value.toByte
   }
 
   private[pekko] def putIntLEWithoutMethodHandle(array: Array[Byte], index: Int, value: Int): Unit = {
-    array(index)     = value.toByte
+    array(index) = value.toByte
     array(index + 1) = (value >>> 8).toByte
     array(index + 2) = (value >>> 16).toByte
     array(index + 3) = (value >>> 24).toByte
   }
 
   private[pekko] def putLongBEWithoutMethodHandle(array: Array[Byte], index: Int, value: Long): Unit = {
-    array(index)     = (value >>> 56).toByte
+    array(index) = (value >>> 56).toByte
     array(index + 1) = (value >>> 48).toByte
     array(index + 2) = (value >>> 40).toByte
     array(index + 3) = (value >>> 32).toByte
@@ -357,7 +357,7 @@ private[pekko] object SWARUtil {
   }
 
   private[pekko] def putLongLEWithoutMethodHandle(array: Array[Byte], index: Int, value: Long): Unit = {
-    array(index)     = value.toByte
+    array(index) = value.toByte
     array(index + 1) = (value >>> 8).toByte
     array(index + 2) = (value >>> 16).toByte
     array(index + 3) = (value >>> 24).toByte
