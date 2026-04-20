@@ -2031,9 +2031,8 @@ object CompactByteString {
    * Creates a new CompactByteString by traversing bytes.
    */
   def apply(bytes: IterableOnce[Byte]): CompactByteString = {
-    val it = bytes.iterator
-    if (it.isEmpty) empty
-    else ByteString.ByteString1C(it.toArray)
+    val iter = bytes.iterator
+    if (iter.hasNext) ByteString.ByteString1C(iter.toArray) else empty
   }
 
   /**
