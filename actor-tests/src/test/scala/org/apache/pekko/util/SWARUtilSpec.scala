@@ -189,6 +189,68 @@ class SWARUtilSpec extends AnyWordSpec with Matchers {
       arr(8) should ===(0x08.toByte)
       arr(9) should ===(0.toByte)
     }
+    "putShort" in {
+      val arr = new Array[Byte](4)
+
+      SWARUtil.putShort(arr, 0, 0x0102.toShort, ByteOrder.BIG_ENDIAN)
+      arr.take(2).toSeq should ===(Seq[Byte](0x01, 0x02))
+
+      SWARUtil.putShort(arr, 2, 0x0304.toShort, ByteOrder.BIG_ENDIAN)
+      arr.drop(2).toSeq should ===(Seq[Byte](0x03, 0x04))
+
+      SWARUtil.putShort(arr, 0, 0x0102.toShort, ByteOrder.LITTLE_ENDIAN)
+      arr.take(2).toSeq should ===(Seq[Byte](0x02, 0x01))
+
+      SWARUtil.putShort(arr, 2, 0x0304.toShort, ByteOrder.LITTLE_ENDIAN)
+      arr.drop(2).toSeq should ===(Seq[Byte](0x04, 0x03))
+    }
+    "putShortBEWithoutMethodHandle" in {
+      val arr = new Array[Byte](4)
+
+      SWARUtil.putShortBEWithoutMethodHandle(arr, 0, 0x0102.toShort)
+      arr.take(2).toSeq should ===(Seq[Byte](0x01, 0x02))
+
+      SWARUtil.putShortBEWithoutMethodHandle(arr, 2, 0x0304.toShort)
+      arr.drop(2).toSeq should ===(Seq[Byte](0x03, 0x04))
+
+      // round-trip
+      SWARUtil.putShortBEWithoutMethodHandle(arr, 0, Short.MaxValue)
+      SWARUtil.getShortBEWithoutMethodHandle(arr, 0) should ===(Short.MaxValue)
+      SWARUtil.putShortBEWithoutMethodHandle(arr, 0, Short.MinValue)
+      SWARUtil.getShortBEWithoutMethodHandle(arr, 0) should ===(Short.MinValue)
+    }
+    "putShortLEWithoutMethodHandle" in {
+      val arr = new Array[Byte](4)
+
+      SWARUtil.putShortLEWithoutMethodHandle(arr, 0, 0x0102.toShort)
+      arr.take(2).toSeq should ===(Seq[Byte](0x02, 0x01))
+
+      SWARUtil.putShortLEWithoutMethodHandle(arr, 2, 0x0304.toShort)
+      arr.drop(2).toSeq should ===(Seq[Byte](0x04, 0x03))
+
+      // round-trip
+      SWARUtil.putShortLEWithoutMethodHandle(arr, 0, Short.MaxValue)
+      SWARUtil.getShortLEWithoutMethodHandle(arr, 0) should ===(Short.MaxValue)
+      SWARUtil.putShortLEWithoutMethodHandle(arr, 0, Short.MinValue)
+      SWARUtil.getShortLEWithoutMethodHandle(arr, 0) should ===(Short.MinValue)
+    }
+    "putShort and getShort are inverses" in {
+      val arr = new Array[Byte](2)
+      for (value <- Seq(0.toShort, 1.toShort, (-1).toShort, Short.MaxValue, Short.MinValue, 0x0102.toShort)) {
+        SWARUtil.putShort(arr, 0, value, ByteOrder.BIG_ENDIAN)
+        SWARUtil.getShort(arr, 0, ByteOrder.BIG_ENDIAN) should ===(value)
+        SWARUtil.putShort(arr, 0, value, ByteOrder.LITTLE_ENDIAN)
+        SWARUtil.getShort(arr, 0, ByteOrder.LITTLE_ENDIAN) should ===(value)
+      }
+    }
+    "putShort writes at correct offset" in {
+      val arr = new Array[Byte](4)
+      SWARUtil.putShort(arr, 1, 0x0102.toShort, ByteOrder.BIG_ENDIAN)
+      arr(0) should ===(0.toByte)
+      arr(1) should ===(0x01.toByte)
+      arr(2) should ===(0x02.toByte)
+      arr(3) should ===(0.toByte)
+    }
   }
 
 }

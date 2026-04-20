@@ -2768,6 +2768,69 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
         }
       }
     }
+
+    "putShort" when {
+      "big-endian" in {
+        val builder = ByteString.newBuilder
+        builder.putShort(0x0102)(BIG_ENDIAN)
+        builder.result().toSeq should ===(Seq[Byte](0x01, 0x02))
+      }
+      "little-endian" in {
+        val builder = ByteString.newBuilder
+        builder.putShort(0x0102)(LITTLE_ENDIAN)
+        builder.result().toSeq should ===(Seq[Byte](0x02, 0x01))
+      }
+      "max value big-endian" in {
+        val builder = ByteString.newBuilder
+        builder.putShort(Short.MaxValue.toInt)(BIG_ENDIAN)
+        builder.result().toSeq should ===(Seq[Byte](0x7F, 0xFF.toByte))
+      }
+      "min value big-endian" in {
+        val builder = ByteString.newBuilder
+        builder.putShort(Short.MinValue.toInt)(BIG_ENDIAN)
+        builder.result().toSeq should ===(Seq[Byte](0x80.toByte, 0x00))
+      }
+      "max value little-endian" in {
+        val builder = ByteString.newBuilder
+        builder.putShort(Short.MaxValue.toInt)(LITTLE_ENDIAN)
+        builder.result().toSeq should ===(Seq[Byte](0xFF.toByte, 0x7F))
+      }
+      "min value little-endian" in {
+        val builder = ByteString.newBuilder
+        builder.putShort(Short.MinValue.toInt)(LITTLE_ENDIAN)
+        builder.result().toSeq should ===(Seq[Byte](0x00, 0x80.toByte))
+      }
+      "result has length 2" in {
+        val builder = ByteString.newBuilder
+        builder.putShort(42)(BIG_ENDIAN)
+        builder.length should ===(2)
+        builder.result().length should ===(2)
+      }
+      "multiple puts accumulate correctly" in {
+        val builder = ByteString.newBuilder
+        builder.putShort(0x0102)(BIG_ENDIAN)
+        builder.putShort(0x0304)(BIG_ENDIAN)
+        builder.result().toSeq should ===(Seq[Byte](0x01, 0x02, 0x03, 0x04))
+      }
+      "round-trips with ByteBuffer big-endian" in {
+        check { (value: Short) =>
+          val builder = ByteString.newBuilder
+          builder.putShort(value.toInt)(BIG_ENDIAN)
+          val reference = new Array[Byte](2)
+          ByteBuffer.wrap(reference).order(BIG_ENDIAN).putShort(value)
+          builder.result().toSeq == reference.toSeq
+        }
+      }
+      "round-trips with ByteBuffer little-endian" in {
+        check { (value: Short) =>
+          val builder = ByteString.newBuilder
+          builder.putShort(value.toInt)(LITTLE_ENDIAN)
+          val reference = new Array[Byte](2)
+          ByteBuffer.wrap(reference).order(LITTLE_ENDIAN).putShort(value)
+          builder.result().toSeq == reference.toSeq
+        }
+      }
+    }
   }
 
   private def makeMultiByteStringsSample(): ByteString = {

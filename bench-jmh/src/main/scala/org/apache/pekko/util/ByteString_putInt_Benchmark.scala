@@ -15,18 +15,87 @@ package org.apache.pekko.util
 
 import java.util.concurrent.TimeUnit
 
-import org.openjdk.jmh.annotations.{ Benchmark, Measurement, Scope, State }
+import org.openjdk.jmh.annotations._
+import org.openjdk.jmh.infra.Blackhole
 
 @State(Scope.Benchmark)
-@Measurement(timeUnit = TimeUnit.MILLISECONDS)
+@OutputTimeUnit(TimeUnit.MILLISECONDS)
+@BenchmarkMode(Array(Mode.Throughput))
+@Fork(2)
+@Warmup(iterations = 5)
+@Measurement(iterations = 10)
 class ByteString_putInt_Benchmark {
 
   @Benchmark
-  def putLong(): ByteStringBuilder = {
+  @OperationsPerInvocation(1000)
+  def putShortBE(bh: Blackhole): Unit = {
     val builder = ByteString.newBuilder
-    for (_ <- 1 to 100)
-      builder.putLong(0x0102030405060708L)(java.nio.ByteOrder.BIG_ENDIAN)
-    builder
+    var i = 0
+    while (i < 1000) {
+      builder.putShort(i)(java.nio.ByteOrder.BIG_ENDIAN)
+      i += 1
+    }
+    bh.consume(builder.result())
+  }
+
+  @Benchmark
+  @OperationsPerInvocation(1000)
+  def putShortLE(bh: Blackhole): Unit = {
+    val builder = ByteString.newBuilder
+    var i = 0
+    while (i < 1000) {
+      builder.putShort(i)(java.nio.ByteOrder.LITTLE_ENDIAN)
+      i += 1
+    }
+    bh.consume(builder.result())
+  }
+
+  @Benchmark
+  @OperationsPerInvocation(1000)
+  def putIntBE(bh: Blackhole): Unit = {
+    val builder = ByteString.newBuilder
+    var i = 0
+    while (i < 1000) {
+      builder.putInt(i)(java.nio.ByteOrder.BIG_ENDIAN)
+      i += 1
+    }
+    bh.consume(builder.result())
+  }
+
+  @Benchmark
+  @OperationsPerInvocation(1000)
+  def putIntLE(bh: Blackhole): Unit = {
+    val builder = ByteString.newBuilder
+    var i = 0
+    while (i < 1000) {
+      builder.putInt(i)(java.nio.ByteOrder.LITTLE_ENDIAN)
+      i += 1
+    }
+    bh.consume(builder.result())
+  }
+
+  @Benchmark
+  @OperationsPerInvocation(1000)
+  def putLongBE(bh: Blackhole): Unit = {
+    val builder = ByteString.newBuilder
+    var i = 0L
+    while (i < 1000L) {
+      builder.putLong(i)(java.nio.ByteOrder.BIG_ENDIAN)
+      i += 1L
+    }
+    bh.consume(builder.result())
+  }
+
+  @Benchmark
+  @OperationsPerInvocation(1000)
+  def putLongLE(bh: Blackhole): Unit = {
+    val builder = ByteString.newBuilder
+    var i = 0L
+    while (i < 1000L) {
+      builder.putLong(i)(java.nio.ByteOrder.LITTLE_ENDIAN)
+      i += 1L
+    }
+    bh.consume(builder.result())
   }
 
 }

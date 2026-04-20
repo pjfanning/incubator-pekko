@@ -262,6 +262,32 @@ private[pekko] object SWARUtil {
   }
 
   /**
+   * Writes a short value at the specified index in the given byte array.
+   * Uses a VarHandle byte array view if supported, otherwise falls back to byte-by-byte writes.
+   * Does not range check - assumes caller has checked bounds.
+   *
+   * @param array     the byte array to write to
+   * @param index     the index to write at
+   * @param value     the short value to write
+   * @param byteOrder the byte order to use (big-endian or little-endian)
+   */
+  def putShort(array: Array[Byte], index: Int, value: Short, byteOrder: ByteOrder): Unit = {
+    if (byteOrder == ByteOrder.BIG_ENDIAN) {
+      if (shortBeArrayViewSupported) {
+        shortBeArrayView.set(array, index, value)
+      } else {
+        putShortBEWithoutMethodHandle(array, index, value)
+      }
+    } else {
+      if (shortLeArrayViewSupported) {
+        shortLeArrayView.set(array, index, value)
+      } else {
+        putShortLEWithoutMethodHandle(array, index, value)
+      }
+    }
+  }
+
+  /**
    * Writes a long value at the specified index in the given byte array.
    * Uses a VarHandle byte array view if supported, otherwise falls back to byte-by-byte writes.
    * Does not range check - assumes caller has checked bounds.
@@ -343,6 +369,16 @@ private[pekko] object SWARUtil {
     array(index + 1) = (value >>> 8).toByte
     array(index + 2) = (value >>> 16).toByte
     array(index + 3) = (value >>> 24).toByte
+  }
+
+  private[pekko] def putShortBEWithoutMethodHandle(array: Array[Byte], index: Int, value: Short): Unit = {
+    array(index) = (value >>> 8).toByte
+    array(index + 1) = value.toByte
+  }
+
+  private[pekko] def putShortLEWithoutMethodHandle(array: Array[Byte], index: Int, value: Short): Unit = {
+    array(index) = value.toByte
+    array(index + 1) = (value >>> 8).toByte
   }
 
   private[pekko] def putLongBEWithoutMethodHandle(array: Array[Byte], index: Int, value: Long): Unit = {

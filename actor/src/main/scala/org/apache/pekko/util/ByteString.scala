@@ -2245,13 +2245,11 @@ final class ByteStringBuilder extends Builder[Byte, ByteString] {
    * Add a single Short to this builder.
    */
   def putShort(x: Int)(implicit byteOrder: ByteOrder): this.type = {
-    if (byteOrder == ByteOrder.BIG_ENDIAN) {
-      this += (x >>> 8).toByte
-      this += (x >>> 0).toByte
-    } else if (byteOrder == ByteOrder.LITTLE_ENDIAN) {
-      this += (x >>> 0).toByte
-      this += (x >>> 8).toByte
-    } else throw new IllegalArgumentException("Unknown byte order " + byteOrder)
+    ensureTempSize(_tempLength + 2)
+    SWARUtil.putShort(_temp, _tempLength, x.toShort, byteOrder)
+    _tempLength += 2
+    _length += 2
+    this
   }
 
   /**
