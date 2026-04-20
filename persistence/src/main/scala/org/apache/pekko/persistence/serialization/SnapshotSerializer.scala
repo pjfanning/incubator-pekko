@@ -82,11 +82,17 @@ class SnapshotSerializer(val system: ExtendedActorSystem) extends BaseSerializer
 
   private def headerToBinary(snapshot: AnyRef, snapshotSerializer: Serializer): Array[Byte] = {
     val ms = migrateManifestIfNecessary(Serializers.manifestFor(snapshotSerializer, snapshot))
-    val manifestBytes = if (ms.nonEmpty) ms.getBytes(UTF_8) else Array.empty[Byte]
-    val result = new Array[Byte](4 + manifestBytes.length)
-    SWARUtil.putInt(result, 0, snapshotSerializer.identifier, ByteOrder.LITTLE_ENDIAN)
-    System.arraycopy(manifestBytes, 0, result, 4, manifestBytes.length)
-    result
+    if (ms.isEmpty) {
+      val result = new Array[Byte](4)
+      SWARUtil.putInt(result, 0, snapshotSerializer.identifier, ByteOrder.LITTLE_ENDIAN)
+      result
+    } else {
+      val manifestBytes = ms.getBytes(UTF_8)
+      val result = new Array[Byte](4 + manifestBytes.length)
+      SWARUtil.putInt(result, 0, snapshotSerializer.identifier, ByteOrder.LITTLE_ENDIAN)
+      System.arraycopy(manifestBytes, 0, result, 4, manifestBytes.length)
+      result
+    }
   }
 
   private def headerFromBinary(bytes: Array[Byte]): (Int, String) = {
