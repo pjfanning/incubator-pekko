@@ -27,6 +27,7 @@ import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 
 import org.apache.pekko.io.UnsynchronizedByteArrayInputStream
+import org.apache.pekko.util.SWARUtil
 
 object ByteString {
 

@@ -121,6 +121,7 @@ lazy val root = Project(id = "pekko", base = file("."))
 lazy val bytestring = pekkoModule("bytestring")
   .settings(Dependencies.bytestring)
   .settings(AutomaticModuleName.settings("pekko.bytestring"))
+  .disablePlugins(MimaPlugin)
 
 lazy val actor = pekkoModule("actor")
   .dependsOn(bytestring)
