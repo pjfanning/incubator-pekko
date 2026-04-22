@@ -211,6 +211,11 @@ object Dependencies {
   // TODO check if `l ++=` everywhere expensive?
   lazy val l = libraryDependencies
 
+  lazy val bytestring = l ++= Seq(
+    TestDependencies.scalatest,
+    TestDependencies.scalatestScalaCheck,
+    TestDependencies.commonsCodec)
+
   lazy val actor = l ++= Seq(config)
 
   val actorTyped = l ++= Seq(slf4jApi)

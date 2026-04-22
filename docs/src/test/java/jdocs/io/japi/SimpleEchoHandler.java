@@ -24,7 +24,7 @@ import org.apache.pekko.io.Tcp.ConnectionClosed;
 import org.apache.pekko.io.Tcp.Event;
 import org.apache.pekko.io.Tcp.Received;
 import org.apache.pekko.io.TcpMessage;
-import org.apache.pekko.util.ByteString;
+import org.apache.pekko.bytestring.ByteString;
 
 // #simple-echo-handler
 public class SimpleEchoHandler extends AbstractActor {

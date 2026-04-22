@@ -14,7 +14,7 @@
 package jdocs.io;
 
 // #imports
-import static org.apache.pekko.util.ByteString.emptyByteString;
+import static org.apache.pekko.bytestring.ByteString.emptyByteString;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -28,7 +28,7 @@ import org.apache.pekko.io.UdpConnected;
 import org.apache.pekko.io.UdpConnectedMessage;
 import org.apache.pekko.io.UdpSO;
 import org.apache.pekko.japi.pf.ReceiveBuilder;
-import org.apache.pekko.util.ByteString;
+import org.apache.pekko.bytestring.ByteString;
 
 // #imports
 import org.junit.jupiter.api.Test;

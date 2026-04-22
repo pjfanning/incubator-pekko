@@ -22,7 +22,7 @@ import org.apache.pekko.stream.javadsl.*;
 import org.apache.pekko.Done;
 import org.apache.pekko.NotUsed;
 import org.apache.pekko.actor.ActorSystem;
-import org.apache.pekko.util.ByteString;
+import org.apache.pekko.bytestring.ByteString;
 
 import java.nio.file.Paths;
 import java.math.BigInteger;

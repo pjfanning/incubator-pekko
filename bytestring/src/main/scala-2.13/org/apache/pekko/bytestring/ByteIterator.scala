@@ -11,17 +11,18 @@
  * Copyright (C) 2009-2022 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package org.apache.pekko.util
+package org.apache.pekko.bytestring
 
 import java.nio.{ ByteBuffer, ByteOrder }
 
+import scala.annotation.nowarn
 import scala.annotation.tailrec
 import scala.collection.BufferedIterator
 import scala.collection.LinearSeq
 import scala.collection.mutable.ListBuffer
 import scala.reflect.ClassTag
 
-import org.apache.pekko.util.Collections.EmptyImmutableSeq
+import org.apache.pekko.util.SWARUtil
 
 object ByteIterator {
   object ByteArrayIterator {
@@ -46,7 +47,7 @@ object ByteIterator {
     final def head: Byte = array(from)
 
     final def next(): Byte = {
-      if (!hasNext) EmptyImmutableSeq.iterator.next()
+      if (!hasNext) throw new java.util.NoSuchElementException("next on empty ByteIterator")
       else {
         val i = from; from = from + 1; array(i)
       }
@@ -57,24 +58,25 @@ object ByteIterator {
     final override def size: Int = { val l = len; clear(); l }
 
     final override def ++(that: IterableOnce[Byte]): ByteIterator = that match {
-      case that: ByteIterator =>
-        if (that.isEmpty) this
-        else if (this.isEmpty) that
+      case byteIterator: ByteIterator =>
+        if (byteIterator.isEmpty) this
+        else if (this.isEmpty) byteIterator
         else
-          that match {
-            case that: ByteArrayIterator =>
-              if ((this.array eq that.array) && (this.until == that.from)) {
-                this.until = that.until
-                that.clear()
+          byteIterator match {
+            case bai: ByteArrayIterator =>
+              if ((this.array eq bai.array) && (this.until == bai.from)) {
+                this.until = bai.until
+                bai.clear()
                 this
               } else {
-                val result = MultiByteArrayIterator(List(this, that))
+                val result = MultiByteArrayIterator(List(this, bai))
                 this.clear()
                 result
               }
-            case that: MultiByteArrayIterator => this ++: that
+            case mbai: MultiByteArrayIterator => this ++: mbai
+            case bi                           => super.++(bi)
           }
-      case _ => super.++(that)
+      case io => super.++(io)
     }
 
     final override def clone: ByteArrayIterator = new ByteArrayIterator(array, from, until)
@@ -108,9 +110,11 @@ object ByteIterator {
       this
     }
 
+    @nowarn("msg=deprecated")
     override def copyToArray[B >: Byte](xs: Array[B], start: Int): Int =
       this.copyToArray(xs, start, xs.length)
 
+    @nowarn("msg=deprecated")
     override def copyToArray[B >: Byte](xs: Array[B]): Int =
       this.copyToArray(xs, 0, xs.length)
 
@@ -238,7 +242,7 @@ object ByteIterator {
 
     private def current: ByteArrayIterator = iterators.head
     private def dropCurrent(): Unit = { iterators = iterators.tail }
-    def clear(): Unit = { iterators = MultiByteArrayIterator.empty.iterators }
+    final def clear(): Unit = { iterators = MultiByteArrayIterator.empty.iterators }
 
     final def hasNext: Boolean = current.hasNext
 
@@ -264,22 +268,23 @@ object ByteIterator {
     }
 
     final override def ++(that: IterableOnce[Byte]): ByteIterator = that match {
-      case that: ByteIterator =>
-        if (that.isEmpty) this
-        else if (this.isEmpty) that
+      case bi: ByteIterator =>
+        if (bi.isEmpty) this
+        else if (this.isEmpty) bi
         else {
-          that match {
-            case that: ByteArrayIterator =>
-              iterators = this.iterators :+ that
-              that.clear()
+          bi match {
+            case bai: ByteArrayIterator =>
+              iterators = this.iterators :+ bai
+              bai.clear()
               this
-            case that: MultiByteArrayIterator =>
-              iterators = this.iterators ++ that.iterators
-              that.clear()
+            case mbai: MultiByteArrayIterator =>
+              iterators = this.iterators ++ mbai.iterators
+              mbai.clear()
               this
+            case bi => super.++(bi)
           }
         }
-      case _ => super.++(that)
+      case io => super.++(io)
     }
 
     final override def clone: MultiByteArrayIterator = {
@@ -370,7 +375,7 @@ object ByteIterator {
         getMult: (Array[A], Int, Int) => Unit): this.type =
       if (n <= 0) this
       else {
-        if (isEmpty) EmptyImmutableSeq.iterator.next()
+        if (isEmpty) throw new java.util.NoSuchElementException("next on empty ByteIterator")
         val nDone = if (current.len >= elemSize) {
           val nCurrent = math.min(n, current.len / elemSize)
           getMult(xs, offset, nCurrent)

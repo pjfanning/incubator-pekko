@@ -13,7 +13,7 @@
 
 package jdocs.stream.javadsl.cookbook;
 
-import static org.apache.pekko.util.ByteString.emptyByteString;
+import static org.apache.pekko.bytestring.ByteString.emptyByteString;
 
 import java.util.concurrent.TimeUnit;
 import org.apache.pekko.NotUsed;
@@ -21,7 +21,7 @@ import org.apache.pekko.actor.ActorSystem;
 import org.apache.pekko.stream.javadsl.Compression;
 import org.apache.pekko.stream.javadsl.Source;
 import org.apache.pekko.testkit.javadsl.TestKit;
-import org.apache.pekko.util.ByteString;
+import org.apache.pekko.bytestring.ByteString;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;

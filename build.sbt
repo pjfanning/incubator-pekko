@@ -58,6 +58,7 @@ resolverSettings
 // When this is updated the set of modules in ActorSystem.allModules should also be updated
 lazy val userProjects: Seq[ProjectReference] = List[ProjectReference](
   actor,
+  bytestring,
   actorTestkitTyped,
   actorTyped,
   cluster,
@@ -117,7 +118,12 @@ lazy val root = Project(id = "pekko", base = file("."))
   .settings(PekkoBuild.welcomeSettings)
   .enablePlugins(CopyrightHeaderForBuild)
 
+lazy val bytestring = pekkoModule("bytestring")
+  .settings(Dependencies.bytestring)
+  .settings(AutomaticModuleName.settings("pekko.bytestring"))
+
 lazy val actor = pekkoModule("actor")
+  .dependsOn(bytestring)
   .settings(Dependencies.actor)
   .settings(OSGi.actor)
   .settings(AutomaticModuleName.settings("pekko.actor"))

@@ -26,7 +26,7 @@ import org.apache.pekko.stream.javadsl.StreamConverters;
 import org.apache.pekko.stream.testkit.Utils;
 import org.apache.pekko.testkit.PekkoJUnitJupiterActorSystemResource;
 import org.apache.pekko.testkit.javadsl.TestKit;
-import org.apache.pekko.util.ByteString;
+import org.apache.pekko.bytestring.ByteString;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 

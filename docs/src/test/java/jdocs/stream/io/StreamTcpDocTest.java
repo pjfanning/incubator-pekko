@@ -27,7 +27,7 @@ import org.apache.pekko.stream.javadsl.Tcp.*;
 import org.apache.pekko.testkit.SocketUtil;
 import org.apache.pekko.testkit.TestProbe;
 import org.apache.pekko.testkit.javadsl.TestKit;
-import org.apache.pekko.util.ByteString;
+import org.apache.pekko.bytestring.ByteString;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

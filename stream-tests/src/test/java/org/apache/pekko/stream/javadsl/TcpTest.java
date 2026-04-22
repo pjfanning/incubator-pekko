@@ -27,8 +27,8 @@ import org.apache.pekko.testkit.PekkoSpec;
 import org.apache.pekko.testkit.SocketUtil;
 import org.apache.pekko.testkit.javadsl.EventFilter;
 import org.apache.pekko.testkit.javadsl.TestKit;
-import org.apache.pekko.util.ByteString;
-import static org.apache.pekko.util.ByteString.emptyByteString;
+import org.apache.pekko.bytestring.ByteString;
+import static org.apache.pekko.bytestring.ByteString.emptyByteString;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.extension.RegisterExtension;

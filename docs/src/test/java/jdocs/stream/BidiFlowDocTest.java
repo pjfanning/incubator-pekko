@@ -13,7 +13,7 @@
 
 package jdocs.stream;
 
-import static org.apache.pekko.util.ByteString.emptyByteString;
+import static org.apache.pekko.bytestring.ByteString.emptyByteString;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 import java.nio.ByteOrder;
@@ -30,9 +30,9 @@ import org.apache.pekko.stream.javadsl.*;
 import org.apache.pekko.stream.javadsl.GraphDSL;
 import org.apache.pekko.stream.stage.*;
 import org.apache.pekko.testkit.javadsl.TestKit;
-import org.apache.pekko.util.ByteIterator;
-import org.apache.pekko.util.ByteString;
-import org.apache.pekko.util.ByteStringBuilder;
+import org.apache.pekko.bytestring.ByteIterator;
+import org.apache.pekko.bytestring.ByteString;
+import org.apache.pekko.bytestring.ByteStringBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

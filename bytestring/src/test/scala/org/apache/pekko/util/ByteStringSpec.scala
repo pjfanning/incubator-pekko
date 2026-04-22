@@ -30,7 +30,7 @@ import org.scalatestplus.scalacheck.Checkers
 
 import org.apache.pekko
 import pekko.io.UnsynchronizedByteArrayInputStream
-import pekko.util.ByteString.{ ByteString1, ByteString1C, ByteStrings }
+import pekko.bytestring.ByteString.{ ByteString1, ByteString1C, ByteStrings }
 
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec

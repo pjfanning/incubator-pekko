@@ -21,7 +21,7 @@ import java.io.{ ByteArrayOutputStream, InputStream, OutputStream }
 import java.nio.charset.StandardCharsets
 
 import org.apache.pekko
-import pekko.util.ByteString.{ ByteString1, ByteString1C, ByteStrings }
+import pekko.bytestring.ByteString.{ ByteString1, ByteString1C, ByteStrings }
 
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec

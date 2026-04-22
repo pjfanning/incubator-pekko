@@ -25,7 +25,7 @@ import org.apache.pekko.japi.function.Function;
 import org.apache.pekko.stream.javadsl.Flow;
 import org.apache.pekko.stream.javadsl.Sink;
 import org.apache.pekko.stream.javadsl.Source;
-import org.apache.pekko.util.ByteString;
+import org.apache.pekko.bytestring.ByteString;
 
 /** */
 public class ExtrapolateAndExpand {

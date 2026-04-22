@@ -24,7 +24,7 @@ import org.apache.pekko.japi.Pair;
 import org.apache.pekko.stream.javadsl.*;
 import org.apache.pekko.stream.testkit.TestPublisher;
 import org.apache.pekko.stream.testkit.TestSubscriber;
-import org.apache.pekko.util.ByteString;
+import org.apache.pekko.bytestring.ByteString;
 
 public class FromSinkAndSource {
 

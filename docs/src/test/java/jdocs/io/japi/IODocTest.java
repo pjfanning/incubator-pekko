@@ -32,7 +32,7 @@ import org.apache.pekko.io.Tcp.Connected;
 import org.apache.pekko.io.Tcp.ConnectionClosed;
 import org.apache.pekko.io.Tcp.Received;
 import org.apache.pekko.io.TcpMessage;
-import org.apache.pekko.util.ByteString;
+import org.apache.pekko.bytestring.ByteString;
 // #imports
 
 import org.apache.pekko.testkit.PekkoSpec;

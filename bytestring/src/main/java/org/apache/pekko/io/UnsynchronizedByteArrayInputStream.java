@@ -20,7 +20,6 @@ package org.apache.pekko.io;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Objects;
-import org.apache.pekko.annotation.InternalApi;
 
 /**
  * Internal API: An unsynchronized byte array input stream. This class does not copy the provided
@@ -32,7 +31,7 @@ import org.apache.pekko.annotation.InternalApi;
 // @NotThreadSafe
 // copied from
 // https://github.com/apache/commons-io/blob/26e5aa9661a72bfd9697fb384ca72f58e5d672e9/src/main/java/org/apache/commons/io/input/UnsynchronizedByteArrayInputStream.java
-@InternalApi
+
 public class UnsynchronizedByteArrayInputStream extends InputStream {
 
   /** The end of stream marker. */
