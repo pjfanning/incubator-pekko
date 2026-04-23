@@ -262,25 +262,25 @@ private[pekko] object SWARUtil {
   }
 
   /**
-   * Writes a short value at the specified index in the given byte array.
+   * Writes the low 16 bits of `value` at the specified index in the given byte array.
    * Uses a VarHandle byte array view if supported, otherwise falls back to byte-by-byte writes.
    * Does not range check - assumes caller has checked bounds.
    *
    * @param array     the byte array to write to
    * @param index     the index to write at
-   * @param value     the short value to write
+   * @param value     the value whose low 16 bits are written
    * @param byteOrder the byte order to use (big-endian or little-endian)
    */
-  def putShort(array: Array[Byte], index: Int, value: Short, byteOrder: ByteOrder): Unit = {
+  def putShort(array: Array[Byte], index: Int, value: Int, byteOrder: ByteOrder): Unit = {
     if (byteOrder == ByteOrder.BIG_ENDIAN) {
       if (shortBeArrayViewSupported) {
-        shortBeArrayView.set(array, index, value)
+        shortBeArrayView.set(array, index, value.toShort)
       } else {
         putShortBEWithoutMethodHandle(array, index, value)
       }
     } else {
       if (shortLeArrayViewSupported) {
-        shortLeArrayView.set(array, index, value)
+        shortLeArrayView.set(array, index, value.toShort)
       } else {
         putShortLEWithoutMethodHandle(array, index, value)
       }
@@ -371,12 +371,12 @@ private[pekko] object SWARUtil {
     array(index + 3) = (value >>> 24).toByte
   }
 
-  private[pekko] def putShortBEWithoutMethodHandle(array: Array[Byte], index: Int, value: Short): Unit = {
+  private[pekko] def putShortBEWithoutMethodHandle(array: Array[Byte], index: Int, value: Int): Unit = {
     array(index) = (value >>> 8).toByte
     array(index + 1) = value.toByte
   }
 
-  private[pekko] def putShortLEWithoutMethodHandle(array: Array[Byte], index: Int, value: Short): Unit = {
+  private[pekko] def putShortLEWithoutMethodHandle(array: Array[Byte], index: Int, value: Int): Unit = {
     array(index) = value.toByte
     array(index + 1) = (value >>> 8).toByte
   }

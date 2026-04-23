@@ -71,6 +71,20 @@ class SWARUtilSpec extends AnyWordSpec with Matchers {
 
       SWARUtil.putInt(arr, 4, 0x04050607, ByteOrder.LITTLE_ENDIAN)
       arr.drop(4).toSeq should ===(Seq[Byte](0x07, 0x06, 0x05, 0x04))
+
+      // all-zero pattern
+      SWARUtil.putInt(arr, 0, 0, ByteOrder.BIG_ENDIAN)
+      arr.take(4).toSeq should ===(Seq[Byte](0x00, 0x00, 0x00, 0x00))
+
+      SWARUtil.putInt(arr, 0, 0, ByteOrder.LITTLE_ENDIAN)
+      arr.take(4).toSeq should ===(Seq[Byte](0x00, 0x00, 0x00, 0x00))
+
+      // all-ones pattern
+      SWARUtil.putInt(arr, 0, -1, ByteOrder.BIG_ENDIAN)
+      arr.take(4).toSeq should ===(Seq[Byte](0xFF.toByte, 0xFF.toByte, 0xFF.toByte, 0xFF.toByte))
+
+      SWARUtil.putInt(arr, 0, -1, ByteOrder.LITTLE_ENDIAN)
+      arr.take(4).toSeq should ===(Seq[Byte](0xFF.toByte, 0xFF.toByte, 0xFF.toByte, 0xFF.toByte))
     }
     "putIntBEWithoutMethodHandle" in {
       val arr = new Array[Byte](8)
@@ -116,6 +130,20 @@ class SWARUtilSpec extends AnyWordSpec with Matchers {
 
       SWARUtil.putLong(arr, 8, 0x08090A0B0C0D0E0FL, ByteOrder.LITTLE_ENDIAN)
       arr.drop(8).toSeq should ===(Seq[Byte](0x0F, 0x0E, 0x0D, 0x0C, 0x0B, 0x0A, 0x09, 0x08))
+
+      // all-zero pattern
+      SWARUtil.putLong(arr, 0, 0L, ByteOrder.BIG_ENDIAN)
+      arr.take(8).toSeq should ===(Seq.fill(8)(0x00.toByte))
+
+      SWARUtil.putLong(arr, 0, 0L, ByteOrder.LITTLE_ENDIAN)
+      arr.take(8).toSeq should ===(Seq.fill(8)(0x00.toByte))
+
+      // all-ones pattern
+      SWARUtil.putLong(arr, 0, -1L, ByteOrder.BIG_ENDIAN)
+      arr.take(8).toSeq should ===(Seq.fill(8)(0xFF.toByte))
+
+      SWARUtil.putLong(arr, 0, -1L, ByteOrder.LITTLE_ENDIAN)
+      arr.take(8).toSeq should ===(Seq.fill(8)(0xFF.toByte))
     }
     "putLongBEWithoutMethodHandle" in {
       val arr = new Array[Byte](16)
@@ -192,25 +220,25 @@ class SWARUtilSpec extends AnyWordSpec with Matchers {
     "putShort" in {
       val arr = new Array[Byte](4)
 
-      SWARUtil.putShort(arr, 0, 0x0102.toShort, ByteOrder.BIG_ENDIAN)
+      SWARUtil.putShort(arr, 0, 0x0102, ByteOrder.BIG_ENDIAN)
       arr.take(2).toSeq should ===(Seq[Byte](0x01, 0x02))
 
-      SWARUtil.putShort(arr, 2, 0x0304.toShort, ByteOrder.BIG_ENDIAN)
+      SWARUtil.putShort(arr, 2, 0x0304, ByteOrder.BIG_ENDIAN)
       arr.drop(2).toSeq should ===(Seq[Byte](0x03, 0x04))
 
-      SWARUtil.putShort(arr, 0, 0x0102.toShort, ByteOrder.LITTLE_ENDIAN)
+      SWARUtil.putShort(arr, 0, 0x0102, ByteOrder.LITTLE_ENDIAN)
       arr.take(2).toSeq should ===(Seq[Byte](0x02, 0x01))
 
-      SWARUtil.putShort(arr, 2, 0x0304.toShort, ByteOrder.LITTLE_ENDIAN)
+      SWARUtil.putShort(arr, 2, 0x0304, ByteOrder.LITTLE_ENDIAN)
       arr.drop(2).toSeq should ===(Seq[Byte](0x04, 0x03))
     }
     "putShortBEWithoutMethodHandle" in {
       val arr = new Array[Byte](4)
 
-      SWARUtil.putShortBEWithoutMethodHandle(arr, 0, 0x0102.toShort)
+      SWARUtil.putShortBEWithoutMethodHandle(arr, 0, 0x0102)
       arr.take(2).toSeq should ===(Seq[Byte](0x01, 0x02))
 
-      SWARUtil.putShortBEWithoutMethodHandle(arr, 2, 0x0304.toShort)
+      SWARUtil.putShortBEWithoutMethodHandle(arr, 2, 0x0304)
       arr.drop(2).toSeq should ===(Seq[Byte](0x03, 0x04))
 
       // round-trip
@@ -222,10 +250,10 @@ class SWARUtilSpec extends AnyWordSpec with Matchers {
     "putShortLEWithoutMethodHandle" in {
       val arr = new Array[Byte](4)
 
-      SWARUtil.putShortLEWithoutMethodHandle(arr, 0, 0x0102.toShort)
+      SWARUtil.putShortLEWithoutMethodHandle(arr, 0, 0x0102)
       arr.take(2).toSeq should ===(Seq[Byte](0x02, 0x01))
 
-      SWARUtil.putShortLEWithoutMethodHandle(arr, 2, 0x0304.toShort)
+      SWARUtil.putShortLEWithoutMethodHandle(arr, 2, 0x0304)
       arr.drop(2).toSeq should ===(Seq[Byte](0x04, 0x03))
 
       // round-trip
@@ -245,7 +273,7 @@ class SWARUtilSpec extends AnyWordSpec with Matchers {
     }
     "putShort writes at correct offset" in {
       val arr = new Array[Byte](4)
-      SWARUtil.putShort(arr, 1, 0x0102.toShort, ByteOrder.BIG_ENDIAN)
+      SWARUtil.putShort(arr, 1, 0x0102, ByteOrder.BIG_ENDIAN)
       arr(0) should ===(0.toByte)
       arr(1) should ===(0x01.toByte)
       arr(2) should ===(0x02.toByte)

@@ -2246,7 +2246,7 @@ final class ByteStringBuilder extends Builder[Byte, ByteString] {
    */
   def putShort(x: Int)(implicit byteOrder: ByteOrder): this.type = {
     ensureTempSize(_tempLength + 2)
-    SWARUtil.putShort(_temp, _tempLength, x.toShort, byteOrder)
+    SWARUtil.putShort(_temp, _tempLength, x, byteOrder)
     _tempLength += 2
     _length += 2
     this
