@@ -2101,7 +2101,7 @@ sealed abstract class CompactByteString extends ByteString with Serializable {
 }
 
 /**
- * A mutable builder for efficiently creating a [[org.apache.pekko.bytestring.ByteString]].
+ * A mutable builder for efficiently creating a [[ByteString]].
  *
  * The created ByteString is not automatically compacted.
  */
