@@ -33,7 +33,7 @@ import pekko.annotation.InternalApi
 import pekko.event.Logging
 import pekko.japi.function
 import pekko.stream.impl.TraversalBuilder
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 import pekko.util.Helpers
 import pekko.util.LineNumbers
 

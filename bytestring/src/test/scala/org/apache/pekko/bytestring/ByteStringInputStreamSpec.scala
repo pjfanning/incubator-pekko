@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.pekko.util
+package org.apache.pekko.bytestring
 
 import java.io.{ ByteArrayOutputStream, InputStream, OutputStream }
 import java.nio.charset.StandardCharsets

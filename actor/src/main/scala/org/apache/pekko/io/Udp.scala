@@ -22,7 +22,7 @@ import scala.collection.immutable
 import org.apache.pekko
 import pekko.actor._
 import pekko.io.Inet.{ SoJavaFactories, SocketOption }
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 import pekko.util.Helpers.Requiring
 
 import com.typesafe.config.Config

@@ -23,7 +23,7 @@ import pekko.annotation.InternalApi
 import pekko.stream.{ Attributes, IOOperationIncompleteException, IOResult, Inlet, SinkShape }
 import pekko.stream.impl.Stages.DefaultAttributes
 import pekko.stream.stage.{ GraphStageLogic, GraphStageLogicWithLogging, GraphStageWithMaterializedValue, InHandler }
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 /**
  * INTERNAL API

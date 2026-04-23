@@ -38,7 +38,7 @@ import pekko.actor.typed.scaladsl.TimerScheduler
 import pekko.serialization.Serialization
 import pekko.serialization.SerializationExtension
 import pekko.serialization.Serializers
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 import pekko.util.Timeout
 
 /**

@@ -32,7 +32,7 @@ import pekko.actor.typed.scaladsl.StashBuffer
 import pekko.actor.typed.scaladsl.TimerScheduler
 import pekko.annotation.InternalApi
 import pekko.serialization.SerializationExtension
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 import pekko.util.ConstantFun.scalaIdentityFunction
 
 /**

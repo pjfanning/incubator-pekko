@@ -32,7 +32,7 @@ import pekko.dispatch.{ RequiresMessageQueue, UnboundedMessageQueueSemantics }
 import pekko.io.Inet.SocketOption
 import pekko.io.SelectionHandler._
 import pekko.io.Tcp._
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 /**
  * Base class for TcpIncomingConnection and TcpOutgoingConnection.

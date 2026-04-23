@@ -20,7 +20,7 @@ package org.apache.pekko.util
 import java.nio.charset.StandardCharsets
 
 import org.apache.pekko
-import pekko.io.UnsynchronizedByteArrayInputStream
+import pekko.bytestring.UnsynchronizedByteArrayInputStream
 
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec

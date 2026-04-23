@@ -19,7 +19,7 @@ import org.apache.pekko
 import pekko.annotation.InternalApi
 import pekko.stream.impl.io.ByteStringParser
 import pekko.stream.impl.io.ByteStringParser.{ ParseResult, ParseStep }
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 /** INTERNAL API */
 @InternalApi private[pekko] abstract class DeflateDecompressorBase(maxBytesPerChunk: Int)

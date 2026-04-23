@@ -28,7 +28,7 @@ import pekko.actor.ActorRef
 import pekko.cluster.pubsub.DistributedPubSubMediator._
 import pekko.cluster.pubsub.DistributedPubSubMediator.Internal._
 import pekko.cluster.pubsub.protobuf.msg.{ DistributedPubSubMessages => dm }
-import pekko.io.UnsynchronizedByteArrayInputStream
+import pekko.bytestring.UnsynchronizedByteArrayInputStream
 import pekko.protobufv3.internal.{ ByteString, MessageLite }
 import pekko.remote.ByteStringUtils
 import pekko.serialization._

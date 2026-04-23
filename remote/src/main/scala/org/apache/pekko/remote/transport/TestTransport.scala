@@ -24,7 +24,7 @@ import pekko.actor._
 import pekko.event.LoggingAdapter
 import pekko.remote.transport.AssociationHandle._
 import pekko.remote.transport.Transport._
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 import com.typesafe.config.Config
 

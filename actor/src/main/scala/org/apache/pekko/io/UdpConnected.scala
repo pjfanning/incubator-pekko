@@ -23,7 +23,7 @@ import org.apache.pekko
 import pekko.actor._
 import pekko.io.Inet.SocketOption
 import pekko.io.Udp.UdpSettings
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 /**
  * UDP Extension for Akka’s IO layer.

@@ -19,7 +19,7 @@ import java.nio.charset.StandardCharsets
 import org.apache.pekko
 import pekko.actor.ExtendedActorSystem
 import pekko.annotation.InternalApi
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 /**
  * INTERNAL API: only public by configuration

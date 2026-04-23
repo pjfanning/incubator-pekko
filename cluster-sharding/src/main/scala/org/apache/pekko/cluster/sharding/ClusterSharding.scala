@@ -50,7 +50,7 @@ import pekko.cluster.singleton.ClusterSingletonManager
 import pekko.event.Logging
 import pekko.pattern.BackoffOpts
 import pekko.pattern.ask
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 /**
  * This extension provides sharding functionality of actors in a cluster.

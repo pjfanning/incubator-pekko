@@ -20,7 +20,7 @@ import pekko.stream.Attributes
 import pekko.stream.impl.fusing.GraphStages.SimpleLinearGraphStage
 import pekko.stream.scaladsl.Flow
 import pekko.stream.stage.{ GraphStageLogic, InHandler, OutHandler }
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 /** INTERNAL API */
 @InternalApi private[stream] object CompressionUtils {

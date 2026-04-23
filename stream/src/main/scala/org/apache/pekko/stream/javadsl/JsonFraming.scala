@@ -15,7 +15,7 @@ package org.apache.pekko.stream.javadsl
 
 import org.apache.pekko
 import pekko.NotUsed
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 /** Provides JSON framing operators that can separate valid JSON objects from incoming [[pekko.util.ByteString]] objects. */
 object JsonFraming {

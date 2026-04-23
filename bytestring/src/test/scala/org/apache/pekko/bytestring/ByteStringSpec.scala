@@ -11,7 +11,7 @@
  * Copyright (C) 2009-2022 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package org.apache.pekko.util
+package org.apache.pekko.bytestring
 
 import java.io.{ ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream }
 import java.lang.Double.doubleToRawLongBits
@@ -29,7 +29,7 @@ import org.scalacheck.Arbitrary.arbitrary
 import org.scalatestplus.scalacheck.Checkers
 
 import org.apache.pekko
-import pekko.io.UnsynchronizedByteArrayInputStream
+import pekko.bytestring.UnsynchronizedByteArrayInputStream
 import pekko.bytestring.ByteString.{ ByteString1, ByteString1C, ByteStrings }
 
 import org.scalatest.matchers.should.Matchers

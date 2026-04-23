@@ -27,7 +27,7 @@ import pekko.actor.ExtendedActorSystem
 import pekko.annotation.InternalApi
 import pekko.event.LogMarker
 import pekko.event.Logging
-import pekko.io.UnsynchronizedByteArrayInputStream
+import pekko.bytestring.UnsynchronizedByteArrayInputStream
 import pekko.util.ClassLoaderObjectInputStream
 
 /**

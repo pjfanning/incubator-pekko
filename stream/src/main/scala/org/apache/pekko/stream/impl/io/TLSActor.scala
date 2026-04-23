@@ -33,7 +33,7 @@ import pekko.stream.impl.FanIn.InputBunch
 import pekko.stream.impl.FanOut.OutputBunch
 import pekko.stream.impl.fusing.ActorGraphInterpreter
 import pekko.stream.snapshot.StreamSnapshotImpl
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 /**
  * INTERNAL API.

@@ -27,7 +27,7 @@ import pekko.stream.{ Attributes, IOResult, SinkShape }
 import pekko.stream.impl._
 import pekko.stream.impl.Stages.DefaultAttributes
 import pekko.stream.impl.io.{ InputStreamSinkStage, InputStreamSource, OutputStreamGraphStage, OutputStreamSourceStage }
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 /**
  * Converters for interacting with the blocking `java.io` streams APIs and Java 8 Streams

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.pekko.io;
+package org.apache.pekko.bytestring;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;

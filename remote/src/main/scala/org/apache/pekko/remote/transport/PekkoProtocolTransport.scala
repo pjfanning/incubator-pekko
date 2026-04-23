@@ -35,7 +35,7 @@ import pekko.remote.transport.PekkoPduCodec._
 import pekko.remote.transport.PekkoProtocolTransport._
 import pekko.remote.transport.ProtocolStateActor._
 import pekko.remote.transport.Transport._
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 import pekko.util.Helpers.Requiring
 
 import com.typesafe.config.Config

@@ -28,7 +28,7 @@ import pekko.dispatch.{ RequiresMessageQueue, UnboundedMessageQueueSemantics }
 import pekko.io.SelectionHandler._
 import pekko.io.UdpConnected._
 import pekko.io.dns.DnsProtocol
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 /**
  * INTERNAL API

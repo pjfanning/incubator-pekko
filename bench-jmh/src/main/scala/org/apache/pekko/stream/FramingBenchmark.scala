@@ -29,7 +29,7 @@ import pekko.remote.artery.BenchTestSourceSameElement
 import pekko.stream.scaladsl.Framing
 import pekko.stream.scaladsl.Sink
 import pekko.stream.scaladsl.Source
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory

@@ -28,7 +28,7 @@ import pekko.actor.{ Address, ExtendedActorSystem }
 import pekko.event.{ Logging, LoggingAdapter }
 import pekko.remote.transport.AssociationHandle.{ HandleEvent, HandleEventListener }
 import pekko.remote.transport.Transport._
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 @SerialVersionUID(1L)
 @deprecated("Classic remoting is deprecated, use Artery", "Akka 2.6.0")

@@ -26,8 +26,6 @@ import scala.collection.mutable.{ Builder, WrappedArray }
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 
-import org.apache.pekko.io.UnsynchronizedByteArrayInputStream
-import org.apache.pekko.util.SWARUtil
 
 object ByteString {
 
@@ -2103,7 +2101,7 @@ sealed abstract class CompactByteString extends ByteString with Serializable {
 }
 
 /**
- * A mutable builder for efficiently creating a [[org.apache.pekko.util.ByteString]].
+ * A mutable builder for efficiently creating a [[org.apache.pekko.bytestring.ByteString]].
  *
  * The created ByteString is not automatically compacted.
  */

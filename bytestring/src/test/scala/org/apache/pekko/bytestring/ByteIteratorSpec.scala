@@ -11,9 +11,9 @@
  * Copyright (C) 2019-2022 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package org.apache.pekko.util
+package org.apache.pekko.bytestring
 
-import org.apache.pekko.util.ByteIterator.ByteArrayIterator
+import org.apache.pekko.bytestring.ByteIterator.ByteArrayIterator
 
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec

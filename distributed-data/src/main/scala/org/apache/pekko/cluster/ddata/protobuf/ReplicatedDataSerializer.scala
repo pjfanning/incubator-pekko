@@ -38,7 +38,7 @@ import pekko.remote.ByteStringUtils
 import pekko.serialization.BaseSerializer
 import pekko.serialization.Serialization
 import pekko.serialization.SerializerWithStringManifest
-import pekko.util.ByteString.UTF_8
+import pekko.bytestring.ByteString.UTF_8
 
 private object ReplicatedDataSerializer {
   /*

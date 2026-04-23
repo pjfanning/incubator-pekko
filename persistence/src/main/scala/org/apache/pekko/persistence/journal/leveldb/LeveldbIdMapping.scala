@@ -19,7 +19,7 @@ import org.iq80.leveldb.DBIterator
 
 import org.apache.pekko
 import pekko.actor.Actor
-import pekko.util.ByteString.UTF_8
+import pekko.bytestring.ByteString.UTF_8
 
 /**
  * INTERNAL API.

@@ -19,8 +19,8 @@ import java.nio.ByteOrder
 import org.apache.pekko
 import pekko.actor._
 import pekko.serialization._
-import pekko.util.ByteString.UTF_8
-import pekko.util.SWARUtil
+import pekko.bytestring.ByteString.UTF_8
+import pekko.bytestring.SWARUtil
 
 /**
  * Wrapper for snapshot `data`. Snapshot `data` are the actual snapshot objects captured by

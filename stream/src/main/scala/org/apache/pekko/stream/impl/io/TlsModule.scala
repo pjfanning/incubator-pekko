@@ -24,7 +24,7 @@ import pekko.stream._
 import pekko.stream.TLSProtocol._
 import pekko.stream.impl.{ TlsModuleIslandTag, TraversalBuilder }
 import pekko.stream.impl.StreamLayout.AtomicModule
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 /**
  * INTERNAL API.

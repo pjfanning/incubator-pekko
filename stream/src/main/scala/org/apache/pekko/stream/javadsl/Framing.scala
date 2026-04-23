@@ -18,7 +18,7 @@ import java.nio.ByteOrder
 import org.apache.pekko
 import pekko.NotUsed
 import pekko.stream.scaladsl
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 object Framing {
 

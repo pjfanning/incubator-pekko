@@ -17,7 +17,7 @@ import java.util.zip.{ CRC32, Deflater }
 
 import org.apache.pekko
 import pekko.annotation.InternalApi
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 /** INTERNAL API */
 @InternalApi private[pekko] class GzipCompressor(compressionLevel: Int = Deflater.BEST_COMPRESSION)

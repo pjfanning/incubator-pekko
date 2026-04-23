@@ -22,7 +22,7 @@ import org.apache.pekko
 import pekko.stream.IOResult
 import pekko.stream.impl.Stages.DefaultAttributes
 import pekko.stream.impl.io._
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 /**
  * Factories to create sinks and sources from files

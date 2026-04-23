@@ -19,7 +19,7 @@ import scala.annotation.varargs
 import scala.collection.immutable
 
 import org.apache.pekko
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 /**
  * Many protocols are asymmetric and distinguish between the client and the

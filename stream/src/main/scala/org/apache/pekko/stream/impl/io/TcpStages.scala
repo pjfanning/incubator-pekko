@@ -37,7 +37,7 @@ import pekko.stream.scaladsl.{ BidiFlow, Flow, Tcp => StreamTcp, TcpIdleTimeoutE
 import pekko.stream.scaladsl.Tcp.{ OutgoingConnection, ServerBinding }
 import pekko.stream.scaladsl.TcpAttributes
 import pekko.stream.stage._
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 /**
  * INTERNAL API

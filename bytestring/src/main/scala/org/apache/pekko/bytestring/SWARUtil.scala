@@ -13,7 +13,7 @@
  * the License.
  */
 
-package org.apache.pekko.util
+package org.apache.pekko.bytestring
 
 import java.lang.invoke.MethodHandles
 import java.nio.ByteOrder

@@ -26,7 +26,7 @@ import pekko.stream.{ javadsl, scaladsl }
 import pekko.stream.IOResult
 import pekko.stream.scaladsl.SinkToCompletionStage
 import pekko.stream.scaladsl.SourceToCompletionStage
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 /**
  * Converters for interacting with the blocking `java.io` streams APIs and Java 8 Streams

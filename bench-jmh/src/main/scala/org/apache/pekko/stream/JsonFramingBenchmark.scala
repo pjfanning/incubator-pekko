@@ -19,7 +19,7 @@ import org.openjdk.jmh.annotations._
 
 import org.apache.pekko
 import pekko.stream.impl.JsonObjectParser
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 @State(Scope.Benchmark)
 @OutputTimeUnit(TimeUnit.SECONDS)
