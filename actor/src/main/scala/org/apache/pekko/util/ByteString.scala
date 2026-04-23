@@ -2244,32 +2244,21 @@ final class ByteStringBuilder extends Builder[Byte, ByteString] {
    * Add a single Short to this builder.
    */
   def putShort(x: Int)(implicit byteOrder: ByteOrder): this.type = {
-    if (byteOrder == ByteOrder.BIG_ENDIAN) {
-      this += (x >>> 8).toByte
-      this += (x >>> 0).toByte
-    } else if (byteOrder == ByteOrder.LITTLE_ENDIAN) {
-      this += (x >>> 0).toByte
-      this += (x >>> 8).toByte
-    } else throw new IllegalArgumentException("Unknown byte order " + byteOrder)
+    ensureTempSize(_tempLength + 2)
+    SWARUtil.putShort(_temp, _tempLength, x, byteOrder)
+    _tempLength += 2
+    _length += 2
+    this
   }
 
   /**
    * Add a single Int to this builder.
    */
   def putInt(x: Int)(implicit byteOrder: ByteOrder): this.type = {
-    fillArray(4) { (target, offset) =>
-      if (byteOrder == ByteOrder.BIG_ENDIAN) {
-        target(offset + 0) = (x >>> 24).toByte
-        target(offset + 1) = (x >>> 16).toByte
-        target(offset + 2) = (x >>> 8).toByte
-        target(offset + 3) = (x >>> 0).toByte
-      } else if (byteOrder == ByteOrder.LITTLE_ENDIAN) {
-        target(offset + 0) = (x >>> 0).toByte
-        target(offset + 1) = (x >>> 8).toByte
-        target(offset + 2) = (x >>> 16).toByte
-        target(offset + 3) = (x >>> 24).toByte
-      } else throw new IllegalArgumentException("Unknown byte order " + byteOrder)
-    }
+    ensureTempSize(_tempLength + 4)
+    SWARUtil.putInt(_temp, _tempLength, x, byteOrder)
+    _tempLength += 4
+    _length += 4
     this
   }
 
@@ -2277,27 +2266,10 @@ final class ByteStringBuilder extends Builder[Byte, ByteString] {
    * Add a single Long to this builder.
    */
   def putLong(x: Long)(implicit byteOrder: ByteOrder): this.type = {
-    fillArray(8) { (target, offset) =>
-      if (byteOrder == ByteOrder.BIG_ENDIAN) {
-        target(offset + 0) = (x >>> 56).toByte
-        target(offset + 1) = (x >>> 48).toByte
-        target(offset + 2) = (x >>> 40).toByte
-        target(offset + 3) = (x >>> 32).toByte
-        target(offset + 4) = (x >>> 24).toByte
-        target(offset + 5) = (x >>> 16).toByte
-        target(offset + 6) = (x >>> 8).toByte
-        target(offset + 7) = (x >>> 0).toByte
-      } else if (byteOrder == ByteOrder.LITTLE_ENDIAN) {
-        target(offset + 0) = (x >>> 0).toByte
-        target(offset + 1) = (x >>> 8).toByte
-        target(offset + 2) = (x >>> 16).toByte
-        target(offset + 3) = (x >>> 24).toByte
-        target(offset + 4) = (x >>> 32).toByte
-        target(offset + 5) = (x >>> 40).toByte
-        target(offset + 6) = (x >>> 48).toByte
-        target(offset + 7) = (x >>> 56).toByte
-      } else throw new IllegalArgumentException("Unknown byte order " + byteOrder)
-    }
+    ensureTempSize(_tempLength + 8)
+    SWARUtil.putLong(_temp, _tempLength, x, byteOrder)
+    _tempLength += 8
+    _length += 8
     this
   }
 
