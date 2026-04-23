@@ -25,7 +25,7 @@ import org.apache.pekko.io.Inet;
 import org.apache.pekko.io.Tcp;
 import org.apache.pekko.io.TcpMessage;
 import org.apache.pekko.io.TcpSO;
-import org.apache.pekko.util.ByteString;
+import org.apache.pekko.bytestring.ByteString;
 
 // #imports
 

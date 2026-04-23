@@ -18,7 +18,7 @@ import org.apache.pekko.NotUsed;
 import org.apache.pekko.actor.ActorSystem;
 import org.apache.pekko.stream.javadsl.Flow;
 import org.apache.pekko.testkit.javadsl.TestKit;
-import org.apache.pekko.util.ByteString;
+import org.apache.pekko.bytestring.ByteString;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

@@ -18,7 +18,7 @@ import java.util.zip.Deflater
 import org.apache.pekko
 import pekko.NotUsed
 import pekko.stream.impl.io.compression._
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 object Compression {
   final val MaxBytesPerChunkDefault = 64 * 1024

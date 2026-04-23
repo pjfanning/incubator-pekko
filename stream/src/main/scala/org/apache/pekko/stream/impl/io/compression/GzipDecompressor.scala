@@ -20,7 +20,7 @@ import pekko.annotation.InternalApi
 import pekko.stream.Attributes
 import pekko.stream.impl.io.ByteStringParser
 import pekko.stream.impl.io.ByteStringParser.{ ParseResult, ParseStep }
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 /** INTERNAL API */
 @InternalApi private[pekko] class GzipDecompressor(maxBytesPerChunk: Int)

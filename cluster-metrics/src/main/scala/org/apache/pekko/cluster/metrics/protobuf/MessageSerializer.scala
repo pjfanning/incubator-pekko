@@ -26,7 +26,7 @@ import pekko.actor.{ Address, ExtendedActorSystem }
 import pekko.cluster.metrics._
 import pekko.cluster.metrics.protobuf.msg.{ ClusterMetricsMessages => cm }
 import pekko.dispatch.Dispatchers
-import pekko.io.UnsynchronizedByteArrayInputStream
+import pekko.bytestring.UnsynchronizedByteArrayInputStream
 import pekko.protobufv3.internal.MessageLite
 import pekko.remote.ByteStringUtils
 import pekko.serialization.{ BaseSerializer, SerializationExtension, SerializerWithStringManifest, Serializers }

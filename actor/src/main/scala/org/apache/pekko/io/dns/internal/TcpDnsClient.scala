@@ -21,7 +21,7 @@ import pekko.actor.{ Actor, ActorLogging, ActorRef, Stash, Terminated }
 import pekko.annotation.InternalApi
 import pekko.io.Tcp
 import pekko.io.dns.internal.DnsClient.Answer
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 /**
  * INTERNAL API

@@ -23,7 +23,7 @@ import pekko.actor.{ ActorRef, Address, NoSerializationVerificationNeeded }
 import pekko.actor.DeadLetterSuppression
 import pekko.event.LoggingAdapter
 import pekko.remote.transport.AssociationHandle.HandleEventListener
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 @deprecated("Classic remoting is deprecated, use Artery", "Akka 2.6.0")
 object Transport {

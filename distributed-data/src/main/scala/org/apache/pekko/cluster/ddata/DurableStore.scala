@@ -41,7 +41,7 @@ import pekko.cluster.ddata.Replicator.ReplicatorMessage
 import pekko.io.DirectByteBufferPool
 import pekko.serialization.SerializationExtension
 import pekko.serialization.SerializerWithStringManifest
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 import pekko.util.OptionVal
 
 import com.typesafe.config.Config

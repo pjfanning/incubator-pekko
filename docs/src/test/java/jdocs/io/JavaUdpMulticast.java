@@ -29,7 +29,7 @@ import org.apache.pekko.event.LoggingAdapter;
 import org.apache.pekko.io.Inet;
 import org.apache.pekko.io.Udp;
 import org.apache.pekko.io.UdpMessage;
-import org.apache.pekko.util.ByteString;
+import org.apache.pekko.bytestring.ByteString;
 
 // #imports
 

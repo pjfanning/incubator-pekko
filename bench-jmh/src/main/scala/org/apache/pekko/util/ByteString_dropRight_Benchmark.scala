@@ -19,7 +19,7 @@ import scala.util.Random
 
 import org.openjdk.jmh.annotations._
 
-import org.apache.pekko.util.ByteString.{ ByteString1, ByteStrings }
+import org.apache.pekko.bytestring.ByteString.{ ByteString1, ByteStrings }
 
 @State(Scope.Benchmark)
 @Measurement(timeUnit = TimeUnit.MILLISECONDS)

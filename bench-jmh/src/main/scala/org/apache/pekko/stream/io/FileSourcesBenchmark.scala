@@ -31,7 +31,7 @@ import pekko.actor.ActorSystem
 import pekko.stream.Attributes
 import pekko.stream.IOResult
 import pekko.stream.scaladsl._
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 /**
  * Benchmark                         (bufSize)  Mode  Cnt    Score    Error  Units

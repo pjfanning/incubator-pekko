@@ -39,7 +39,7 @@ import pekko.remote.Remoting.TransportSupervisor
 import pekko.remote.transport._
 import pekko.remote.transport.PekkoPduCodec.Message
 import pekko.remote.transport.Transport.{ ActorAssociationEventListener, AssociationEventListener, InboundAssociation }
-import pekko.util.ByteString.UTF_8
+import pekko.bytestring.ByteString.UTF_8
 import pekko.util.OptionVal
 
 import com.typesafe.config.Config

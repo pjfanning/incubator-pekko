@@ -18,7 +18,7 @@ import scala.annotation.switch
 import org.apache.pekko
 import pekko.annotation.InternalApi
 import pekko.stream.scaladsl.Framing.FramingException
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 /**
  * INTERNAL API: Use [[pekko.stream.scaladsl.JsonFraming]] instead.

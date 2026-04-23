@@ -11,7 +11,7 @@
  * Copyright (C) 2009-2022 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package org.apache.pekko.util
+package org.apache.pekko.bytestring
 
 import java.nio.{ ByteBuffer, ByteOrder }
 
@@ -21,7 +21,6 @@ import scala.collection.LinearSeq
 import scala.collection.mutable.ListBuffer
 import scala.reflect.ClassTag
 
-import org.apache.pekko.util.Collections.EmptyImmutableSeq
 
 object ByteIterator {
   object ByteArrayIterator {
@@ -46,7 +45,7 @@ object ByteIterator {
     final def head: Byte = array(from)
 
     final def next(): Byte = {
-      if (!hasNext) EmptyImmutableSeq.iterator.next()
+      if (!hasNext) throw new java.util.NoSuchElementException("next on empty ByteIterator")
       else {
         val i = from; from = from + 1; array(i)
       }
@@ -370,7 +369,7 @@ object ByteIterator {
         getMult: (Array[A], Int, Int) => Unit): this.type =
       if (n <= 0) this
       else {
-        if (isEmpty) EmptyImmutableSeq.iterator.next()
+        if (isEmpty) throw new java.util.NoSuchElementException("next on empty ByteIterator")
         val nDone = if (current.len >= elemSize) {
           val nCurrent = math.min(n, current.len / elemSize)
           getMult(xs, offset, nCurrent)

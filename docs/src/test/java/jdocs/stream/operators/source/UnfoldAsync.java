@@ -22,7 +22,7 @@ import org.apache.pekko.actor.typed.ActorSystem;
 import org.apache.pekko.actor.typed.javadsl.AskPattern;
 import org.apache.pekko.japi.Pair;
 import org.apache.pekko.stream.javadsl.Source;
-import org.apache.pekko.util.ByteString;
+import org.apache.pekko.bytestring.ByteString;
 
 interface UnfoldAsync {
 

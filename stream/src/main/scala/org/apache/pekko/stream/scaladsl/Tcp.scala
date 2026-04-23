@@ -42,7 +42,7 @@ import pekko.stream.impl.fusing.GraphStages.detacher
 import pekko.stream.impl.io.ConnectionSourceStage
 import pekko.stream.impl.io.OutgoingConnectionStage
 import pekko.stream.impl.io.TcpIdleTimeout
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 object Tcp extends ExtensionId[Tcp] with ExtensionIdProvider {
 

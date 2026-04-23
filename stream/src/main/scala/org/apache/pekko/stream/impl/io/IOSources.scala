@@ -27,7 +27,7 @@ import pekko.Done
 import pekko.stream.{ IOResult, _ }
 import pekko.stream.Attributes.InputBuffer
 import pekko.stream.stage._
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 /**
  * INTERNAL API

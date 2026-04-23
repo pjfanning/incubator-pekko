@@ -26,7 +26,7 @@ import pekko.stream.impl.io.ByteStringParser.ParseResult
 import pekko.stream.impl.io.ByteStringParser.ParseStep
 import pekko.stream.scaladsl.Framing.FramingException
 import pekko.stream.stage.GraphStageLogic
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 /**
  * INTERNAL API

@@ -11,7 +11,7 @@
  * Copyright (C) 2020-2022 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package org.apache.pekko.util
+package org.apache.pekko.bytestring
 
 import java.io.InputStream
 
@@ -47,7 +47,7 @@ class ByteStringInitializationSpec extends AnyWordSpec with Matchers {
       }
 
       cleanCl
-        .loadClass("org.apache.pekko.util.ByteStringInitTest")
+        .loadClass("org.apache.pekko.bytestring.ByteStringInitTest")
         .getDeclaredConstructor()
         .newInstance()
         .asInstanceOf[Runnable]

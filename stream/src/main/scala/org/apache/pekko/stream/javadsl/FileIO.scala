@@ -23,7 +23,7 @@ import org.apache.pekko
 import pekko.stream.{ javadsl, scaladsl, IOResult }
 import pekko.stream.scaladsl.SinkToCompletionStage
 import pekko.stream.scaladsl.SourceToCompletionStage
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 /**
  * Java API: Factories to create sinks and sources from files

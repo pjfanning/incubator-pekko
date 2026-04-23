@@ -24,7 +24,7 @@ import java.util.concurrent.TimeoutException;
 import org.apache.pekko.stream.StreamTestJupiter;
 import org.apache.pekko.testkit.PekkoJUnitJupiterActorSystemResource;
 import org.apache.pekko.testkit.PekkoSpec;
-import org.apache.pekko.util.ByteString;
+import org.apache.pekko.bytestring.ByteString;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 

@@ -15,7 +15,7 @@ package org.apache.pekko.stream.impl.io.compression
 
 import org.apache.pekko
 import pekko.annotation.InternalApi
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 /**
  * INTERNAL API

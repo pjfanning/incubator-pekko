@@ -11,7 +11,7 @@
  * Copyright (C) 2009-2022 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package org.apache.pekko.util
+package org.apache.pekko.bytestring
 
 import java.io.{ InputStream, ObjectInputStream, ObjectOutputStream, SequenceInputStream }
 import java.lang.{ Iterable => JIterable }
@@ -26,7 +26,6 @@ import scala.collection.mutable.{ Builder, WrappedArray }
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 
-import org.apache.pekko.io.UnsynchronizedByteArrayInputStream
 
 object ByteString {
 
@@ -2102,7 +2101,7 @@ sealed abstract class CompactByteString extends ByteString with Serializable {
 }
 
 /**
- * A mutable builder for efficiently creating a [[org.apache.pekko.util.ByteString]].
+ * A mutable builder for efficiently creating a [[ByteString]].
  *
  * The created ByteString is not automatically compacted.
  */

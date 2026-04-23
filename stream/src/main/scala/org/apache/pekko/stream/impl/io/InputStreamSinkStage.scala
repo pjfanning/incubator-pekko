@@ -27,7 +27,7 @@ import pekko.stream.Attributes.InputBuffer
 import pekko.stream.impl.Stages.DefaultAttributes
 import pekko.stream.impl.io.InputStreamSinkStage._
 import pekko.stream.stage._
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 private[stream] object InputStreamSinkStage {
 

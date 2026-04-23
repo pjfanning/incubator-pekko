@@ -30,7 +30,7 @@ import org.apache.pekko.io.Tcp.Received;
 import org.apache.pekko.io.Tcp.Write;
 import org.apache.pekko.io.Tcp.WritingResumed;
 import org.apache.pekko.io.TcpMessage;
-import org.apache.pekko.util.ByteString;
+import org.apache.pekko.bytestring.ByteString;
 
 // #echo-handler
 public class EchoHandler extends AbstractActor {

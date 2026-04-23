@@ -34,7 +34,7 @@ import pekko.stream.{
 }
 import pekko.stream.impl.Stages.DefaultAttributes
 import pekko.stream.stage.{ GraphStageLogic, GraphStageWithMaterializedValue, InHandler }
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 /**
  * INTERNAL API

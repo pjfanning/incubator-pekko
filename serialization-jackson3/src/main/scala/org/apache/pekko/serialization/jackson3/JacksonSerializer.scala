@@ -30,7 +30,7 @@ import org.apache.pekko
 import pekko.actor.ExtendedActorSystem
 import pekko.annotation.InternalApi
 import pekko.event.{ LogMarker, Logging }
-import pekko.io.UnsynchronizedByteArrayInputStream
+import pekko.bytestring.UnsynchronizedByteArrayInputStream
 import pekko.serialization.{ BaseSerializer, SerializationExtension, SerializerWithStringManifest }
 import pekko.util.Helpers.toRootLowerCase
 import pekko.util.OptionVal

@@ -41,7 +41,7 @@ import pekko.stream.Materializer
 import pekko.stream.SystemMaterializer
 import pekko.stream.TLSClosing
 import pekko.stream.scaladsl
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 import pekko.japi.Util.immutableSeq
 
 object Tcp extends ExtensionId[Tcp] with ExtensionIdProvider {

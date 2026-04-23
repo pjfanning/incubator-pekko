@@ -28,7 +28,7 @@ import pekko.actor.ExtendedActorSystem
 import pekko.cluster.UniqueAddress
 import pekko.cluster.ddata.VersionVector
 import pekko.cluster.ddata.protobuf.msg.{ ReplicatorMessages => dm }
-import pekko.io.UnsynchronizedByteArrayInputStream
+import pekko.bytestring.UnsynchronizedByteArrayInputStream
 import pekko.protobufv3.internal.ByteString
 import pekko.protobufv3.internal.MessageLite
 import pekko.remote.ByteStringUtils

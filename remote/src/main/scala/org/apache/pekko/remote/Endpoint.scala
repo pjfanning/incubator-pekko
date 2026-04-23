@@ -46,7 +46,7 @@ import pekko.remote.transport.AssociationHandle.{
 import pekko.remote.transport.PekkoPduCodec.Message
 import pekko.remote.transport.Transport.InvalidAssociationException
 import pekko.serialization.Serialization
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 import pekko.util.OptionVal
 
 /**

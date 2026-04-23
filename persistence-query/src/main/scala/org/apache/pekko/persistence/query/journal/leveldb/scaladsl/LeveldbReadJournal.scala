@@ -31,7 +31,7 @@ import pekko.persistence.query.journal.leveldb.EventsByTagStage
 import pekko.persistence.query.scaladsl._
 import pekko.persistence.query.scaladsl.ReadJournal
 import pekko.stream.scaladsl.Source
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 import com.typesafe.config.Config
 

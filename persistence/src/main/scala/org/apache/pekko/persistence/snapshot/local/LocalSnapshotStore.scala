@@ -28,7 +28,7 @@ import pekko.persistence._
 import pekko.persistence.serialization._
 import pekko.persistence.snapshot._
 import pekko.serialization.SerializationExtension
-import pekko.util.ByteString.UTF_8
+import pekko.bytestring.ByteString.UTF_8
 
 import com.typesafe.config.Config
 

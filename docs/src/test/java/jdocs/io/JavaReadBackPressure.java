@@ -23,7 +23,7 @@ import org.apache.pekko.actor.Props;
 import org.apache.pekko.io.Inet;
 import org.apache.pekko.io.Tcp;
 import org.apache.pekko.io.TcpMessage;
-import org.apache.pekko.util.ByteString;
+import org.apache.pekko.bytestring.ByteString;
 
 /** Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com> */
 public class JavaReadBackPressure {

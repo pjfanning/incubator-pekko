@@ -21,7 +21,7 @@ import pekko.actor.{ ActorRef, Address, AddressFromURIString, InternalActorRef }
 import pekko.protobufv3.internal.InvalidProtocolBufferException
 import pekko.remote._
 import pekko.remote.WireFormats._
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 import pekko.util.OptionVal
 
 /**

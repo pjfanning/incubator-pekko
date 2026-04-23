@@ -65,7 +65,7 @@ import pekko.dispatch.Dispatchers
 import pekko.event.Logging
 import pekko.remote.RARP
 import pekko.serialization.SerializationExtension
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 import pekko.util.Helpers.toRootLowerCase
 
 import com.typesafe.config.Config

@@ -13,12 +13,11 @@
  * the License.
  */
 
-package org.apache.pekko.util
+package org.apache.pekko.bytestring
 
 import java.lang.invoke.MethodHandles
 import java.nio.ByteOrder
 
-import org.apache.pekko.annotation.InternalApi
 
 /**
  * SWAR (SIMD Within A Register) utility class. Internal Use Only.
@@ -59,7 +58,7 @@ import org.apache.pekko.annotation.InternalApi
  * (`getLongBEWithoutMethodHandle`, etc.) so behaviour is always correct.
  * </p>
  */
-@InternalApi
+
 private[pekko] object SWARUtil {
 
   private val (longBeArrayView, longBeArrayViewSupported) =

@@ -15,7 +15,7 @@ package org.apache.pekko.remote.artery.compress;
 
 import java.nio.ByteOrder;
 import org.apache.pekko.actor.ActorRef;
-import org.apache.pekko.util.SWARUtil;
+import org.apache.pekko.bytestring.SWARUtil;
 
 /**
  * INTERNAL API: Count-Min Sketch datastructure.

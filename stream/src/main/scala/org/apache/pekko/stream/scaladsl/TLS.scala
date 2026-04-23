@@ -22,7 +22,7 @@ import pekko.NotUsed
 import pekko.stream._
 import pekko.stream.TLSProtocol._
 import pekko.stream.impl.io.TlsModule
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 /**
  * Stream cipher support based upon JSSE.

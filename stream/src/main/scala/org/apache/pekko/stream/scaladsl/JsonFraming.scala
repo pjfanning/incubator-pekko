@@ -22,7 +22,7 @@ import pekko.stream.impl.JsonObjectParser
 import pekko.stream.impl.fusing.GraphStages.SimpleLinearGraphStage
 import pekko.stream.scaladsl.Framing.FramingException
 import pekko.stream.stage.{ GraphStageLogic, InHandler, OutHandler }
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 /** Provides JSON framing operators that can separate valid JSON objects from incoming [[pekko.util.ByteString]] objects. */
 object JsonFraming {

@@ -24,7 +24,7 @@ import pekko.event.LoggingAdapter
 import pekko.remote.transport.AssociationHandle
 import pekko.remote.transport.AssociationHandle.{ Disassociated, HandleEvent, HandleEventListener, InboundPayload }
 import pekko.remote.transport.Transport.AssociationEventListener
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 import io.netty.buffer.{ ByteBuf, ByteBufUtil, Unpooled }
 import io.netty.channel.{ Channel, ChannelHandlerContext }

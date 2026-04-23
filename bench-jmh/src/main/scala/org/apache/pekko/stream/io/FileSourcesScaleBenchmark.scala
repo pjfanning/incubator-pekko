@@ -30,7 +30,7 @@ import org.apache.pekko
 import pekko.actor.ActorSystem
 import pekko.stream.IOResult
 import pekko.stream.scaladsl._
-import pekko.util.ByteString
+import pekko.bytestring.ByteString
 
 @State(Scope.Benchmark)
 @BenchmarkMode(Array(Mode.AverageTime))
