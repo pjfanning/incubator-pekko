@@ -2769,6 +2769,182 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       }
     }
 
+    "putFloat" when {
+      "big-endian" in {
+        val builder = ByteString.newBuilder
+        builder.putFloat(1.0f)(BIG_ENDIAN)
+        val reference = new Array[Byte](4)
+        ByteBuffer.wrap(reference).order(BIG_ENDIAN).putFloat(1.0f)
+        builder.result().toSeq should ===(reference.toSeq)
+      }
+      "little-endian" in {
+        val builder = ByteString.newBuilder
+        builder.putFloat(1.0f)(LITTLE_ENDIAN)
+        val reference = new Array[Byte](4)
+        ByteBuffer.wrap(reference).order(LITTLE_ENDIAN).putFloat(1.0f)
+        builder.result().toSeq should ===(reference.toSeq)
+      }
+      "max value big-endian" in {
+        val builder = ByteString.newBuilder
+        builder.putFloat(Float.MaxValue)(BIG_ENDIAN)
+        val reference = new Array[Byte](4)
+        ByteBuffer.wrap(reference).order(BIG_ENDIAN).putFloat(Float.MaxValue)
+        builder.result().toSeq should ===(reference.toSeq)
+      }
+      "min value big-endian" in {
+        val builder = ByteString.newBuilder
+        builder.putFloat(Float.MinValue)(BIG_ENDIAN)
+        val reference = new Array[Byte](4)
+        ByteBuffer.wrap(reference).order(BIG_ENDIAN).putFloat(Float.MinValue)
+        builder.result().toSeq should ===(reference.toSeq)
+      }
+      "max value little-endian" in {
+        val builder = ByteString.newBuilder
+        builder.putFloat(Float.MaxValue)(LITTLE_ENDIAN)
+        val reference = new Array[Byte](4)
+        ByteBuffer.wrap(reference).order(LITTLE_ENDIAN).putFloat(Float.MaxValue)
+        builder.result().toSeq should ===(reference.toSeq)
+      }
+      "min value little-endian" in {
+        val builder = ByteString.newBuilder
+        builder.putFloat(Float.MinValue)(LITTLE_ENDIAN)
+        val reference = new Array[Byte](4)
+        ByteBuffer.wrap(reference).order(LITTLE_ENDIAN).putFloat(Float.MinValue)
+        builder.result().toSeq should ===(reference.toSeq)
+      }
+      "NaN big-endian" in {
+        val builder = ByteString.newBuilder
+        builder.putFloat(Float.NaN)(BIG_ENDIAN)
+        val bits = floatToRawIntBits(Float.NaN)
+        builder.result().toSeq should ===(
+          Seq[Byte]((bits >>> 24).toByte, (bits >>> 16).toByte, (bits >>> 8).toByte, bits.toByte))
+      }
+      "result has length 4" in {
+        val builder = ByteString.newBuilder
+        builder.putFloat(42.0f)(BIG_ENDIAN)
+        builder.length should ===(4)
+        builder.result().length should ===(4)
+      }
+      "multiple puts accumulate correctly" in {
+        val builder = ByteString.newBuilder
+        builder.putFloat(1.0f)(BIG_ENDIAN)
+        builder.putFloat(2.0f)(BIG_ENDIAN)
+        builder.length should ===(8)
+        val reference = new Array[Byte](8)
+        val buf = ByteBuffer.wrap(reference).order(BIG_ENDIAN)
+        buf.putFloat(1.0f)
+        buf.putFloat(2.0f)
+        builder.result().toSeq should ===(reference.toSeq)
+      }
+      "round-trips with ByteBuffer big-endian" in {
+        check { (value: Float) =>
+          val builder = ByteString.newBuilder
+          builder.putFloat(value)(BIG_ENDIAN)
+          val reference = new Array[Byte](4)
+          ByteBuffer.wrap(reference).order(BIG_ENDIAN).putFloat(value)
+          builder.result().toSeq == reference.toSeq
+        }
+      }
+      "round-trips with ByteBuffer little-endian" in {
+        check { (value: Float) =>
+          val builder = ByteString.newBuilder
+          builder.putFloat(value)(LITTLE_ENDIAN)
+          val reference = new Array[Byte](4)
+          ByteBuffer.wrap(reference).order(LITTLE_ENDIAN).putFloat(value)
+          builder.result().toSeq == reference.toSeq
+        }
+      }
+    }
+
+    "putDouble" when {
+      "big-endian" in {
+        val builder = ByteString.newBuilder
+        builder.putDouble(1.0)(BIG_ENDIAN)
+        val reference = new Array[Byte](8)
+        ByteBuffer.wrap(reference).order(BIG_ENDIAN).putDouble(1.0)
+        builder.result().toSeq should ===(reference.toSeq)
+      }
+      "little-endian" in {
+        val builder = ByteString.newBuilder
+        builder.putDouble(1.0)(LITTLE_ENDIAN)
+        val reference = new Array[Byte](8)
+        ByteBuffer.wrap(reference).order(LITTLE_ENDIAN).putDouble(1.0)
+        builder.result().toSeq should ===(reference.toSeq)
+      }
+      "max value big-endian" in {
+        val builder = ByteString.newBuilder
+        builder.putDouble(Double.MaxValue)(BIG_ENDIAN)
+        val reference = new Array[Byte](8)
+        ByteBuffer.wrap(reference).order(BIG_ENDIAN).putDouble(Double.MaxValue)
+        builder.result().toSeq should ===(reference.toSeq)
+      }
+      "min value big-endian" in {
+        val builder = ByteString.newBuilder
+        builder.putDouble(Double.MinValue)(BIG_ENDIAN)
+        val reference = new Array[Byte](8)
+        ByteBuffer.wrap(reference).order(BIG_ENDIAN).putDouble(Double.MinValue)
+        builder.result().toSeq should ===(reference.toSeq)
+      }
+      "max value little-endian" in {
+        val builder = ByteString.newBuilder
+        builder.putDouble(Double.MaxValue)(LITTLE_ENDIAN)
+        val reference = new Array[Byte](8)
+        ByteBuffer.wrap(reference).order(LITTLE_ENDIAN).putDouble(Double.MaxValue)
+        builder.result().toSeq should ===(reference.toSeq)
+      }
+      "min value little-endian" in {
+        val builder = ByteString.newBuilder
+        builder.putDouble(Double.MinValue)(LITTLE_ENDIAN)
+        val reference = new Array[Byte](8)
+        ByteBuffer.wrap(reference).order(LITTLE_ENDIAN).putDouble(Double.MinValue)
+        builder.result().toSeq should ===(reference.toSeq)
+      }
+      "NaN big-endian" in {
+        val builder = ByteString.newBuilder
+        builder.putDouble(Double.NaN)(BIG_ENDIAN)
+        val bits = doubleToRawLongBits(Double.NaN)
+        builder.result().toSeq should ===(
+          Seq[Byte](
+            (bits >>> 56).toByte, (bits >>> 48).toByte, (bits >>> 40).toByte, (bits >>> 32).toByte,
+            (bits >>> 24).toByte, (bits >>> 16).toByte, (bits >>> 8).toByte, bits.toByte))
+      }
+      "result has length 8" in {
+        val builder = ByteString.newBuilder
+        builder.putDouble(42.0)(BIG_ENDIAN)
+        builder.length should ===(8)
+        builder.result().length should ===(8)
+      }
+      "multiple puts accumulate correctly" in {
+        val builder = ByteString.newBuilder
+        builder.putDouble(1.0)(BIG_ENDIAN)
+        builder.putDouble(2.0)(BIG_ENDIAN)
+        builder.length should ===(16)
+        val reference = new Array[Byte](16)
+        val buf = ByteBuffer.wrap(reference).order(BIG_ENDIAN)
+        buf.putDouble(1.0)
+        buf.putDouble(2.0)
+        builder.result().toSeq should ===(reference.toSeq)
+      }
+      "round-trips with ByteBuffer big-endian" in {
+        check { (value: Double) =>
+          val builder = ByteString.newBuilder
+          builder.putDouble(value)(BIG_ENDIAN)
+          val reference = new Array[Byte](8)
+          ByteBuffer.wrap(reference).order(BIG_ENDIAN).putDouble(value)
+          builder.result().toSeq == reference.toSeq
+        }
+      }
+      "round-trips with ByteBuffer little-endian" in {
+        check { (value: Double) =>
+          val builder = ByteString.newBuilder
+          builder.putDouble(value)(LITTLE_ENDIAN)
+          val reference = new Array[Byte](8)
+          ByteBuffer.wrap(reference).order(LITTLE_ENDIAN).putDouble(value)
+          builder.result().toSeq == reference.toSeq
+        }
+      }
+    }
+
     "putShort" when {
       "big-endian" in {
         val builder = ByteString.newBuilder
