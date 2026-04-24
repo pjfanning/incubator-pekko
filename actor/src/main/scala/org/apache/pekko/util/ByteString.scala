@@ -945,12 +945,12 @@ object ByteString {
     def isCompact: Boolean = if (bytestrings.length == 1) bytestrings.head.isCompact else false
 
     override def copyToBuffer(buffer: ByteBuffer): Int = {
-      @tailrec def copyItToTheBuffer(buffer: ByteBuffer, i: Int, written: Int): Int =
-        if (i < bytestrings.length && buffer.hasRemaining)
-          copyItToTheBuffer(buffer, i + 1, written + bytestrings(i).writeToBuffer(buffer))
-        else written
-
-      copyItToTheBuffer(buffer, 0, 0)
+      val it = bytestrings.iterator
+      var written = 0
+      while (it.hasNext && buffer.hasRemaining) {
+        written += it.next().writeToBuffer(buffer)
+      }
+      written
     }
 
     def compact: CompactByteString = {
