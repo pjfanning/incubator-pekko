@@ -415,7 +415,7 @@ object ByteString {
 
     /** INTERNAL API: Specialized for internal use, writing multiple ByteString1C into the same ByteBuffer. */
     private[pekko] def writeToBuffer(buffer: ByteBuffer, offset: Int): Int = {
-      val copyLength = Math.min(buffer.remaining, length - offset)
+      val copyLength = Math.max(0, Math.min(buffer.remaining, length - offset))
       if (copyLength > 0) {
         buffer.put(bytes, offset, copyLength)
       }
@@ -945,11 +945,12 @@ object ByteString {
     def isCompact: Boolean = if (bytestrings.length == 1) bytestrings.head.isCompact else false
 
     override def copyToBuffer(buffer: ByteBuffer): Int = {
-      @tailrec def copyItToTheBuffer(buffer: ByteBuffer, i: Int, written: Int): Int =
-        if (i < bytestrings.length) copyItToTheBuffer(buffer, i + 1, written + bytestrings(i).writeToBuffer(buffer))
-        else written
-
-      copyItToTheBuffer(buffer, 0, 0)
+      val it = bytestrings.iterator
+      var written = 0
+      while (it.hasNext && buffer.hasRemaining) {
+        written += it.next().writeToBuffer(buffer)
+      }
+      written
     }
 
     def compact: CompactByteString = {
