@@ -84,7 +84,7 @@ abstract class ClusterShardingCoordinatorRoleSpec(multiNodeConfig: ClusterShardi
     extends MultiNodeClusterShardingSpec(multiNodeConfig)
     with ImplicitSender {
 
-  import multiNodeConfig.{ first, second, third, fourth }
+  import multiNodeConfig.{ first, fourth, second, third }
 
   private val rememberEntities = multiNodeConfig.rememberEntities
 
