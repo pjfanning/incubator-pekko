@@ -36,7 +36,6 @@ import pekko.serialization.BaseSerializer
 import pekko.serialization.SerializationExtension
 import pekko.serialization.SerializerWithStringManifest
 import pekko.serialization.Serializers
-import pekko.util.ccompat.JavaConverters._
 
 /**
  * INTERNAL API
@@ -93,6 +92,7 @@ import pekko.util.ccompat.JavaConverters._
         builder.setSource(env.source)
 
       if (env.tags.nonEmpty) {
+        import scala.jdk.CollectionConverters._
         builder.addAllTags(env.tags.asJava)
       }
 
@@ -122,7 +122,10 @@ import pekko.util.ccompat.JavaConverters._
       val source = if (env.hasSource) env.getSource else ""
       val tags =
         if (env.getTagsList.isEmpty) Set.empty[String]
-        else env.getTagsList.iterator.asScala.toSet
+        else {
+          import scala.jdk.CollectionConverters._
+          env.getTagsList.iterator.asScala.toSet
+        }
 
       new EventEnvelope(
         offset,

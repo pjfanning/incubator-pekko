@@ -20,7 +20,6 @@ import org.apache.pekko
 import pekko.annotation.ApiMayChange
 import pekko.persistence.query.Offset
 import pekko.util.HashCode
-import pekko.util.ccompat.JavaConverters._
 
 object EventEnvelope {
 
@@ -90,8 +89,10 @@ object EventEnvelope {
       slice: Int,
       filtered: Boolean,
       source: String,
-      tags: JSet[String]): EventEnvelope[Event] =
+      tags: JSet[String]): EventEnvelope[Event] = {
+    import scala.jdk.CollectionConverters._
     apply(offset, persistenceId, sequenceNr, event, timestamp, entityType, slice, filtered, source, tags.asScala.toSet)
+  }
 
   def create[Event](
       offset: Offset,
@@ -220,7 +221,10 @@ final class EventEnvelope[Event](
   /**
    * Java API:
    */
-  def getTags(): JSet[String] = tags.asJava
+  def getTags(): JSet[String] = {
+    import scala.jdk.CollectionConverters._
+    tags.asJava
+  }
 
   override def hashCode(): Int = {
     var result = HashCode.SEED
