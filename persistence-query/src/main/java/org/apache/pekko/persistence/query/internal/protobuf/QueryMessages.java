@@ -246,12 +246,14 @@ public final class QueryMessages extends org.apache.pekko.protobufv3.internal.Ge
      * @return A list containing the tags.
      */
     java.util.List<java.lang.String> getTagsList();
+
     /**
      * <code>repeated string tags = 12;</code>
      *
      * @return The count of tags.
      */
     int getTagsCount();
+
     /**
      * <code>repeated string tags = 12;</code>
      *
@@ -259,6 +261,7 @@ public final class QueryMessages extends org.apache.pekko.protobufv3.internal.Ge
      * @return The tags at the given index.
      */
     java.lang.String getTags(int index);
+
     /**
      * <code>repeated string tags = 12;</code>
      *
@@ -764,6 +767,7 @@ public final class QueryMessages extends org.apache.pekko.protobufv3.internal.Ge
 
     public static final int TAGS_FIELD_NUMBER = 12;
     private org.apache.pekko.protobufv3.internal.LazyStringList tags_;
+
     /**
      * <code>repeated string tags = 12;</code>
      *
@@ -772,6 +776,7 @@ public final class QueryMessages extends org.apache.pekko.protobufv3.internal.Ge
     public org.apache.pekko.protobufv3.internal.ProtocolStringList getTagsList() {
       return tags_;
     }
+
     /**
      * <code>repeated string tags = 12;</code>
      *
@@ -780,6 +785,7 @@ public final class QueryMessages extends org.apache.pekko.protobufv3.internal.Ge
     public int getTagsCount() {
       return tags_.size();
     }
+
     /**
      * <code>repeated string tags = 12;</code>
      *
@@ -789,6 +795,7 @@ public final class QueryMessages extends org.apache.pekko.protobufv3.internal.Ge
     public java.lang.String getTags(int index) {
       return tags_.get(index);
     }
+
     /**
      * <code>repeated string tags = 12;</code>
      *
@@ -890,7 +897,8 @@ public final class QueryMessages extends org.apache.pekko.protobufv3.internal.Ge
         org.apache.pekko.protobufv3.internal.GeneratedMessage.writeString(output, 11, source_);
       }
       for (int i = 0; i < tags_.size(); i++) {
-        org.apache.pekko.protobufv3.internal.GeneratedMessage.writeString(output, 12, tags_.getRaw(i));
+        org.apache.pekko.protobufv3.internal.GeneratedMessage.writeString(
+            output, 12, tags_.getRaw(i));
       }
       getUnknownFields().writeTo(output);
     }
@@ -2508,6 +2516,7 @@ public final class QueryMessages extends org.apache.pekko.protobufv3.internal.Ge
           bitField0_ |= 0x00000800;
         }
       }
+
       /**
        * <code>repeated string tags = 12;</code>
        *
@@ -2516,6 +2525,7 @@ public final class QueryMessages extends org.apache.pekko.protobufv3.internal.Ge
       public org.apache.pekko.protobufv3.internal.ProtocolStringList getTagsList() {
         return tags_.getUnmodifiableView();
       }
+
       /**
        * <code>repeated string tags = 12;</code>
        *
@@ -2524,6 +2534,7 @@ public final class QueryMessages extends org.apache.pekko.protobufv3.internal.Ge
       public int getTagsCount() {
         return tags_.size();
       }
+
       /**
        * <code>repeated string tags = 12;</code>
        *
@@ -2533,6 +2544,7 @@ public final class QueryMessages extends org.apache.pekko.protobufv3.internal.Ge
       public java.lang.String getTags(int index) {
         return tags_.get(index);
       }
+
       /**
        * <code>repeated string tags = 12;</code>
        *
@@ -2542,6 +2554,7 @@ public final class QueryMessages extends org.apache.pekko.protobufv3.internal.Ge
       public org.apache.pekko.protobufv3.internal.ByteString getTagsBytes(int index) {
         return tags_.getByteString(index);
       }
+
       /**
        * <code>repeated string tags = 12;</code>
        *
@@ -2558,6 +2571,7 @@ public final class QueryMessages extends org.apache.pekko.protobufv3.internal.Ge
         onChanged();
         return this;
       }
+
       /**
        * <code>repeated string tags = 12;</code>
        *
@@ -2573,6 +2587,7 @@ public final class QueryMessages extends org.apache.pekko.protobufv3.internal.Ge
         onChanged();
         return this;
       }
+
       /**
        * <code>repeated string tags = 12;</code>
        *
@@ -2585,6 +2600,7 @@ public final class QueryMessages extends org.apache.pekko.protobufv3.internal.Ge
         onChanged();
         return this;
       }
+
       /**
        * <code>repeated string tags = 12;</code>
        *
@@ -2596,6 +2612,7 @@ public final class QueryMessages extends org.apache.pekko.protobufv3.internal.Ge
         onChanged();
         return this;
       }
+
       /**
        * <code>repeated string tags = 12;</code>
        *
