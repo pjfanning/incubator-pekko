@@ -2230,9 +2230,13 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       ByteString1C(Array[Byte](1, 2, 3)).map(inc) should ===(ByteString(Array[Byte](2, 3, 4)))
       // ByteString1 with offset
       ByteString1(Array[Byte](0, 1, 2, 3, 4), 1, 3).map(inc) should ===(ByteString(Array[Byte](2, 3, 4)))
-      // ByteStrings
+      // ByteStrings (2 segments)
       val bss = ByteStrings(ByteString1.fromString("ab"), ByteString1.fromString("cd"))
       bss.map(b => (b + 1).toByte) should ===(ByteString("bcde"))
+      // ByteStrings (3 segments, including negative byte values)
+      val bss3 = ByteString1(Array[Byte](-1, -2)) ++ ByteString1(Array[Byte](0, 1)) ++ ByteString1(
+        Array[Byte](126, 127))
+      bss3.map(b => (b + 1).toByte) should ===(ByteString(Array[Byte](0, -1, 1, 2, 127, -128)))
       // empty
       ByteString.empty.map(inc) should ===(ByteString.empty)
     }
@@ -2247,9 +2251,12 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       collect(ByteString1C(Array[Byte](10, 20, 30))) should ===(Seq[Byte](10, 20, 30))
       // ByteString1 with internal offset
       collect(ByteString1(Array[Byte](0, 10, 20, 30, 40), 1, 3)) should ===(Seq[Byte](10, 20, 30))
-      // ByteStrings (multi-segment)
+      // ByteStrings (multi-segment, 2 segments)
       collect(ByteStrings(ByteString1.fromString("ab"), ByteString1.fromString("cd"))) should ===(
         Seq[Byte]('a', 'b', 'c', 'd'))
+      // ByteStrings (multi-segment, 3+ segments, including negative byte values)
+      val bss3 = ByteString1(Array[Byte](-1, -128)) ++ ByteString1(Array[Byte](0)) ++ ByteString1(Array[Byte](127))
+      collect(bss3) should ===(Seq[Byte](-1, -128, 0, 127))
       // empty
       collect(ByteString.empty) should ===(Seq.empty[Byte])
     }
@@ -2499,6 +2506,71 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
           buffer.get(array)
           bytes == array.toSeq
         }
+      }
+
+      "copyToBuffer returns the number of bytes written and respects buffer capacity" in {
+        import java.nio.ByteBuffer
+        // ByteString1C — full copy
+        val bs1c = ByteString1C(Array[Byte](1, 2, 3, 4, 5))
+        val buf1 = ByteBuffer.allocate(5)
+        bs1c.copyToBuffer(buf1) should ===(5)
+        buf1.flip()
+        buf1.get() should ===(1.toByte)
+
+        // ByteString1C — partial copy when buffer is smaller
+        val buf2 = ByteBuffer.allocate(3)
+        bs1c.copyToBuffer(buf2) should ===(3)
+        buf2.flip()
+        buf2.get() should ===(1.toByte)
+        buf2.get() should ===(2.toByte)
+        buf2.get() should ===(3.toByte)
+
+        // ByteString1C — empty buffer, 0 bytes copied
+        val buf3 = ByteBuffer.allocate(0)
+        bs1c.copyToBuffer(buf3) should ===(0)
+
+        // ByteString1 with internal offset — full copy
+        val bs1 = ByteString1(Array[Byte](0, 10, 20, 30, 40, 50), 1, 4) // [10, 20, 30, 40]
+        val buf4 = ByteBuffer.allocate(4)
+        bs1.copyToBuffer(buf4) should ===(4)
+        buf4.flip()
+        buf4.get() should ===(10.toByte)
+
+        // ByteString1 with internal offset — partial copy
+        val buf5 = ByteBuffer.allocate(2)
+        bs1.copyToBuffer(buf5) should ===(2)
+        buf5.flip()
+        buf5.get() should ===(10.toByte)
+        buf5.get() should ===(20.toByte)
+
+        // ByteStrings — full copy, all segments visited
+        val bss = ByteStrings(ByteString1.fromString("abc"), ByteString1.fromString("def"))
+        val buf6 = ByteBuffer.allocate(6)
+        bss.copyToBuffer(buf6) should ===(6)
+        buf6.flip()
+        val result6 = new Array[Byte](6)
+        buf6.get(result6)
+        result6.toSeq should ===(Seq[Byte]('a', 'b', 'c', 'd', 'e', 'f'))
+
+        // ByteStrings — partial copy stops mid-segment-boundary
+        val buf7 = ByteBuffer.allocate(4)
+        bss.copyToBuffer(buf7) should ===(4)
+        buf7.flip()
+        val result7 = new Array[Byte](4)
+        buf7.get(result7)
+        result7.toSeq should ===(Seq[Byte]('a', 'b', 'c', 'd'))
+
+        // ByteStrings — partial copy that exactly fills after first segment
+        val bss2 = ByteStrings(ByteString1(Array[Byte](1, 2, 3)), ByteString1(Array[Byte](4, 5, 6)))
+        val buf8 = ByteBuffer.allocate(3) // exactly the first segment
+        bss2.copyToBuffer(buf8) should ===(3)
+        buf8.flip()
+        val result8 = new Array[Byte](3)
+        buf8.get(result8)
+        result8.toSeq should ===(Seq[Byte](1, 2, 3))
+
+        // Empty ByteString — 0 bytes copied
+        ByteString.empty.copyToBuffer(ByteBuffer.allocate(10)) should ===(0)
       }
 
       "copying chunks to an array" in {

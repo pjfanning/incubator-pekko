@@ -113,12 +113,12 @@ object Dependencies {
 
     object Docs {
       val sprayJson = "io.spray" %% "spray-json" % "1.3.6" % Test
-      val gson = "com.google.code.gson" % "gson" % "2.13.2" % Test
+      val gson = "com.google.code.gson" % "gson" % "2.14.0" % Test
     }
 
     object TestDependencies {
       val commonsIo = "commons-io" % "commons-io" % "2.22.0" % Test
-      val commonsCodec = "commons-codec" % "commons-codec" % "1.21.0" % Test
+      val commonsCodec = "commons-codec" % "commons-codec" % "1.22.0" % Test
       val junit = "junit" % "junit" % junitVersion % Test
       val junit6 = "org.junit.jupiter" % "junit-jupiter-engine" % junit6Version % Test
       val junitPlatformLauncher = "org.junit.platform" % "junit-platform-launcher" % junit6Version % Test
