@@ -115,7 +115,9 @@ private[io] final class AsyncDnsResolver(
             })
           } else if (inFlight.contains((name, mode))) {
             // there's already a resolution in progress for this (name, mode); add to waiters
-            inFlight = inFlight.updated((name, mode), sender() :: inFlight((name, mode)))
+            inFlight.get((name, mode)).foreach { waiters =>
+              inFlight = inFlight.updated((name, mode), sender() :: waiters)
+            }
           } else if (resolvers.isEmpty) {
             sender() ! Status.Failure(failToResolve(name, nameServers))
           } else {
@@ -236,7 +238,7 @@ private[pekko] object AsyncDnsResolver {
       }
     }
 
-    // Don't expect a message until startResolution `become`s activelyResolving
+    // Initial receive is empty; startResolution immediately calls context.become to switch to activelyResolving
     override def receive: Receive = PartialFunction.empty
     // safe, already verified that resolvers is non-empty
     startResolution(namesToResolve, resolvers.head, resolvers.tail)
