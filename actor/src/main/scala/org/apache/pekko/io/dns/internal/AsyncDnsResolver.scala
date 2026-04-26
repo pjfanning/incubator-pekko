@@ -108,11 +108,13 @@ private[io] final class AsyncDnsResolver(
                 case ipv6: Inet6Address => AAAARecord(name, Ttl.effectivelyForever, ipv6)
                 case unexpected         => throw new IllegalArgumentException(s"Unexpected address: $unexpected")
               }
-            }.fold(ex => { sender() ! Status.Failure(ex) }, record => {
-              val resolved = DnsProtocol.Resolved(name, record :: Nil)
-              cache.put(name -> mode, resolved, record.ttl)
-              sender() ! resolved
-            })
+            }.fold(
+              ex => { sender() ! Status.Failure(ex) },
+              record => {
+                val resolved = DnsProtocol.Resolved(name, record :: Nil)
+                cache.put(name -> mode, resolved, record.ttl)
+                sender() ! resolved
+              })
           } else if (inFlight.contains((name, mode))) {
             // there's already a resolution in progress for this (name, mode); add to waiters
             inFlight.get((name, mode)).foreach { waiters =>

@@ -302,7 +302,8 @@ class AsyncDnsResolverSpec extends PekkoSpec("""
     }
 
     "attempt to drop a failed question on timeout" in new Setup {
-      val configWithExtraShortTimeout = defaultConfig.withValue("resolve-timeout", ConfigValueFactory.fromAnyRef("1 ms"))
+      val configWithExtraShortTimeout =
+        defaultConfig.withValue("resolve-timeout", ConfigValueFactory.fromAnyRef("1 ms"))
       override val r = resolver(List(dnsClient1.ref), configWithExtraShortTimeout)
 
       r ! Resolve("cats.com", Ip(ipv4 = true, ipv6 = false))
