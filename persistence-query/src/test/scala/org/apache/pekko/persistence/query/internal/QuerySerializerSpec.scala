@@ -91,6 +91,22 @@ class QuerySerializerSpec extends PekkoSpec {
           source = "backtracking"))
     }
 
+    "serialize EventEnvelope with source and tags" in {
+      verifySerialization(
+        new EventEnvelope(
+          Sequence(1L),
+          "TestEntity|id1",
+          3L,
+          Some("event1"),
+          System.currentTimeMillis(),
+          None,
+          "TestEntity",
+          5,
+          filtered = false,
+          source = "query",
+          tags = Set("tag1", "tag2")))
+    }
+
     "serialize Sequence Offset" in {
       verifySerialization(Sequence(0))
     }

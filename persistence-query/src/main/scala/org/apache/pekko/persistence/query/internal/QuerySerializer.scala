@@ -36,6 +36,7 @@ import pekko.serialization.BaseSerializer
 import pekko.serialization.SerializationExtension
 import pekko.serialization.SerializerWithStringManifest
 import pekko.serialization.Serializers
+import pekko.util.ccompat.JavaConverters._
 
 /**
  * INTERNAL API
@@ -91,6 +92,10 @@ import pekko.serialization.Serializers
       if (env.source.nonEmpty)
         builder.setSource(env.source)
 
+      if (env.tags.nonEmpty) {
+        builder.addAllTags(env.tags.asJava)
+      }
+
       builder.build().toByteArray()
 
     case offset: Offset =>
@@ -115,6 +120,9 @@ import pekko.serialization.Serializers
 
       val filtered = env.hasFiltered && env.getFiltered
       val source = if (env.hasSource) env.getSource else ""
+      val tags =
+        if (env.getTagsList.isEmpty) Set.empty[String]
+        else env.getTagsList.iterator.asScala.toSet
 
       new EventEnvelope(
         offset,
@@ -126,7 +134,8 @@ import pekko.serialization.Serializers
         env.getEntityType,
         env.getSlice,
         filtered,
-        source)
+        source,
+        tags)
 
     case _ =>
       fromStorageRepresentation(new String(bytes, UTF_8), manifest)

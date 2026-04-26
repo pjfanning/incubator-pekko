@@ -239,6 +239,33 @@ public final class QueryMessages extends org.apache.pekko.protobufv3.internal.Ge
      * @return The bytes for source.
      */
     org.apache.pekko.protobufv3.internal.ByteString getSourceBytes();
+
+    /**
+     * <code>repeated string tags = 12;</code>
+     *
+     * @return A list containing the tags.
+     */
+    java.util.List<java.lang.String> getTagsList();
+    /**
+     * <code>repeated string tags = 12;</code>
+     *
+     * @return The count of tags.
+     */
+    int getTagsCount();
+    /**
+     * <code>repeated string tags = 12;</code>
+     *
+     * @param index The index of the element to return.
+     * @return The tags at the given index.
+     */
+    java.lang.String getTags(int index);
+    /**
+     * <code>repeated string tags = 12;</code>
+     *
+     * @param index The index of the value to return.
+     * @return The bytes of the tags at the given index.
+     */
+    org.apache.pekko.protobufv3.internal.ByteString getTagsBytes(int index);
   }
 
   /**
@@ -279,6 +306,7 @@ public final class QueryMessages extends org.apache.pekko.protobufv3.internal.Ge
       offset_ = "";
       offsetManifest_ = "";
       source_ = "";
+      tags_ = org.apache.pekko.protobufv3.internal.LazyStringArrayList.EMPTY;
     }
 
     public static final org.apache.pekko.protobufv3.internal.Descriptors.Descriptor
@@ -734,6 +762,43 @@ public final class QueryMessages extends org.apache.pekko.protobufv3.internal.Ge
       }
     }
 
+    public static final int TAGS_FIELD_NUMBER = 12;
+    private org.apache.pekko.protobufv3.internal.LazyStringList tags_;
+    /**
+     * <code>repeated string tags = 12;</code>
+     *
+     * @return A list containing the tags.
+     */
+    public org.apache.pekko.protobufv3.internal.ProtocolStringList getTagsList() {
+      return tags_;
+    }
+    /**
+     * <code>repeated string tags = 12;</code>
+     *
+     * @return The count of tags.
+     */
+    public int getTagsCount() {
+      return tags_.size();
+    }
+    /**
+     * <code>repeated string tags = 12;</code>
+     *
+     * @param index The index of the element to return.
+     * @return The tags at the given index.
+     */
+    public java.lang.String getTags(int index) {
+      return tags_.get(index);
+    }
+    /**
+     * <code>repeated string tags = 12;</code>
+     *
+     * @param index The index of the value to return.
+     * @return The bytes of the tags at the given index.
+     */
+    public org.apache.pekko.protobufv3.internal.ByteString getTagsBytes(int index) {
+      return tags_.getByteString(index);
+    }
+
     private byte memoizedIsInitialized = -1;
 
     @java.lang.Override
@@ -824,6 +889,9 @@ public final class QueryMessages extends org.apache.pekko.protobufv3.internal.Ge
       if (((bitField0_ & 0x00000400) != 0)) {
         org.apache.pekko.protobufv3.internal.GeneratedMessage.writeString(output, 11, source_);
       }
+      for (int i = 0; i < tags_.size(); i++) {
+        org.apache.pekko.protobufv3.internal.GeneratedMessage.writeString(output, 12, tags_.getRaw(i));
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -878,6 +946,14 @@ public final class QueryMessages extends org.apache.pekko.protobufv3.internal.Ge
       if (((bitField0_ & 0x00000400) != 0)) {
         size +=
             org.apache.pekko.protobufv3.internal.GeneratedMessage.computeStringSize(11, source_);
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < tags_.size(); i++) {
+          dataSize += computeStringSizeNoTag(tags_.getRaw(i));
+        }
+        size += dataSize;
+        size += 1 * getTagsList().size();
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -941,6 +1017,7 @@ public final class QueryMessages extends org.apache.pekko.protobufv3.internal.Ge
       if (hasSource()) {
         if (!getSource().equals(other.getSource())) return false;
       }
+      if (!getTagsList().equals(other.getTagsList())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -997,6 +1074,10 @@ public final class QueryMessages extends org.apache.pekko.protobufv3.internal.Ge
       if (hasSource()) {
         hash = (37 * hash) + SOURCE_FIELD_NUMBER;
         hash = (53 * hash) + getSource().hashCode();
+      }
+      if (getTagsCount() > 0) {
+        hash = (37 * hash) + TAGS_FIELD_NUMBER;
+        hash = (53 * hash) + getTagsList().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -1191,6 +1272,8 @@ public final class QueryMessages extends org.apache.pekko.protobufv3.internal.Ge
         }
         filtered_ = false;
         source_ = "";
+        tags_ = org.apache.pekko.protobufv3.internal.LazyStringArrayList.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000800);
         return this;
       }
 
@@ -1279,6 +1362,11 @@ public final class QueryMessages extends org.apache.pekko.protobufv3.internal.Ge
           result.source_ = source_;
           to_bitField0_ |= 0x00000400;
         }
+        if (((from_bitField0_ & 0x00000800) != 0)) {
+          tags_ = tags_.getUnmodifiableView();
+          bitField0_ = (bitField0_ & ~0x00000800);
+        }
+        result.tags_ = tags_;
         result.bitField0_ |= to_bitField0_;
       }
 
@@ -1342,6 +1430,16 @@ public final class QueryMessages extends org.apache.pekko.protobufv3.internal.Ge
         if (other.hasSource()) {
           source_ = other.source_;
           bitField0_ |= 0x00000400;
+          onChanged();
+        }
+        if (!other.tags_.isEmpty()) {
+          if (tags_.isEmpty()) {
+            tags_ = other.tags_;
+            bitField0_ = (bitField0_ & ~0x00000800);
+          } else {
+            ensureTagsIsMutable();
+            tags_.addAll(other.tags_);
+          }
           onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
@@ -1468,6 +1566,13 @@ public final class QueryMessages extends org.apache.pekko.protobufv3.internal.Ge
                   bitField0_ |= 0x00000400;
                   break;
                 } // case 90
+              case 98:
+                {
+                  java.lang.String s = input.readStringRequireUtf8();
+                  ensureTagsIsMutable();
+                  tags_.add(s);
+                  break;
+                } // case 98
               default:
                 {
                   if (!super.parseUnknownField(input, extensionRegistry, tag)) {
@@ -2394,6 +2499,119 @@ public final class QueryMessages extends org.apache.pekko.protobufv3.internal.Ge
         return this;
       }
 
+      private org.apache.pekko.protobufv3.internal.LazyStringList tags_ =
+          org.apache.pekko.protobufv3.internal.LazyStringArrayList.EMPTY;
+
+      private void ensureTagsIsMutable() {
+        if (!((bitField0_ & 0x00000800) != 0)) {
+          tags_ = new org.apache.pekko.protobufv3.internal.LazyStringArrayList(tags_);
+          bitField0_ |= 0x00000800;
+        }
+      }
+      /**
+       * <code>repeated string tags = 12;</code>
+       *
+       * @return A list containing the tags.
+       */
+      public org.apache.pekko.protobufv3.internal.ProtocolStringList getTagsList() {
+        return tags_.getUnmodifiableView();
+      }
+      /**
+       * <code>repeated string tags = 12;</code>
+       *
+       * @return The count of tags.
+       */
+      public int getTagsCount() {
+        return tags_.size();
+      }
+      /**
+       * <code>repeated string tags = 12;</code>
+       *
+       * @param index The index of the element to return.
+       * @return The tags at the given index.
+       */
+      public java.lang.String getTags(int index) {
+        return tags_.get(index);
+      }
+      /**
+       * <code>repeated string tags = 12;</code>
+       *
+       * @param index The index of the value to return.
+       * @return The bytes of the tags at the given index.
+       */
+      public org.apache.pekko.protobufv3.internal.ByteString getTagsBytes(int index) {
+        return tags_.getByteString(index);
+      }
+      /**
+       * <code>repeated string tags = 12;</code>
+       *
+       * @param index The index to set the value at.
+       * @param value The tags to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTags(int index, java.lang.String value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureTagsIsMutable();
+        tags_.set(index, value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string tags = 12;</code>
+       *
+       * @param value The tags to add.
+       * @return This builder for chaining.
+       */
+      public Builder addTags(java.lang.String value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureTagsIsMutable();
+        tags_.add(value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string tags = 12;</code>
+       *
+       * @param values The tags to add.
+       * @return This builder for chaining.
+       */
+      public Builder addAllTags(java.lang.Iterable<java.lang.String> values) {
+        ensureTagsIsMutable();
+        org.apache.pekko.protobufv3.internal.AbstractMessageLite.Builder.addAll(values, tags_);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string tags = 12;</code>
+       *
+       * @return This builder for chaining.
+       */
+      public Builder clearTags() {
+        tags_ = org.apache.pekko.protobufv3.internal.LazyStringArrayList.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000800);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string tags = 12;</code>
+       *
+       * @param value The bytes of the tags to add.
+       * @return This builder for chaining.
+       */
+      public Builder addTagsBytes(org.apache.pekko.protobufv3.internal.ByteString value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureTagsIsMutable();
+        tags_.add(value);
+        onChanged();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:org.apache.pekko.persistence.query.EventEnvelope)
     }
 
@@ -2466,7 +2684,7 @@ public final class QueryMessages extends org.apache.pekko.protobufv3.internal.Ge
     java.lang.String[] descriptorData = {
       "\n"
           + "\023QueryMessages.proto\022\"org.apache.pekko."
-          + "persistence.query\032\026ContainerFormats.proto\"\363\001\n\r"
+          + "persistence.query\032\026ContainerFormats.proto\"\201\002\n\r"
           + "EventEnvelope\022\026\n"
           + "\016persistence_id\030\001 \002(\t\022\023\n"
           + "\013entity_type\030\002 \002(\t\022\r\n"
@@ -2479,7 +2697,8 @@ public final class QueryMessages extends org.apache.pekko.protobufv3.internal.Ge
           + "\010metadata\030\t \001(\0132\010.Payload\022\020\n"
           + "\010filtered\030\n"
           + " \001(\010\022\016\n"
-          + "\006source\030\013 \001(\tB8\n"
+          + "\006source\030\013 \001(\t\022\014\n"
+          + "\004tags\030\014 \003(\tB8\n"
           + "4org.apache.pekko.persistence.query.internal.protobufH\001"
     };
     descriptor =
@@ -2506,6 +2725,7 @@ public final class QueryMessages extends org.apache.pekko.protobufv3.internal.Ge
               "Metadata",
               "Filtered",
               "Source",
+              "Tags",
             });
     descriptor.resolveAllFeaturesImmutable();
     org.apache.pekko.remote.ContainerFormats.getDescriptor();
