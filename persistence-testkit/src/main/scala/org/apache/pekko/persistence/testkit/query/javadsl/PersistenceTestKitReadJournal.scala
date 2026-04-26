@@ -26,8 +26,12 @@ import pekko.persistence.query.javadsl.{
   ReadJournal
 }
 import pekko.persistence.query.typed
-import pekko.persistence.query.typed.javadsl.{ CurrentEventsByPersistenceIdTypedQuery, CurrentEventsBySliceQuery,
-  EventsByPersistenceIdTypedQuery, EventsBySliceQuery }
+import pekko.persistence.query.typed.javadsl.{
+  CurrentEventsByPersistenceIdTypedQuery,
+  CurrentEventsBySliceQuery,
+  EventsByPersistenceIdTypedQuery,
+  EventsBySliceQuery
+}
 import pekko.persistence.testkit.query.scaladsl
 import pekko.stream.javadsl.Source
 

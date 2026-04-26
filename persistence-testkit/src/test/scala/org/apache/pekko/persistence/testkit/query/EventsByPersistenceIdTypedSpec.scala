@@ -107,7 +107,7 @@ class EventsByPersistenceIdTypedSpec
 
       val currentResult =
         queries.currentEventsByPersistenceIdTyped[String]("d", 0L, Long.MaxValue).runWith(Sink.seq).futureValue
-      currentResult should have size (4)
+      currentResult should have size 4
       currentResult.last should ===(envelope)
     }
   }

@@ -253,6 +253,6 @@ final class EventEnvelope[Event](
       case None       => ""
     }
     s"EventEnvelope($offset,$persistenceId,$sequenceNr,$eventStr,$timestamp,$metaStr,$entityType,$slice,$filtered,$source,${tags
-      .mkString("[", ", ", "]")})"
+        .mkString("[", ", ", "]")})"
   }
 }
