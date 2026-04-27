@@ -113,6 +113,17 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
     String.valueOf(encodeHex(os.toByteArray))
   }
 
+  def readAllBytes(is: InputStream): Array[Byte] = {
+    val buffer = new ByteArrayOutputStream()
+    val data = new Array[Byte](1024)
+    var n = is.read(data)
+    while (n != -1 ) {
+      buffer.write(data, 0, n)
+      n = is.read(data)
+    }
+    buffer.toByteArray
+  }
+
   val arbitraryByteArray: Arbitrary[Array[Byte]] = Arbitrary {
     Gen.sized { n =>
       Gen.containerOfN[Array, Byte](n, arbitrary[Byte])
@@ -1109,11 +1120,12 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
     "deserialize Pekko 1.x ByteString" in {
       // ByteString("Hello, World!") serialized using Pekko 1.5.0
       val stream = getClass.getClassLoader.getResourceAsStream("pekko1/bytestring-compact-serialized.bin")
-      val bytes = try {
-        stream.readAllBytes()
-      } finally {
-        stream.close()
-      }
+      val bytes =
+        try {
+          readAllBytes(stream)
+        } finally {
+          stream.close()
+        }
       val deserialized = deserialize(bytes)
       deserialized shouldBe a[ByteString]
       deserialized.asInstanceOf[ByteString].utf8String should ===("Hello, World!")
@@ -1124,11 +1136,12 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       // val input = str.getBytes("UTF-8")
       // val byteString = ByteString.fromArray(input, 7, 5)
       val stream = getClass.getClassLoader.getResourceAsStream("pekko1/bytestring1-serialized.bin")
-      val bytes = try {
-        stream.readAllBytes()
-      } finally {
-        stream.close()
-      }
+      val bytes =
+        try {
+          readAllBytes(stream)
+        } finally {
+          stream.close()
+        }
       val deserialized = deserialize(bytes)
       deserialized shouldBe a[ByteString]
       deserialized.asInstanceOf[ByteString].utf8String should ===("World")
@@ -1136,11 +1149,12 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
     "deserialize Pekko 1.x ByteString (ByteStrings instance)" in {
       // ByteString("Hello, ") ++ ByteString("World!") serialized using Pekko 1.5.0
       val stream = getClass.getClassLoader.getResourceAsStream("pekko1/bytestrings-serialized.bin")
-      val bytes = try {
-        stream.readAllBytes()
-      } finally {
-        stream.close()
-      }
+      val bytes =
+        try {
+          readAllBytes(stream)
+        } finally {
+          stream.close()
+        }
       val deserialized = deserialize(bytes)
       deserialized shouldBe a[ByteString]
       deserialized.asInstanceOf[ByteString].utf8String should ===("Hello, World!")
