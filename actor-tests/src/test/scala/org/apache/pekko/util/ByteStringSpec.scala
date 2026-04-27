@@ -13,7 +13,7 @@
 
 package org.apache.pekko.util
 
-import java.io.{ ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream }
+import java.io.{ ByteArrayOutputStream, InputStream, ObjectInputStream, ObjectOutputStream }
 import java.lang.Double.doubleToRawLongBits
 import java.lang.Float.floatToRawIntBits
 import java.nio.{ ByteBuffer, ByteOrder }
