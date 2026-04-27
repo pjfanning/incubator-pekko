@@ -8,10 +8,12 @@
  */
 
 /*
- * Copyright (C) 2020-2022 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2020-2023 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package org.apache.pekko.persistence.testkit.query.scaladsl
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import scala.annotation.nowarn
 import scala.collection.immutable
 
@@ -23,6 +25,7 @@ import pekko.persistence.journal.Tagged
 import pekko.persistence.query.{ EventEnvelope, Sequence }
 import pekko.persistence.query.NoOffset
 import pekko.persistence.query.Offset
+import pekko.persistence.query.TimestampOffset
 import pekko.persistence.query.scaladsl.{
   CurrentEventsByPersistenceIdQuery,
   CurrentEventsByTagQuery,
@@ -32,13 +35,16 @@ import pekko.persistence.query.scaladsl.{
 }
 import pekko.persistence.query.scaladsl.EventsByTagQuery
 import pekko.persistence.query.typed
+import pekko.persistence.query.typed.scaladsl.CurrentEventsByPersistenceIdTypedQuery
 import pekko.persistence.query.typed.scaladsl.CurrentEventsBySliceQuery
+import pekko.persistence.query.typed.scaladsl.EventsByPersistenceIdTypedQuery
 import pekko.persistence.query.typed.scaladsl.EventsBySliceQuery
 import pekko.persistence.testkit.EventStorage
 import pekko.persistence.testkit.internal.InMemStorageExtension
 import pekko.persistence.testkit.query.internal.EventsByPersistenceIdStage
 import pekko.persistence.testkit.query.internal.EventsBySliceStage
 import pekko.persistence.testkit.query.internal.EventsByTagStage
+import pekko.persistence.testkit.query.internal.TypedEventsByPersistenceIdStage
 import pekko.persistence.typed.PersistenceId
 import pekko.stream.scaladsl.Source
 
@@ -59,7 +65,9 @@ final class PersistenceTestKitReadJournal(system: ExtendedActorSystem, @nowarn("
     with CurrentEventsBySliceQuery
     with PagedPersistenceIdsQuery
     with EventsByTagQuery
-    with EventsBySliceQuery {
+    with EventsBySliceQuery
+    with EventsByPersistenceIdTypedQuery
+    with CurrentEventsByPersistenceIdTypedQuery {
 
   private val log = LoggerFactory.getLogger(getClass)
 
@@ -75,6 +83,17 @@ final class PersistenceTestKitReadJournal(system: ExtendedActorSystem, @nowarn("
   private def unwrapTaggedPayload(payload: Any): Any = payload match {
     case Tagged(payload, _) => payload
     case payload            => payload
+  }
+
+  private def tagsFor(payload: Any): Set[String] = payload match {
+    case Tagged(_, tags) => tags
+    case _               => Set.empty
+  }
+
+  private def timestampOffsetFor(pr: pekko.persistence.PersistentRepr): TimestampOffset = {
+    val timestamp = Instant.ofEpochMilli(pr.timestamp)
+    val readTimestamp = Instant.now().truncatedTo(ChronoUnit.MICROS)
+    TimestampOffset(timestamp, readTimestamp, Map(pr.persistenceId -> pr.sequenceNr))
   }
 
   override def eventsByPersistenceId(
@@ -96,6 +115,35 @@ final class PersistenceTestKitReadJournal(system: ExtendedActorSystem, @nowarn("
         unwrapTaggedPayload(pr.payload),
         pr.timestamp,
         pr.metadata)
+    }
+  }
+
+  override def eventsByPersistenceIdTyped[Event](
+      persistenceId: String,
+      fromSequenceNr: Long = 0,
+      toSequenceNr: Long = Long.MaxValue): Source[typed.EventEnvelope[Event], NotUsed] = {
+    Source.fromGraph(
+      new TypedEventsByPersistenceIdStage[Event](persistenceId, fromSequenceNr, toSequenceNr, storage, persistence))
+  }
+
+  override def currentEventsByPersistenceIdTyped[Event](
+      persistenceId: String,
+      fromSequenceNr: Long = 0,
+      toSequenceNr: Long = Long.MaxValue): Source[typed.EventEnvelope[Event], NotUsed] = {
+    val slice = persistence.sliceForPersistenceId(persistenceId)
+    val entityType = PersistenceId.extractEntityType(persistenceId)
+    Source(storage.tryRead(persistenceId, fromSequenceNr, toSequenceNr, Long.MaxValue)).map { pr =>
+      typed.EventEnvelope(
+        timestampOffsetFor(pr),
+        persistenceId,
+        pr.sequenceNr,
+        unwrapTaggedPayload(pr.payload).asInstanceOf[Event],
+        pr.timestamp,
+        entityType,
+        slice,
+        filtered = false,
+        source = "",
+        tags = tagsFor(pr.payload))
     }
   }
 
@@ -134,15 +182,17 @@ final class PersistenceTestKitReadJournal(system: ExtendedActorSystem, @nowarn("
       })
     Source(prs).map { pr =>
       val slice = persistence.sliceForPersistenceId(pr.persistenceId)
-      new typed.EventEnvelope[Event](
-        Sequence(pr.sequenceNr),
+      typed.EventEnvelope(
+        timestampOffsetFor(pr),
         pr.persistenceId,
         pr.sequenceNr,
-        Some(pr.payload.asInstanceOf[Event]),
+        unwrapTaggedPayload(pr.payload).asInstanceOf[Event],
         pr.timestamp,
-        pr.metadata,
         entityType,
-        slice)
+        slice,
+        filtered = false,
+        source = "",
+        tags = tagsFor(pr.payload))
     }
   }
 

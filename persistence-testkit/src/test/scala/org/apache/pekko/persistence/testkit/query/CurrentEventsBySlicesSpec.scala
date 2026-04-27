@@ -21,6 +21,7 @@ import pekko.actor.typed.ActorRef
 import pekko.persistence.Persistence
 import pekko.persistence.query.NoOffset
 import pekko.persistence.query.PersistenceQuery
+import pekko.persistence.query.TimestampOffset
 import pekko.persistence.testkit.query.EventsByPersistenceIdSpec.Command
 import pekko.persistence.testkit.query.EventsByPersistenceIdSpec.testBehavior
 import pekko.persistence.testkit.query.scaladsl.PersistenceTestKitReadJournal
@@ -70,6 +71,27 @@ class CurrentEventsBySlicesSpec
         .runWith(Sink.seq)
         .futureValue
         .map(_.event) should ===(Seq("evt-1", "evt-2", "evt-3", "evt-4", "evt-5"))
+    }
+
+    "include tags in events by slices" in {
+      val probe = createTestProbe[Done]()
+      val ref1 = spawn(testBehavior("TagTest|pid-1"))
+      ref1 ! Command("tag-me-evt-1", probe.ref)
+      ref1 ! Command("evt-2", probe.ref)
+      probe.receiveMessages(2)
+      val ref2 = spawn(testBehavior("TagTest|pid-2"))
+      ref2 ! Command("evt-3", probe.ref)
+      ref2 ! Command("tag-me-evt-4", probe.ref)
+      probe.receiveMessages(2)
+
+      val result = queries
+        .currentEventsBySlices[String]("TagTest", 0, Persistence(system).numberOfSlices - 1, NoOffset)
+        .runWith(Sink.seq)
+        .futureValue
+
+      result.head.offset shouldBe a[TimestampOffset]
+      result.map(e => (e.event, e.tags)) should ===(
+        Seq(("tag-me-evt-1", Set("tag")), ("evt-2", Set.empty), ("evt-3", Set.empty), ("tag-me-evt-4", Set("tag"))))
     }
   }
 
