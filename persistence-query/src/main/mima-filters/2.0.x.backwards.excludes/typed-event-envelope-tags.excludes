@@ -16,7 +16,10 @@
 # under the License.
 
 # Internal protobuf classes
-ProblemFilters.exclude[Problem]("org.apache.pekko.persistence.query.internal.protobuf.*")
+ProblemFilters.exclude[ReversedMissingMethodProblem]("org.apache.pekko.persistence.query.internal.protobuf.QueryMessages#EventEnvelopeOrBuilder.getTags")
+ProblemFilters.exclude[ReversedMissingMethodProblem]("org.apache.pekko.persistence.query.internal.protobuf.QueryMessages#EventEnvelopeOrBuilder.getTagsList")
+ProblemFilters.exclude[ReversedMissingMethodProblem]("org.apache.pekko.persistence.query.internal.protobuf.QueryMessages#EventEnvelopeOrBuilder.getTagsCount")
+ProblemFilters.exclude[ReversedMissingMethodProblem]("org.apache.pekko.persistence.query.internal.protobuf.QueryMessages#EventEnvelopeOrBuilder.getTagsBytes")
 
 # New constructors and methods in typed EventEnvelope
 ProblemFilters.exclude[DirectMissingMethodProblem]("org.apache.pekko.persistence.query.typed.EventEnvelope.this")
