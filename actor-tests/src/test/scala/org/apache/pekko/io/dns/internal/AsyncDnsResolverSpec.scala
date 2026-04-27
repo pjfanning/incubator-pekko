@@ -26,7 +26,7 @@ import pekko.io.dns.{ AAAARecord, ARecord, DnsSettings, IdGenerator, SRVRecord }
 import pekko.io.dns.CachePolicy.Ttl
 import pekko.io.dns.DnsProtocol._
 import pekko.io.dns.internal.AsyncDnsResolver.ResolveFailedException
-import pekko.io.dns.internal.DnsClient.{ Answer, DuplicateId, Question4, Question6, SrvQuestion }
+import pekko.io.dns.internal.DnsClient.{ Answer, DropRequest, DuplicateId, Question4, Question6, SrvQuestion }
 import pekko.testkit.{ PekkoSpec, TestProbe, WithLogCapturing }
 
 import com.typesafe.config.{ Config, ConfigFactory, ConfigValueFactory }
@@ -299,6 +299,59 @@ class AsyncDnsResolverSpec extends PekkoSpec("""
       dnsClient1.reply(Answer(secondId, im.Seq(ipv4Record)))
 
       senderProbe.expectMsg(Resolved("cats.com", im.Seq(ipv4Record)))
+    }
+
+    "attempt to drop a failed question on timeout" in new Setup {
+      val configWithExtraShortTimeout =
+        defaultConfig.withValue("resolve-timeout", ConfigValueFactory.fromAnyRef("1 ms"))
+      override val r = resolver(List(dnsClient1.ref), configWithExtraShortTimeout)
+
+      r ! Resolve("cats.com", Ip(ipv4 = true, ipv6 = false))
+      val q4 = dnsClient1.expectMsgPF() {
+        case q: Question4 if q.name == "cats.com" => q
+      }
+      // ask times out because no reply; the DnsResolutionActor should drop the pending question
+      dnsClient1.expectMsgPF(remainingOrDefault) {
+        case DropRequest(dropped) if dropped == q4 =>
+      }
+    }
+
+    "not reuse the request ids of pending requests" in new Setup {
+      // Send multiple resolves for different names so no in-flight deduplication applies
+      val resolveCount = 10
+      (1 to resolveCount).foreach { i =>
+        r.tell(Resolve(s"host$i.cats.com", Ip(ipv4 = true, ipv6 = false)), senderProbe.ref)
+      }
+
+      // Each resolve should have received a Question4 from dnsClient1 with a unique ID
+      val receivedIds = (1 to resolveCount).map { _ =>
+        dnsClient1.expectMsgPF(remainingOrDefault) {
+          case Question4(id, _) => id
+        }
+      }
+      receivedIds.toSet.size shouldBe resolveCount
+    }
+
+    "reuse in-progress resolutions" in new Setup {
+      val asker1 = TestProbe()
+      val asker2 = TestProbe()
+
+      override val r = resolver(List(dnsClient1.ref), defaultConfig)
+
+      val resolve = Resolve("cats.com", Ip(ipv4 = true, ipv6 = false))
+
+      r.tell(resolve, asker1.ref)
+      val firstId = dnsClient1.expectMsgPF() {
+        case q4: Question4 if q4.name == "cats.com" => q4.id
+      }
+      // Send a second identical resolve while the first is still pending
+      r.tell(resolve, asker2.ref)
+      // No second DNS question should be sent; the second resolve reuses the in-progress one
+      dnsClient1.expectNoMessage(50.millis)
+      dnsClient1.reply(Answer(firstId, Nil))
+
+      asker1.expectMsg(Resolved("cats.com", im.Seq.empty))
+      asker2.expectMsg(Resolved("cats.com", im.Seq.empty))
     }
   }
 
