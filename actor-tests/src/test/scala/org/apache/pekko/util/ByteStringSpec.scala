@@ -1106,7 +1106,45 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       val slice3 = "cdefghijklmn".getBytes(StandardCharsets.UTF_8)
       byteStringWithOffset.startsWith(slice3) should ===(true)
     }
-
+    "deserialize Pekko 1.x ByteString" in {
+      // ByteString("Hello, World!") serialized using Pekko 1.5.0
+      val stream = getClass.getClassLoader.getResourceAsStream("pekko1/bytestring-compact-serialized.bin")
+      val bytes = try {
+        stream.readAllBytes()
+      } finally {
+        stream.close()
+      }
+      val deserialized = deserialize(bytes)
+      deserialized shouldBe a[ByteString]
+      deserialized.asInstanceOf[ByteString].utf8String should ===("Hello, World!")
+    }
+    "deserialize Pekko 1.x ByteString (array with offset)" in {
+      // serialized using Pekko 1.5.0
+      // val str = "Hello, World!"
+      // val input = str.getBytes("UTF-8")
+      // val byteString = ByteString.fromArray(input, 7, 5)
+      val stream = getClass.getClassLoader.getResourceAsStream("pekko1/bytestring1-serialized.bin")
+      val bytes = try {
+        stream.readAllBytes()
+      } finally {
+        stream.close()
+      }
+      val deserialized = deserialize(bytes)
+      deserialized shouldBe a[ByteString]
+      deserialized.asInstanceOf[ByteString].utf8String should ===("World")
+    }
+    "deserialize Pekko 1.x ByteString (ByteStrings instance)" in {
+      // ByteString("Hello, ") ++ ByteString("World!") serialized using Pekko 1.5.0
+      val stream = getClass.getClassLoader.getResourceAsStream("pekko1/bytestrings-serialized.bin")
+      val bytes = try {
+        stream.readAllBytes()
+      } finally {
+        stream.close()
+      }
+      val deserialized = deserialize(bytes)
+      deserialized shouldBe a[ByteString]
+      deserialized.asInstanceOf[ByteString].utf8String should ===("Hello, World!")
+    }
   }
 
   "A ByteString" must {
