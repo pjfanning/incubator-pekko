@@ -117,7 +117,7 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
     val buffer = new ByteArrayOutputStream()
     val data = new Array[Byte](1024)
     var n = is.read(data)
-    while (n != -1 ) {
+    while (n != -1) {
       buffer.write(data, 0, n)
       n = is.read(data)
     }
