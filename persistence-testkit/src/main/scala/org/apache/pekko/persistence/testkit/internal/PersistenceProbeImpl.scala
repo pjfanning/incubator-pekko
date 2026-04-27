@@ -147,7 +147,7 @@ private[pekko] object PersistenceProbeImpl {
           case Persist(event) =>
             sequenceNr += 1
             state = eventHandler(state, event)
-            onEvent(event, sequenceNr, tagger(event))
+            onEvent(event, sequenceNr, tagger(state, event))
             shouldSnapshot = shouldSnapshot || snapshotRequested(event)
             sideEffect(sideEffects)
 
@@ -162,7 +162,7 @@ private[pekko] object PersistenceProbeImpl {
             eventsWithSeqNrs.foreach {
               case (event, seqNr) =>
                 // technically doesn't persist them atomically, but in tests that shouldn't matter
-                onEvent(event, seqNr, tagger(event))
+                onEvent(event, seqNr, tagger(state, event))
                 shouldSnapshot = shouldSnapshot || snapshotRequested(event)
             }
 
