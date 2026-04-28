@@ -2015,7 +2015,7 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
         // When serialized directly the class descriptor "ByteString1C" appears in the stream;
         // with writeReplace the proxy class name appears instead.
         val streamContent = new String(serialized, StandardCharsets.ISO_8859_1)
-        streamContent should not include "ByteString1C"
+        (streamContent should not).include("ByteString1C")
         deserialize(serialized) shouldEqual bs1c
       }
 
@@ -2024,8 +2024,8 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
         val viaString = CompactByteString("hello")
         val serializedApply = serialize(viaApply)
         val serializedString = serialize(viaString)
-        new String(serializedApply, StandardCharsets.ISO_8859_1) should not include "ByteString1C"
-        new String(serializedString, StandardCharsets.ISO_8859_1) should not include "ByteString1C"
+        (new String(serializedApply, StandardCharsets.ISO_8859_1) should not).include("ByteString1C")
+        (new String(serializedString, StandardCharsets.ISO_8859_1) should not).include("ByteString1C")
         deserialize(serializedApply) shouldEqual viaApply
         deserialize(serializedString) shouldEqual viaString
       }
