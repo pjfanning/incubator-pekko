@@ -13,8 +13,12 @@
 
 package org.apache.pekko.cluster
 
+import java.net.InetSocketAddress
+import java.nio.channels.ServerSocketChannel
+
 import scala.concurrent.duration._
 import scala.util.Random
+import scala.util.control.NonFatal
 
 import org.apache.pekko
 import pekko.actor.ActorSystem
@@ -123,6 +127,7 @@ trait ClusterTestKit extends TestKitBase {
       val firstSeedNode = actorSystems.headOption.contains(actorSystem)
 
       val cluster = Cluster(actorSystem)
+      val host = cluster.selfAddress.host.get
       val port = cluster.selfAddress.port.get
 
       // remove old before starting the new one
@@ -142,6 +147,10 @@ trait ClusterTestKit extends TestKitBase {
       }
 
       shutdown(actorSystem, 10.seconds, verifySystemShutdown = true)
+      awaitCond(
+        canBind(host, port),
+        10.seconds,
+        message = s"awaiting port [$host:$port] to be released before restarting node")
 
       // remove from internal list
       actorSystems = actorSystems.filterNot(_ == actorSystem)
@@ -164,6 +173,18 @@ trait ClusterTestKit extends TestKitBase {
      * Returns true if the cluster instance for the provided [[ActorSystem]] has be shutdown.
      */
     def isTerminated(system: ActorSystem): Boolean = Cluster(system).isTerminated
+
+    private def canBind(host: String, port: Int): Boolean = {
+      val channel = ServerSocketChannel.open()
+      try {
+        channel.bind(new InetSocketAddress(host, port))
+        true
+      } catch {
+        case NonFatal(_) => false
+      } finally {
+        channel.close()
+      }
+    }
 
   }
 }
