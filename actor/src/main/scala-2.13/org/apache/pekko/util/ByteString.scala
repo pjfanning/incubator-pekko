@@ -1251,6 +1251,7 @@ object CompactByteString {
  * The ByteString is guarantied to be contiguous in memory and to use only
  * as much memory as required for its contents.
  */
+@SerialVersionUID(6278217412883985616L)
 sealed abstract class CompactByteString extends ByteString with Serializable {
   def isCompact: Boolean = true
   def compact: this.type = this
