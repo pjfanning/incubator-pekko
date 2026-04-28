@@ -26,6 +26,7 @@ import pekko.remote.RARP
 import pekko.remote.UniqueAddress
 import pekko.testkit.ImplicitSender
 import pekko.testkit.TestActors
+import pekko.testkit.TestDuration
 import pekko.testkit.TestProbe
 
 import org.scalatest.concurrent.Eventually
@@ -44,10 +45,8 @@ class OutboundIdleShutdownSpec extends ArteryMultiNodeSpec("""
   }
   """) with ImplicitSender with Eventually {
 
-  override implicit val patience: PatienceConfig = {
-    import pekko.testkit.TestDuration
+  override implicit val patience: PatienceConfig =
     PatienceConfig(testKitSettings.DefaultTimeout.duration.dilated * 2, Span(200, org.scalatest.time.Millis))
-  }
 
   private def isArteryTcp: Boolean =
     RARP(system).provider.transport.asInstanceOf[ArteryTransport].settings.Transport == ArterySettings.Tcp
@@ -70,6 +69,17 @@ class OutboundIdleShutdownSpec extends ArteryMultiNodeSpec("""
     val p = Promise[UniqueAddress]()
     association.associationState.addUniqueRemoteAddressListener(a => p.success(a))
     p.future
+  }
+
+  private def expectQuarantinedEventAfterPing(remoteEcho: ActorRef, localEchoRef: ActorRef): Unit =
+    eventually {
+      remoteEcho.tell("ping", localEchoRef)
+      expectMsgType[ThisActorSystemQuarantinedEvent](1.second.dilated)
+    }
+
+  private def expectNoQuarantinedEventAfterPing(remoteEcho: ActorRef, localEchoRef: ActorRef): Unit = {
+    remoteEcho.tell("ping", localEchoRef)
+    expectNoMessage()
   }
 
   "Outbound streams" should {
@@ -174,10 +184,8 @@ class OutboundIdleShutdownSpec extends ArteryMultiNodeSpec("""
         association.associationState.isQuarantined(remoteUid) shouldBe true
         association.associationState.quarantinedButHarmless(remoteUid) shouldBe false
 
-        remoteEcho.tell("ping", localEchoRef) // trigger sending message from remote to local, which will trigger local to wrongfully notify remote that it is quarantined
-        eventually {
-          expectMsgType[ThisActorSystemQuarantinedEvent] // this is what remote emits when it learns it is quarantined by local
-        }
+        // Trigger sending from remote to local, which makes local notify remote that it is quarantined.
+        expectQuarantinedEventAfterPing(remoteEcho, localEchoRef)
     }
 
     "eliminate quarantined association when not used - echo test (harmless=true)" in withAssociation {
@@ -201,10 +209,8 @@ class OutboundIdleShutdownSpec extends ArteryMultiNodeSpec("""
         association.associationState.isQuarantined(remoteUid) shouldBe true
         association.associationState.quarantinedButHarmless(remoteUid) shouldBe true
 
-        remoteEcho.tell("ping", localEchoRef) // trigger sending message from remote to local, which will trigger local to wrongfully notify remote that it is quarantined
-        eventually {
-          expectMsgType[ThisActorSystemQuarantinedEvent] // this is what remote emits when it learns it is quarantined by local
-        }
+        // Harmless quarantine drops the message locally but must not notify remote that it is quarantined.
+        expectNoQuarantinedEventAfterPing(remoteEcho, localEchoRef)
     }
 
     "remove inbound compression after quarantine" in withAssociation { (_, remoteAddress, _, localArtery, _) =>
