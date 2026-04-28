@@ -15,6 +15,7 @@ package org.apache.pekko.remote.artery
 
 import scala.concurrent.Future
 import scala.concurrent.Promise
+import scala.concurrent.duration._
 
 import org.apache.pekko
 import pekko.actor.ActorRef
@@ -25,6 +26,7 @@ import pekko.remote.RARP
 import pekko.remote.UniqueAddress
 import pekko.testkit.ImplicitSender
 import pekko.testkit.TestActors
+import pekko.testkit.TestDuration
 import pekko.testkit.TestProbe
 
 import org.scalatest.concurrent.Eventually
@@ -54,59 +56,64 @@ class HarmlessQuarantineSpec extends ArteryMultiNodeSpec("""
     p.future
   }
 
+  private def withQuarantineEventProbe(remoteSystem: ActorSystem)(test: TestProbe => Unit): Unit = {
+    val quarantineProbe = new TestProbe(localSystem)
+    remoteSystem.eventStream.subscribe(quarantineProbe.ref, classOf[ThisActorSystemQuarantinedEvent])
+    try test(quarantineProbe)
+    finally {
+      remoteSystem.eventStream.unsubscribe(quarantineProbe.ref, classOf[ThisActorSystemQuarantinedEvent])
+    }
+  }
+
   "Harmless Quarantine Events" should {
 
     "eliminate quarantined association when not used - echo test" in withAssociation {
       (remoteSystem, remoteAddress, _, localArtery, localProbe) =>
-        // event to watch out for, indicator of the issue
-        remoteSystem.eventStream.subscribe(testActor, classOf[ThisActorSystemQuarantinedEvent])
+        withQuarantineEventProbe(remoteSystem) { quarantineProbe =>
+          val remoteEcho = remoteSystem.actorSelection("/user/echo").resolveOne(remainingOrDefault).futureValue
 
-        val remoteEcho = remoteSystem.actorSelection("/user/echo").resolveOne(remainingOrDefault).futureValue
+          val localAddress = RARP(system).provider.getDefaultAddress
 
-        val localAddress = RARP(system).provider.getDefaultAddress
+          val localEchoRef =
+            remoteSystem.actorSelection(RootActorPath(localAddress) / localProbe.ref.path.elements).resolveOne(
+              remainingOrDefault).futureValue
+          remoteEcho.tell("ping", localEchoRef)
+          localProbe.expectMsg("ping")
 
-        val localEchoRef =
-          remoteSystem.actorSelection(RootActorPath(localAddress) / localProbe.ref.path.elements).resolveOne(
-            remainingOrDefault).futureValue
-        remoteEcho.tell("ping", localEchoRef)
-        localProbe.expectMsg("ping")
+          val association = localArtery.association(remoteAddress)
+          val remoteUid = futureUniqueRemoteAddress(association).futureValue.uid
+          localArtery.quarantine(remoteAddress, Some(remoteUid), "Test")
+          association.associationState.isQuarantined(remoteUid) shouldBe true
+          association.associationState.quarantinedButHarmless(remoteUid) shouldBe false
 
-        val association = localArtery.association(remoteAddress)
-        val remoteUid = futureUniqueRemoteAddress(association).futureValue.uid
-        localArtery.quarantine(remoteAddress, Some(remoteUid), "Test")
-        association.associationState.isQuarantined(remoteUid) shouldBe true
-        association.associationState.quarantinedButHarmless(remoteUid) shouldBe false
-
-        remoteEcho.tell("ping", localEchoRef) // trigger sending message from remote to local, which will trigger local to wrongfully notify remote that it is quarantined
-        eventually {
-          expectMsgType[ThisActorSystemQuarantinedEvent] // this is what remote emits when it learns it is quarantined by local
+          remoteEcho.tell("ping", localEchoRef) // trigger sending message from remote to local, which will trigger local to wrongfully notify remote that it is quarantined
+          eventually {
+            quarantineProbe.expectMsgType[ThisActorSystemQuarantinedEvent] // this is what remote emits when it learns it is quarantined by local
+          }
         }
     }
 
     "eliminate quarantined association when not used - echo test (harmless=true)" in withAssociation {
       (remoteSystem, remoteAddress, _, localArtery, localProbe) =>
-        // event to watch out for, indicator of the issue
-        remoteSystem.eventStream.subscribe(testActor, classOf[ThisActorSystemQuarantinedEvent])
+        withQuarantineEventProbe(remoteSystem) { quarantineProbe =>
+          val remoteEcho = remoteSystem.actorSelection("/user/echo").resolveOne(remainingOrDefault).futureValue
 
-        val remoteEcho = remoteSystem.actorSelection("/user/echo").resolveOne(remainingOrDefault).futureValue
+          val localAddress = RARP(system).provider.getDefaultAddress
 
-        val localAddress = RARP(system).provider.getDefaultAddress
+          val localEchoRef =
+            remoteSystem.actorSelection(RootActorPath(localAddress) / localProbe.ref.path.elements).resolveOne(
+              remainingOrDefault).futureValue
+          remoteEcho.tell("ping", localEchoRef)
+          localProbe.expectMsg("ping")
 
-        val localEchoRef =
-          remoteSystem.actorSelection(RootActorPath(localAddress) / localProbe.ref.path.elements).resolveOne(
-            remainingOrDefault).futureValue
-        remoteEcho.tell("ping", localEchoRef)
-        localProbe.expectMsg("ping")
+          val association = localArtery.association(remoteAddress)
+          val remoteUid = futureUniqueRemoteAddress(association).futureValue.uid
+          localArtery.quarantine(remoteAddress, Some(remoteUid), "HarmlessTest", harmless = true)
+          association.associationState.isQuarantined(remoteUid) shouldBe true
+          association.associationState.quarantinedButHarmless(remoteUid) shouldBe true
 
-        val association = localArtery.association(remoteAddress)
-        val remoteUid = futureUniqueRemoteAddress(association).futureValue.uid
-        localArtery.quarantine(remoteAddress, Some(remoteUid), "HarmlessTest", harmless = true)
-        association.associationState.isQuarantined(remoteUid) shouldBe true
-        association.associationState.quarantinedButHarmless(remoteUid) shouldBe true
-
-        remoteEcho.tell("ping", localEchoRef) // trigger sending message from remote to local, which will trigger local to wrongfully notify remote that it is quarantined
-        eventually {
-          expectNoMessage()
+          remoteEcho.tell("ping", localEchoRef) // trigger sending message from remote to local, which will trigger local to wrongfully notify remote that it is quarantined
+          quarantineProbe.expectNoMessage(1.second.dilated)
         }
     }
 
