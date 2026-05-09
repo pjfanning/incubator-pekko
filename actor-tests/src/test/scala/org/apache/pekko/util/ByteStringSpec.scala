@@ -2424,7 +2424,7 @@ class ByteStringSpec extends AnyWordSpec with Matchers with Checkers {
       // every public read or transform op MUST return the same value. This guards against regressions
       // in the iterator/normalize path (e.g. the LazyList -> List fix on ByteString2.iterator).
       val totalSize = 23 // odd, large enough to exercise short/int/long reads at every fragment boundary
-      val bytes = Array.tabulate[Byte](totalSize)(i => ((i * 31 + 7) & 0xff).toByte)
+      val bytes = Array.tabulate[Byte](totalSize)(i => ((i * 31 + 7) & 0xFF).toByte)
       val reference = ByteString1C(bytes)
 
       // Try every possible non-empty split: bs2 has fragments [0, split) ++ [split, totalSize)
