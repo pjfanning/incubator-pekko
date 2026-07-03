@@ -190,7 +190,7 @@ class ConsistentHashingShardAllocationStrategySpec extends PekkoSpec {
         regionD -> Vector.empty)
       allocationStrategy.rebalance(allocations, Set.empty).futureValue should ===(Set("0", "1"))
       allocationStrategy.rebalance(allocations, Set("0", "1")).futureValue should ===(Set.empty[String])
-      // 10 and 14 are already at right place
+      // 2, 3, 10 and 14 are already at right place
       allocationStrategy.rebalance(allocations, Set("0", "1", "2", "3")).futureValue should ===(Set.empty[String])
     }
 
