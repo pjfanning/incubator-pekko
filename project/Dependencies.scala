@@ -30,7 +30,7 @@ object Dependencies {
   val junit6Version = "6.1.1"
   val slf4jVersion = "2.0.18"
   // also update agrona version when updating aeron:
-  val aeronVersion = "1.51.0"
+  val aeronVersion = "1.52.0"
   // Use the major+minor agrona versions matching aeron at
   // https://github.com/aeron-io/aeron/blob/1.x.y/gradle/libs.versions.toml
   // (remember to also update the scala-steward pin)
@@ -44,7 +44,8 @@ object Dependencies {
 
   val scala213Version = "2.13.18"
   val scala3Version = "3.3.8"
-  val allScalaVersions = Seq(scala213Version, scala3Version)
+  val scala3NextVersion = "3.8.4"
+  val publishedScalaVersions = Seq(scala213Version, scala3Version)
 
   val reactiveStreamsVersion = "1.0.4"
 
@@ -52,7 +53,7 @@ object Dependencies {
   val scalaTestScalaCheckVersion = "1-19"
   val scalaCheckVersion = "1.19.0"
 
-  val Versions = Seq(crossScalaVersions := allScalaVersions, scalaVersion := allScalaVersions.head)
+  val Versions = Seq(crossScalaVersions := publishedScalaVersions, scalaVersion := publishedScalaVersions.head)
 
   object Compile {
     // Compile
@@ -105,7 +106,7 @@ object Dependencies {
       .excludeAll(ExclusionRule(organization = "org.scala-lang"))
     val jacksonCbor3 = "tools.jackson.dataformat" % "jackson-dataformat-cbor" % jacksonVersion3
 
-    val lz4Java = "at.yawk.lz4" % "lz4-java" % "1.11.0"
+    val lz4Java = "at.yawk.lz4" % "lz4-java" % "1.11.1"
 
     val logback = "ch.qos.logback" % "logback-classic" % logbackVersion
 

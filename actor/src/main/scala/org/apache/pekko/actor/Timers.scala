@@ -55,10 +55,9 @@ trait Timers extends Actor {
           case OptionVal.Some(m: AutoReceivedMessage) =>
             context.asInstanceOf[ActorCell].autoReceiveMessage(Envelope(m, self, context.system))
           case OptionVal.Some(m) =>
-            if (this.isInstanceOf[Stash]) {
-              // this is important for stash interaction, as stash will look directly at currentMessage #24557
-              actorCell.currentMessage = actorCell.currentMessage.copy(message = m)
-            }
+            // Keep the cell-wide current message consistent with the message delivered to receive.
+            // Stash and failure handling both read currentMessage directly.
+            actorCell.currentMessage = actorCell.currentMessage.copy(message = m)
             super.aroundReceive(receive, m)
           case _ => // discard
         }

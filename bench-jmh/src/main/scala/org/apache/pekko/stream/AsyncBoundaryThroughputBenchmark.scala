@@ -52,7 +52,7 @@ class AsyncBoundaryThroughputBenchmark {
 
   implicit val system: ActorSystem = ActorSystem("AsyncBoundaryThroughputBenchmark", config)
 
-  @Param(Array("1", "3", "10"))
+  @Param(Array("0", "1", "3", "10"))
   var asyncBoundaries = 0
 
   var source: Source[Int, NotUsed] = _
@@ -92,7 +92,7 @@ class JitSafeCompletionLatchInt extends GraphStageWithMaterializedValue[SinkShap
   val in = Inlet[Int]("JitSafeCompletionLatchInt.in")
   override val shape = SinkShape(in)
 
-  @nowarn("cat=unused-params")
+  @nowarn("msg=never used")
   override def createLogicAndMaterializedValue(inheritedAttributes: Attributes): (GraphStageLogic, CountDownLatch) = {
     val latch = new CountDownLatch(1)
     val logic = new GraphStageLogic(shape) with InHandler {

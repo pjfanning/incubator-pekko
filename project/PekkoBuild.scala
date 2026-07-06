@@ -22,6 +22,7 @@ import sbtwelcome.WelcomePlugin.autoImport._
 
 import java.io.FileInputStream
 import java.io.InputStreamReader
+import java.nio.charset.StandardCharsets
 import java.util.Properties
 
 object PekkoBuild {
@@ -89,6 +90,16 @@ object PekkoBuild {
 
   private def allWarnings: Boolean = System.getProperty("pekko.allwarnings", "false").toBoolean
 
+  private def isScala38OrLater(scalaVersion: String): Boolean =
+    CrossVersion.partialVersion(scalaVersion).exists {
+      case (3, minor) if minor >= 8 => true
+      case _                        => false
+    }
+
+  private def testJavacOptions(scalaVersion: String): Seq[String] =
+    if (isScala38OrLater(scalaVersion)) Seq("-encoding", "UTF-8", "-nowarn", "-Xlint:none")
+    else DefaultJavacOptions
+
   final val DefaultScalacOptions = Def.setting {
     if (scalaVersion.value.startsWith("3.")) {
       Seq(
@@ -97,8 +108,9 @@ object PekkoBuild {
         "-feature",
         "-unchecked",
         // 'blessed' since 2.13.1
-        "-language:higherKinds",
-        "-Yfuture-lazy-vals")
+        "-language:higherKinds") ++
+      (if (isScala38OrLater(scalaVersion.value)) Seq("-Wconf:any:s") else Seq.empty) ++
+      (if (scalaVersion.value.startsWith("3.3.")) Seq("-Yfuture-lazy-vals") else Seq.empty)
     } else {
       Seq(
         "-encoding",
@@ -127,7 +139,7 @@ object PekkoBuild {
     Test / scalacOptions := (Test / scalacOptions).value.filterNot(opt =>
       opt == "-Xlog-reflective-calls" || opt.contains("genjavadoc")),
     Compile / javacOptions ++= JdkOptions.targetJdkJavacOptions,
-    Test / javacOptions ++= DefaultJavacOptions ++ JdkOptions.targetJdkJavacOptions,
+    Test / javacOptions ++= testJavacOptions(scalaVersion.value) ++ JdkOptions.targetJdkJavacOptions,
     Compile / javacOptions ++= (if (allWarnings) Seq("-Xlint:deprecation") else Nil),
     doc / javacOptions := Seq(),
     crossVersion := CrossVersion.binary,
@@ -311,7 +323,7 @@ object PekkoBuild {
     val file = new File(fileName)
     if (file.exists()) {
       println("Loading system properties from file `" + fileName + "`")
-      val in = new InputStreamReader(new FileInputStream(file), "UTF-8")
+      val in = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)
       val props = new Properties
       props.load(in)
       in.close()
